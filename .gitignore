@@ -1,0 +1,17 @@
+# Django
+*.pyc
+__pycache__/
+db.sqlite3
+.env
+
+# Next.js
+.next/
+out/
+node_modules/
+
+# Vercel
+.vercel
+
+# General
+.DS_Store
+.env.local
