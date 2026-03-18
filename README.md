@@ -1,29 +1,32 @@
+# 🌱 Raíz Viva OS
 
-## Frontend (Next.js) - Patrón **MVVM**
+Proyecto académico - Universidad del Valle
 
-Usaremos el patrón **MVVM** (Model - View - ViewModel). Es muy sencillo y moderno:
+---
 
-- **Model** → Los datos (lo que viene del backend) - **View** → Lo que ve el usuario (las pantallas, componentes) - **ViewModel** → La lógica intermedia (conecta el Model con la View)
+## Ramas del proyecto
 
-**Cómo trabajar en frontend:** 1. Entra a la carpeta `apps/frontend` 2. Crea o modifica componentes en la carpeta `app/` o `components/` 3. Usa **ViewModels** (hooks o archivos separados) para manejar la lógica
+- produccion → Rama principal (deploy a Vercel producción)
+- desarrollo → Integración de todas las células
+- pruebas → Testing y QA
+- local / feature/* → Trabajo individual
 
-**Ejemplo simple:** - `View` = Página de login - `ViewModel` = Lógica de validación y llamada al backend - `Model` = Datos del usuario
+*Flujo recomendado:*  
+feature/celula x → desarrollo → pruebas → produccion
 
+---
 
+## ⚠️ Importante sobre el deploy
 
-## 🛠️ Backend (Django) - Patrón **Multicapa**
+Por ahora *NO usaremos GitHub Actions compartidos* (porque eso haría que todo se despliegue solo en la cuenta de Felipe).
 
-Usaremos el patrón **Multicapa** (también llamado Repository + Service):
+Cada uno debe conectar el repositorio a su propia cuenta de Vercel (es muy fácil):
 
-- **Model** → Modelos de Django (tablas de la base de datos) - **Repository** → Clase que se encarga solo de consultar/guardar en la BD - **Service** → Lógica de negocio (reglas del proyecto) - **Controller** → Vistas de Django (las que responden al frontend)
+1. Crea tu cuenta en https://vercel.com  
+2. *New Project* → *Import Git Repository* → raiz-viva-os  
+3. *Frontend:* Root Directory = apps/frontend  
+4. *Backend:* Root Directory = apps/backend  
 
-**Cómo trabajar en backend:** 1. Entra a la carpeta `apps/backend` 2. Crea tus apps con: `python manage.py startapp nombre_app` 3. Organiza cada app así:    - `models.py` → Model    - `repository.py` → Repository    - `services.py` → Service    - `views.py` → Controller
+Así cada uno tendrá su propio entorno y previews personales.
 
-
-
-## Cómo empezar a trabajar
-
-1. Clona el repositorio 2. Cambia a la rama `desarrollo` y actualiza (git checkout desarrollo  -  git pull) 3. Trabaja en tu rama personal (`git checkout -b feature/c1-actores` por ejemplo) 4. Sube tu rama (git push) y se hace Pull Request hacia `desarrollo`
-
-**Reglas importantes:** - Nunca hagas push directo a `produccion` - Siempre haz commit con mensajes claros (`feat:`, `fix:`, `refactor:`)
-
+Más adelante, cuando el proyecto esté más avanzado, podemos configurar CI/CD compartido.
