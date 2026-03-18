@@ -16,14 +16,23 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path
-from rest_framework_simplejwt.views import (
-    TokenObtainPairView,
-    TokenRefreshView,
-)
+from django.http import JsonResponse
+from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
+
+# Vista simple para la raíz
+def home(request):
+    return JsonResponse({
+        "status": "ok",
+        "message": "Backend Raíz Viva OS está corriendo correctamente 🚀"
+    })
 
 urlpatterns = [
     path('admin/', admin.site.urls),
+    
+    # Rutas JWT
     path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
-    # En este apartado van a ir las rutas de las celulas C1,C2,C3,...
+    
+    # Ruta raíz (esto soluciona el 404)
+    path('', home, name='home'),
 ]
