@@ -41,6 +41,7 @@ INSTALLED_APPS = [
     'storages',
     'rest_framework',
     'rest_framework_simplejwt',
+    'usuarios',
 ]
 
 MIDDLEWARE = [
@@ -157,3 +158,12 @@ SIMPLE_JWT = {
     'BLACKLIST_AFTER_ROTATION': True,
     'AUTH_HEADER_TYPES': ('Bearer',),
 }
+
+# Email Configuration (Console backend - emails printed to terminal)
+EMAIL_BACKEND = 'django.core.mail.backends.console.EmailBackend'
+EMAIL_HOST = 'smtp.gmail.com'
+EMAIL_PORT = 587
+EMAIL_USE_TLS = True
+EMAIL_HOST_USER = ''
+EMAIL_HOST_PASSWORD = ''
+DEFAULT_FROM_EMAIL = 'noreply@raizviva.com'
