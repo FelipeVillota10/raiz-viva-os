@@ -9,6 +9,20 @@ import Image from 'next/image';
 import { HeaderSecundario } from '../components/HeaderSecundario';
 import { Footer } from '../components/Footer';
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+const API_URL_LOCAL = 'http://192.168.40.74:8000';
+
+const getApiUrl = () => {
+  if (typeof window !== 'undefined') {
+    const hostname = window.location.hostname;
+    if (hostname === 'localhost' || hostname === '127.0.0.1') {
+      return API_URL;
+    }
+    return API_URL_LOCAL;
+  }
+  return API_URL;
+};
+
 export default function LoginPage() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
@@ -26,7 +40,8 @@ export default function LoginPage() {
     setError(null);
 
     try {
-      const response = await fetch('http://localhost:8000/api/token/', {
+      const apiUrl = getApiUrl();
+      const response = await fetch(`${apiUrl}/api/token/`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ username: formData.email, password: formData.password }),

@@ -8,6 +8,20 @@ import { UserIcon, MailIcon, LockIcon, PhoneIcon } from '../../components/ui/Ico
 import { HeaderSecundario } from '../../components/HeaderSecundario';
 import { Footer } from '../../components/Footer';
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+const API_URL_LOCAL = 'http://192.168.40.74:8000';
+
+const getApiUrl = () => {
+  if (typeof window !== 'undefined') {
+    const hostname = window.location.hostname;
+    if (hostname === 'localhost' || hostname === '127.0.0.1') {
+      return API_URL;
+    }
+    return API_URL_LOCAL;
+  }
+  return API_URL;
+};
+
 interface FormData {
   nombre_completo: string;
   email: string;
@@ -129,10 +143,13 @@ export default function ActorTerritorialPage() {
 
     try {
       const rolesIds = [1, 2, 3, 4, 5];
-      const response = await fetch('http://localhost:8000/api/registro/actor-territorial/', {
+      const apiUrl = getApiUrl();
+      const payload = { ...formData, roles: rolesIds };
+      console.log('Datos enviados:', payload);
+      const response = await fetch(`${apiUrl}/api/registro/actor-territorial/`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ ...formData, roles: rolesIds }),
+        body: JSON.stringify(payload),
       });
 
       const data = await response.json();
@@ -140,6 +157,7 @@ export default function ActorTerritorialPage() {
       if (response.ok) {
         router.push('/registro/confirmacion');
       } else {
+        console.error('Respuesta completa del backend:', data);
         if (data.errores) {
           const backendErrors: FormErrors = {};
           Object.entries(data.errores).forEach(([field, messages]) => {
@@ -148,6 +166,7 @@ export default function ActorTerritorialPage() {
           setErrors(backendErrors);
         }
         if (data.error) setGeneralError(data.error);
+        if (data.detail) setGeneralError(data.detail);
       }
     } catch (error) {
       setGeneralError('Error de conexión. Asegúrate de que el backend esté corriendo.');
