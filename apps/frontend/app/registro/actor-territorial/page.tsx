@@ -4,18 +4,18 @@ import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '../../components/ui/Button';
 import { Input, Select, Textarea } from '../../components/ui/Input';
-import { ArrowLeftIcon, UserIcon, MailIcon, LockIcon, PhoneIcon, CalendarIcon } from '../../components/ui/Icons';
+import { UserIcon, MailIcon, LockIcon, PhoneIcon } from '../../components/ui/Icons';
+import { HeaderSecundario } from '../../components/HeaderSecundario';
+import { Footer } from '../../components/Footer';
 
 interface FormData {
   nombre_completo: string;
   email: string;
   password: string;
-  nivel_formacion: string;
   servicios: string;
   sector: string;
   moneda: string;
   telefono: string;
-  fecha_nacimiento: string;
 }
 
 interface FormErrors {
@@ -29,32 +29,16 @@ export default function ActorTerritorialPage() {
     nombre_completo: '',
     email: '',
     password: '',
-    nivel_formacion: '',
     servicios: '',
-    sector: '',
+    sector: 'ejemplo',
     moneda: 'COP',
     telefono: '',
-    fecha_nacimiento: '',
   });
   const [errors, setErrors] = useState<FormErrors>({});
   const [generalError, setGeneralError] = useState<string | null>(null);
 
-  const nivelFormacionOptions = [
-    { value: 'basica', label: 'Básica' },
-    { value: 'media', label: 'Media' },
-    { value: 'tecnica', label: 'Técnica' },
-    { value: 'universitaria', label: 'Universitaria' },
-    { value: 'posgrado', label: 'Posgrado' },
-  ];
-
   const sectorOptions = [
-    { value: 'agro', label: 'Agro' },
-    { value: 'turismo', label: 'Turismo' },
-    { value: 'artesanias', label: 'Artesanías' },
-    { value: 'gastronomia', label: 'Gastronomía' },
-    { value: 'transporte', label: 'Transporte' },
-    { value: 'educacion', label: 'Educación' },
-    { value: 'otro', label: 'Otro' },
+    { value: 'ejemplo', label: 'Ejemplo' },
   ];
 
   const monedaOptions = [
@@ -83,9 +67,6 @@ export default function ActorTerritorialPage() {
         const digitsOnly = value.replace(/\D/g, '');
         if (digitsOnly.length < 7 || digitsOnly.length > 15) return 'El teléfono debe tener entre 7 y 15 dígitos.';
         if (!/^\d+$/.test(digitsOnly)) return 'El teléfono solo puede contener números.';
-        return null;
-      case 'nivel_formacion':
-        if (!value) return 'Seleccione un nivel de formación.';
         return null;
       case 'sector':
         if (!value) return 'Seleccione un sector.';
@@ -133,7 +114,7 @@ export default function ActorTerritorialPage() {
 
     const newErrors: FormErrors = {};
     (Object.keys(formData) as Array<keyof FormData>).forEach(key => {
-      if (key !== 'fecha_nacimiento' && key !== 'servicios') {
+      if (key !== 'servicios') {
         const error = validateField(key, formData[key]);
         if (error) newErrors[key] = error;
       }
@@ -176,15 +157,10 @@ export default function ActorTerritorialPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#F4F1EA]">
-      <header className="flex items-center gap-4 px-6 py-4 bg-[#EFF7EA] border-b border-[#E6D3A3]">
-        <button onClick={() => router.push('/registro')} className="p-2 rounded-lg hover:bg-[#E6D3A3] transition-colors">
-          <ArrowLeftIcon className="text-[#231F20]" />
-        </button>
-        <h1 className="text-xl font-semibold text-[#231F20]">Registro Actor Territorial</h1>
-      </header>
+    <div className="flex flex-col min-h-screen bg-[#F4F1EA]">
+      <HeaderSecundario backRoute="/registro" title="Registro Actor Territorial" />
 
-      <main className="max-w-3xl mx-auto px-4 py-8">
+      <main className="flex-1 max-w-3xl mx-auto px-4 py-8 w-full">
         <h2 className="text-2xl font-semibold text-[#231F20] mb-2 text-center">
           Registro del Actor Territorial
         </h2>
@@ -202,13 +178,8 @@ export default function ActorTerritorialPage() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <Select label="Nivel de Formación" name="nivel_formacion" value={formData.nivel_formacion} onChange={handleChange} onBlur={handleBlur} error={errors.nivel_formacion} options={nivelFormacionOptions} />
             <Select label="Sector" name="sector" value={formData.sector} onChange={handleChange} onBlur={handleBlur} error={errors.sector} options={sectorOptions} />
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <Select label="Moneda de Preferencia" name="moneda" value={formData.moneda} onChange={handleChange} onBlur={handleBlur} error={errors.moneda} options={monedaOptions} />
-            <Input label="Fecha de Nacimiento" name="fecha_nacimiento" type="date" value={formData.fecha_nacimiento} onChange={handleChange} icon={<CalendarIcon size={20} />} />
           </div>
 
           <Textarea label="Servicios / Detalle de productos (opcional)" name="servicios" value={formData.servicios} onChange={handleChange} placeholder="Describa los productos o servicios que ofrece..." rows={4} />
@@ -226,6 +197,8 @@ export default function ActorTerritorialPage() {
           </div>
         </form>
       </main>
+
+      <Footer />
     </div>
   );
 }

@@ -19,22 +19,8 @@ class Role(models.Model):
 
 
 class ActorTerritorial(models.Model):
-    NIVEL_FORMACION_CHOICES = [
-        ('basica', 'Básica'),
-        ('media', 'Media'),
-        ('tecnica', 'Técnica'),
-        ('universitaria', 'Universitaria'),
-        ('posgrado', 'Posgrado'),
-    ]
-
     SECTOR_CHOICES = [
-        ('agro', 'Agro'),
-        ('turismo', 'Turismo'),
-        ('artesanias', 'Artesanías'),
-        ('gastronomia', 'Gastronomía'),
-        ('transporte', 'Transporte'),
-        ('educacion', 'Educación'),
-        ('otro', 'Otro'),
+        ('ejemplo', 'Ejemplo'),
     ]
 
     MONEDA_CHOICES = [
@@ -44,12 +30,10 @@ class ActorTerritorial(models.Model):
     ]
 
     usuario = models.OneToOneField(User, on_delete=models.CASCADE, related_name='actor_territorial')
-    nivel_formacion = models.CharField(max_length=20, choices=NIVEL_FORMACION_CHOICES)
     servicios = models.TextField(blank=True)
-    sector = models.CharField(max_length=20, choices=SECTOR_CHOICES)
+    sector = models.CharField(max_length=20, choices=SECTOR_CHOICES, default='ejemplo')
     moneda = models.CharField(max_length=10, choices=MONEDA_CHOICES, default='COP')
     telefono = models.CharField(max_length=20)
-    fecha_nacimiento = models.DateField(null=True, blank=True)
     roles = models.ManyToManyField(Role, through='ActorRol', related_name='actores')
     fecha_registro = models.DateTimeField(default=timezone.now)
 

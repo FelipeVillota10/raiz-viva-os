@@ -16,12 +16,10 @@ class RegistroActorTerritorialSerializer(serializers.Serializer):
     nombre_completo = serializers.CharField(min_length=5, max_length=100)
     email = serializers.EmailField()
     password = serializers.CharField(min_length=8, write_only=True)
-    nivel_formacion = serializers.ChoiceField(choices=ActorTerritorial.NIVEL_FORMACION_CHOICES)
     servicios = serializers.CharField(max_length=500, required=False, allow_blank=True)
-    sector = serializers.ChoiceField(choices=ActorTerritorial.SECTOR_CHOICES)
+    sector = serializers.ChoiceField(choices=[('ejemplo', 'Ejemplo')], default='ejemplo')
     moneda = serializers.ChoiceField(choices=ActorTerritorial.MONEDA_CHOICES, default='COP')
     telefono = serializers.CharField(min_length=7, max_length=20)
-    fecha_nacimiento = serializers.DateField(required=False, allow_null=True)
     roles = serializers.ListField(child=serializers.IntegerField(), min_length=1)
 
     def validate_nombre_completo(self, value):
@@ -89,12 +87,10 @@ class RegistroActorTerritorialSerializer(serializers.Serializer):
 
         actor = ActorTerritorial.objects.create(
             usuario=user,
-            nivel_formacion=validated_data['nivel_formacion'],
             servicios=validated_data.get('servicios', ''),
-            sector=validated_data['sector'],
+            sector=validated_data.get('sector', 'ejemplo'),
             moneda=validated_data.get('moneda', 'COP'),
-            telefono=validated_data['telefono'],
-            fecha_nacimiento=validated_data.get('fecha_nacimiento')
+            telefono=validated_data['telefono']
         )
 
         for rol_id in roles_ids:
@@ -115,8 +111,8 @@ class ActorTerritorialSerializer(serializers.ModelSerializer):
         model = ActorTerritorial
         fields = [
             'id', 'usuario_username', 'usuario_email', 'usuario_nombre',
-            'nivel_formacion', 'servicios', 'sector', 'moneda',
-            'telefono', 'fecha_nacimiento', 'roles', 'fecha_registro'
+            'servicios', 'sector', 'moneda',
+            'telefono', 'roles', 'fecha_registro'
         ]
 
     def get_usuario_nombre(self, obj):

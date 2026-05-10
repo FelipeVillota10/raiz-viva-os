@@ -4,8 +4,10 @@ import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '../components/ui/Button';
 import { Input } from '../components/ui/Input';
-import { MailIcon, LockIcon, ArrowLeftIcon } from '../components/ui/Icons';
+import { MailIcon, LockIcon } from '../components/ui/Icons';
 import Image from 'next/image';
+import { HeaderSecundario } from '../components/HeaderSecundario';
+import { Footer } from '../components/Footer';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -47,16 +49,11 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#F4F1EA]">
-      <header className="flex items-center gap-4 px-6 py-4 bg-[#EFF7EA] border-b border-[#E6D3A3]">
-        <button onClick={() => router.push('/')} className="p-2 rounded-lg hover:bg-[#E6D3A3] transition-colors">
-          <ArrowLeftIcon className="text-[#231F20]" />
-        </button>
-        <h1 className="text-xl font-semibold text-[#231F20]">Iniciar Sesión</h1>
-      </header>
+    <div className="flex flex-col min-h-screen bg-[#F4F1EA]">
+      <HeaderSecundario backRoute="/" title="Iniciar Sesión" />
 
-      <main className="max-w-md mx-auto px-4 py-12">
-        <div className="bg-white rounded-2xl shadow-lg p-8 border border-[#E6D3A3]">
+      <main className="flex-1 flex items-center justify-center px-4 py-12">
+        <div className="bg-white rounded-2xl shadow-lg p-8 border border-[#E6D3A3] w-full max-w-md">
           <div className="text-center mb-8">
             <div className="w-20 h-20 mx-auto mb-4 bg-[#EFF7EA] rounded-full flex items-center justify-center">
               <Image src="/raiz_header.png" alt="Logo de Raiz Viva" width={60} height={60} className="object-contain" />
@@ -87,6 +84,8 @@ export default function LoginPage() {
           </div>
         </div>
       </main>
+
+      <Footer />
     </div>
   );
 }

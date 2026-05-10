@@ -4,7 +4,7 @@ import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from './ui/Button';
 import { Card } from './ui/Card';
-import { getRoleIcon, ArrowLeftIcon } from './ui/Icons';
+import { getRoleIcon } from './ui/Icons';
 
 interface Role {
   id: number;
@@ -83,72 +83,63 @@ export function RoleSelector({ selectedRoles, onRoleToggle }: RoleSelectorProps)
   };
 
   return (
-    <div className="min-h-screen bg-[#F4F1EA]">
-      <header className="flex items-center gap-4 px-6 py-4 bg-[#EFF7EA] border-b border-[#E6D3A3]">
-        <button onClick={() => router.push('/')} className="p-2 rounded-lg hover:bg-[#E6D3A3] transition-colors">
-          <ArrowLeftIcon className="text-[#231F20]" />
-        </button>
-        <h1 className="text-xl font-semibold text-[#231F20]">Registro</h1>
-      </header>
+    <main className="max-w-4xl mx-auto px-4 py-8">
+      <div className="text-center mb-8">
+        <h2 className="text-2xl font-semibold text-[#231F20] mb-2">¿Me identifico como?</h2>
+        <p className="text-[#353535]">Selecciona tu rol en el ecosistema Raíz Viva</p>
+      </div>
 
-      <main className="max-w-4xl mx-auto px-4 py-8">
-        <div className="text-center mb-8">
-          <h2 className="text-2xl font-semibold text-[#231F20] mb-2">¿Me identifico como?</h2>
-          <p className="text-[#353535]">Selecciona tu rol en el ecosistema Raíz Viva</p>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
-          {roles.map((role) => {
-            const isSelected = selectedRoles.includes(role.id);
-            return (
-              <Card
-                key={role.id}
-                onClick={() => handleRoleClick(role)}
-                selected={isSelected}
-                className="flex flex-col items-center text-center p-6"
-              >
-                <div className={`w-16 h-16 rounded-full flex items-center justify-center mb-4 ${isSelected ? 'bg-[#3E853F] text-white' : 'bg-[#EFF7EA] text-[#3E853F]'}`}>
-                  {getRoleIcon(role.nombre, '', 32)}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
+        {roles.map((role) => {
+          const isSelected = selectedRoles.includes(role.id);
+          return (
+            <Card
+              key={role.id}
+              onClick={() => handleRoleClick(role)}
+              selected={isSelected}
+              className="flex flex-col items-center text-center p-6"
+            >
+              <div className={`w-16 h-16 rounded-full flex items-center justify-center mb-4 ${isSelected ? 'bg-[#3E853F] text-white' : 'bg-[#EFF7EA] text-[#3E853F]'}`}>
+                {getRoleIcon(role.nombre, '', 32)}
+              </div>
+              <h3 className="font-semibold text-[#231F20] mb-2">{roleNames[role.nombre]}</h3>
+              <p className="text-sm text-[#353535]">{role.descripcion}</p>
+              {isSelected && (
+                <div className="absolute top-3 right-3 w-6 h-6 bg-[#3E853F] rounded-full flex items-center justify-center">
+                  <svg className="w-4 h-4 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
+                    <polyline points="20 6 9 17 4 12" />
+                  </svg>
                 </div>
-                <h3 className="font-semibold text-[#231F20] mb-2">{roleNames[role.nombre]}</h3>
-                <p className="text-sm text-[#353535]">{role.descripcion}</p>
-                {isSelected && (
-                  <div className="absolute top-3 right-3 w-6 h-6 bg-[#3E853F] rounded-full flex items-center justify-center">
-                    <svg className="w-4 h-4 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
-                      <polyline points="20 6 9 17 4 12" />
-                    </svg>
-                  </div>
-                )}
-              </Card>
-            );
-          })}
+              )}
+            </Card>
+          );
+        })}
+      </div>
+
+      <Card
+        onClick={() => handleRoleClick(turistaRole)}
+        selected={isTuristaSelected}
+        className="flex flex-col items-center text-center p-6 mb-8 bg-[#E6D3A3]/30 border-[#8F9F81]"
+      >
+        <div className={`w-16 h-16 rounded-full flex items-center justify-center mb-4 ${isTuristaSelected ? 'bg-[#3E853F] text-white' : 'bg-[#E6D3A3] text-[#3E853F]'}`}>
+          {getRoleIcon('turista', '', 32)}
         </div>
+        <h3 className="font-semibold text-[#231F20] mb-2">Turista</h3>
+        <p className="text-sm text-[#353535]">Visitante de experiencias</p>
+      </Card>
 
-        <Card
-          onClick={() => handleRoleClick(turistaRole)}
-          selected={isTuristaSelected}
-          className="flex flex-col items-center text-center p-6 mb-8 bg-[#E6D3A3]/30 border-[#8F9F81]"
-        >
-          <div className={`w-16 h-16 rounded-full flex items-center justify-center mb-4 ${isTuristaSelected ? 'bg-[#3E853F] text-white' : 'bg-[#E6D3A3] text-[#3E853F]'}`}>
-            {getRoleIcon('turista', '', 32)}
-          </div>
-          <h3 className="font-semibold text-[#231F20] mb-2">Turista</h3>
-          <p className="text-sm text-[#353535]">Visitante de experiencias</p>
-        </Card>
-
-        {error && (
-          <div className="mb-6 p-4 bg-[#E53935]/10 border border-[#E53935] rounded-xl text-center">
-            <p className="text-[#E53935] font-medium">{error}</p>
-          </div>
-        )}
-
-        <div className="flex justify-center">
-          <Button onClick={handleContinue} disabled={!canContinue} size="lg" className="px-12">
-            Continuar
-          </Button>
+      {error && (
+        <div className="mb-6 p-4 bg-[#E53935]/10 border border-[#E53935] rounded-xl text-center">
+          <p className="text-[#E53935] font-medium">{error}</p>
         </div>
-      </main>
-    </div>
+      )}
+
+      <div className="flex justify-center">
+        <Button onClick={handleContinue} disabled={!canContinue} size="lg" className="px-12">
+          Continuar
+        </Button>
+      </div>
+    </main>
   );
 }
 

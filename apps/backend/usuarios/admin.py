@@ -16,8 +16,8 @@ class ActorRolInline(admin.TabularInline):
 
 @admin.register(ActorTerritorial)
 class ActorTerritorialAdmin(admin.ModelAdmin):
-    list_display = ('usuario', 'nivel_formacion', 'sector', 'telefono', 'fecha_registro')
-    list_filter = ('nivel_formacion', 'sector', 'fecha_registro')
+    list_display = ('usuario', 'sector', 'moneda', 'telefono', 'fecha_registro')
+    list_filter = ('sector', 'moneda', 'fecha_registro')
     search_fields = ('usuario__username', 'usuario__email', 'usuario__first_name', 'telefono')
     inlines = [ActorRolInline]
 
