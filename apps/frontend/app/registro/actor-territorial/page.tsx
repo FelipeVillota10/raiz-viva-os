@@ -26,9 +26,9 @@ interface FormData {
   nombre_completo: string;
   email: string;
   password: string;
-  servicios: string;
-  sector: string;
-  moneda: string;
+  servicio: string;
+  id_territorio: string;
+  id_tipo_moneda: string;
   telefono: string;
 }
 
@@ -36,29 +36,31 @@ interface FormErrors {
   [key: string]: string;
 }
 
-export default function ActorTerritorialPage() {
+export default function ClientePage() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState<FormData>({
     nombre_completo: '',
     email: '',
     password: '',
-    servicios: '',
-    sector: 'ejemplo',
-    moneda: 'COP',
+    servicio: '',
+    id_territorio: '',
+    id_tipo_moneda: '',
     telefono: '',
   });
   const [errors, setErrors] = useState<FormErrors>({});
   const [generalError, setGeneralError] = useState<string | null>(null);
 
-  const sectorOptions = [
-    { value: 'ejemplo', label: 'Ejemplo' },
+  const territorioOptions = [
+    { value: '', label: 'Seleccione un territorio' },
+    { value: '1', label: 'Ejemplo' },
   ];
 
   const monedaOptions = [
-    { value: 'COP', label: 'Peso Colombiano (COP)' },
-    { value: 'USD', label: 'Dólar Americano (USD)' },
-    { value: 'EUR', label: 'Euro (EUR)' },
+    { value: '', label: 'Seleccione una moneda' },
+    { value: '1', label: 'Peso Colombiano (COP)' },
+    { value: '2', label: 'Euro (EUR)' },
+    { value: '3', label: 'Dólar Americano (USD)' },
   ];
 
   const validateField = (name: string, value: string): string | null => {
@@ -82,10 +84,10 @@ export default function ActorTerritorialPage() {
         if (digitsOnly.length < 7 || digitsOnly.length > 15) return 'El teléfono debe tener entre 7 y 15 dígitos.';
         if (!/^\d+$/.test(digitsOnly)) return 'El teléfono solo puede contener números.';
         return null;
-      case 'sector':
-        if (!value) return 'Seleccione un sector.';
+      case 'id_territorio':
+        if (!value) return 'Seleccione un territorio.';
         return null;
-      case 'moneda':
+      case 'id_tipo_moneda':
         if (!value) return 'Seleccione una moneda.';
         return null;
       default:
@@ -128,7 +130,7 @@ export default function ActorTerritorialPage() {
 
     const newErrors: FormErrors = {};
     (Object.keys(formData) as Array<keyof FormData>).forEach(key => {
-      if (key !== 'servicios') {
+      if (key !== 'servicio') {
         const error = validateField(key, formData[key]);
         if (error) newErrors[key] = error;
       }
@@ -142,11 +144,23 @@ export default function ActorTerritorialPage() {
     setIsLoading(true);
 
     try {
-      const rolesIds = [1, 2, 3, 4, 5];
+      const tiposActoresIds = [1, 2, 3, 4, 5];
       const apiUrl = getApiUrl();
-      const payload = { ...formData, roles: rolesIds };
+      const payload = {
+        nombre_completo: formData.nombre_completo,
+        email: formData.email,
+        password: formData.password,
+        servicio: formData.servicio,
+        id_territorio: formData.id_territorio ? parseInt(formData.id_territorio) : null,
+        id_tipo_moneda: formData.id_tipo_moneda ? parseInt(formData.id_tipo_moneda) : null,
+        telefono: formData.telefono,
+        tipos_actores: tiposActoresIds,
+        es_actor: true,
+        es_lider: false,
+        es_turista: false,
+      };
       console.log('Datos enviados:', payload);
-      const response = await fetch(`${apiUrl}/api/registro/actor-territorial/`, {
+      const response = await fetch(`${apiUrl}/api/registro/cliente/`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
@@ -197,11 +211,11 @@ export default function ActorTerritorialPage() {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <Select label="Sector" name="sector" value={formData.sector} onChange={handleChange} onBlur={handleBlur} error={errors.sector} options={sectorOptions} />
-            <Select label="Moneda de Preferencia" name="moneda" value={formData.moneda} onChange={handleChange} onBlur={handleBlur} error={errors.moneda} options={monedaOptions} />
+            <Select label="Territorio" name="id_territorio" value={formData.id_territorio} onChange={handleChange} onBlur={handleBlur} error={errors.id_territorio} options={territorioOptions} />
+            <Select label="Moneda de Preferencia" name="id_tipo_moneda" value={formData.id_tipo_moneda} onChange={handleChange} onBlur={handleBlur} error={errors.id_tipo_moneda} options={monedaOptions} />
           </div>
 
-          <Textarea label="Servicios / Detalle de productos (opcional)" name="servicios" value={formData.servicios} onChange={handleChange} placeholder="Describa los productos o servicios que ofrece..." rows={4} />
+          <Textarea label="Servicios / Detalle de productos (opcional)" name="servicio" value={formData.servicio} onChange={handleChange} placeholder="Describa los productos o servicios que ofrece..." rows={4} />
 
           {generalError && (
             <div className="p-4 bg-[#E53935]/10 border border-[#E53935] rounded-xl text-center">

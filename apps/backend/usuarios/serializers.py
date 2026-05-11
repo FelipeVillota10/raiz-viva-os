@@ -2,25 +2,64 @@ import re
 from rest_framework import serializers
 from django.contrib.auth.models import User
 from django.core.exceptions import ValidationError
-from django.core.validators import validate_email
-from .models import Role, ActorTerritorial, SolicitudRegistro
+from django.utils import timezone
+from .models import Moneda, Territorio, TiposActores, Cliente, ClienteTiposActores, Aprobaciones
 
 
-class RoleSerializer(serializers.ModelSerializer):
+class MonedaSerializer(serializers.ModelSerializer):
     class Meta:
-        model = Role
-        fields = ['id', 'nombre', 'icono', 'descripcion', 'es_turista']
+        model = Moneda
+        fields = ['id', 'nombre', 'simbolo']
 
 
-class RegistroActorTerritorialSerializer(serializers.Serializer):
+class TerritorioSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Territorio
+        fields = ['id', 'nombre_territorio', 'region']
+
+
+class TiposActoresSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = TiposActores
+        fields = ['id', 'nombre_tipo']
+
+
+class ClienteSerializer(serializers.ModelSerializer):
+    usuario_username = serializers.CharField(source='id_usuario.username', read_only=True)
+    usuario_email = serializers.EmailField(source='id_usuario.email', read_only=True)
+    usuario_nombre = serializers.SerializerMethodField()
+    tipos_actores = serializers.SerializerMethodField()
+    territorio_nombre = serializers.CharField(source='id_territorio.nombre_territorio', read_only=True, allow_null=True)
+    moneda_nombre = serializers.CharField(source='id_tipo_moneda.nombre', read_only=True, allow_null=True)
+
+    class Meta:
+        model = Cliente
+        fields = [
+            'id', 'usuario_username', 'usuario_email', 'usuario_nombre',
+            'servicio', 'reputacion', 'es_actor', 'es_lider', 'es_turista',
+            'territorio_nombre', 'moneda_nombre', 'tipos_actores'
+        ]
+
+    def get_usuario_nombre(self, obj):
+        return f"{obj.id_usuario.first_name} {obj.id_usuario.last_name}".strip() or obj.id_usuario.username
+
+    def get_tipos_actores(self, obj):
+        return [{'id': ct.id_tipo.id, 'nombre_tipo': ct.id_tipo.nombre_tipo}
+                for ct in obj.tipos_actores.all()]
+
+
+class RegistroClienteSerializer(serializers.Serializer):
     nombre_completo = serializers.CharField(min_length=5, max_length=100)
     email = serializers.EmailField()
     password = serializers.CharField(min_length=8, write_only=True)
-    servicios = serializers.CharField(max_length=500, required=False, allow_blank=True)
-    sector = serializers.ChoiceField(choices=[('ejemplo', 'Ejemplo')], default='ejemplo')
-    moneda = serializers.ChoiceField(choices=ActorTerritorial.MONEDA_CHOICES, default='COP')
+    servicio = serializers.CharField(max_length=500, required=False, allow_blank=True)
+    id_territorio = serializers.IntegerField(required=False, allow_null=True)
+    id_tipo_moneda = serializers.IntegerField(required=False, allow_null=True)
     telefono = serializers.CharField(min_length=7, max_length=20)
-    roles = serializers.ListField(child=serializers.IntegerField(), min_length=1)
+    tipos_actores = serializers.ListField(child=serializers.IntegerField(), min_length=1)
+    es_actor = serializers.BooleanField(default=True)
+    es_lider = serializers.BooleanField(default=False)
+    es_turista = serializers.BooleanField(default=False)
 
     def validate_nombre_completo(self, value):
         if any(char.isdigit() for char in value):
@@ -45,15 +84,15 @@ class RegistroActorTerritorialSerializer(serializers.Serializer):
             raise ValidationError("El teléfono solo puede contener números.")
         return value
 
-    def validate_roles(self, value):
+    def validate_tipos_actores(self, value):
         if not value:
             raise ValidationError("Debe seleccionar al menos un rol.")
-        turista_selected = Role.objects.filter(id__in=value, es_turista=True).exists()
-        otros_roles_selected = Role.objects.filter(id__in=value, es_turista=False).exists()
+        turista_selected = TiposActores.objects.filter(id__in=value, nombre_tipo='turista').exists()
+        otros_roles_selected = TiposActores.objects.filter(id__in=value).exclude(nombre_tipo='turista').exists()
         if turista_selected and otros_roles_selected:
             raise ValidationError("El turista solo puede seleccionar el rol de turista.")
-        roles_validos = Role.objects.filter(id__in=value)
-        if roles_validos.count() != len(value):
+        tipos_validos = TiposActores.objects.filter(id__in=value)
+        if tipos_validos.count() != len(value):
             raise ValidationError("Uno o más roles seleccionados no son válidos.")
         return value
 
@@ -64,8 +103,17 @@ class RegistroActorTerritorialSerializer(serializers.Serializer):
             raise ValidationError("Este correo ya está siendo usado como nombre de usuario.")
         return value
 
+    def validate(self, attrs):
+        es_actor = attrs.get('es_actor', False)
+        es_lider = attrs.get('es_lider', False)
+        es_turista = attrs.get('es_turista', False)
+        count_true = sum([es_actor, es_lider, es_turista])
+        if count_true > 1:
+            raise ValidationError("Solo un tipo de cliente puede ser verdadero (actor, líder o turista).")
+        return attrs
+
     def create(self, validated_data):
-        roles_ids = validated_data.pop('roles')
+        tipos_ids = validated_data.pop('tipos_actores')
         nombre_completo = validated_data.pop('nombre_completo')
         partes_nombre = nombre_completo.split(' ', 1)
         first_name = partes_nombre[0]
@@ -85,44 +133,47 @@ class RegistroActorTerritorialSerializer(serializers.Serializer):
             last_name=last_name
         )
 
-        actor = ActorTerritorial.objects.create(
-            usuario=user,
-            servicios=validated_data.get('servicios', ''),
-            sector=validated_data.get('sector', 'ejemplo'),
-            moneda=validated_data.get('moneda', 'COP'),
-            telefono=validated_data['telefono']
+        territorio = None
+        if validated_data.get('id_territorio'):
+            try:
+                territorio = Territorio.objects.get(id=validated_data['id_territorio'])
+            except Territorio.DoesNotExist:
+                pass
+
+        tipo_moneda = None
+        if validated_data.get('id_tipo_moneda'):
+            try:
+                tipo_moneda = Moneda.objects.get(id=validated_data['id_tipo_moneda'])
+            except Moneda.DoesNotExist:
+                pass
+
+        cliente = Cliente.objects.create(
+            id_usuario=user,
+            servicio=validated_data.get('servicio', ''),
+            id_territorio=territorio,
+            id_tipo_moneda=tipo_moneda,
+            telefono=validated_data['telefono'],
+            es_actor=validated_data.get('es_actor', True),
+            es_lider=validated_data.get('es_lider', False),
+            es_turista=validated_data.get('es_turista', False),
         )
 
-        for rol_id in roles_ids:
-            rol = Role.objects.get(id=rol_id)
-            actor.roles.add(rol)
+        for tipo_id in tipos_ids:
+            tipo = TiposActores.objects.get(id=tipo_id)
+            ClienteTiposActores.objects.create(id_actor=cliente, id_tipo=tipo)
 
-        SolicitudRegistro.objects.create(actor=actor)
-        return actor
+        return cliente
 
 
-class ActorTerritorialSerializer(serializers.ModelSerializer):
-    usuario_username = serializers.CharField(source='usuario.username', read_only=True)
-    usuario_email = serializers.EmailField(source='usuario.email', read_only=True)
-    usuario_nombre = serializers.SerializerMethodField()
-    roles = RoleSerializer(many=True, read_only=True)
+class AprobacionesSerializer(serializers.ModelSerializer):
+    actor_info = ClienteSerializer(source='id_actor', read_only=True)
+    lider_info = ClienteSerializer(source='id_lider', read_only=True)
 
     class Meta:
-        model = ActorTerritorial
-        fields = [
-            'id', 'usuario_username', 'usuario_email', 'usuario_nombre',
-            'servicios', 'sector', 'moneda',
-            'telefono', 'roles', 'fecha_registro'
-        ]
-
-    def get_usuario_nombre(self, obj):
-        return f"{obj.usuario.first_name} {obj.usuario.last_name}".strip() or obj.usuario.username
-
-
-class SolicitudRegistroSerializer(serializers.ModelSerializer):
-    actor_info = ActorTerritorialSerializer(source='actor', read_only=True)
-
-    class Meta:
-        model = SolicitudRegistro
-        fields = ['id', 'actor_info', 'estado', 'fecha_solicitud', 'fecha_respuesta', 'notas']
+        model = Aprobaciones
+        fields = ['id', 'actor_info', 'lider_info', 'estado_resultado', 'observaciones', 'fecha_solicitud', 'fecha_respuesta']
         read_only_fields = ['fecha_solicitud', 'fecha_respuesta']
+
+
+class AprobarRechazarSerializer(serializers.Serializer):
+    observaciones = serializers.CharField(required=False, allow_blank=True, max_length=500)

@@ -6,5 +6,7 @@ class UsuariosConfig(AppConfig):
     name = 'usuarios'
 
     def ready(self):
-        from .models import crear_roles_default
-        crear_roles_default()
+        import os
+        if os.environ.get('RUN_MAIN', False) or os.environ.get('DJANGO_AUTORELOAD', False):
+            from .models import crear_tipos_actores_default
+            crear_tipos_actores_default()

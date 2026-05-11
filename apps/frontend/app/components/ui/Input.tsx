@@ -89,7 +89,6 @@ export function Select({
         `}
         {...props}
       >
-        <option value="">Seleccione una opción</option>
         {options.map((option) => (
           <option key={option.value} value={option.value}>
             {option.label}

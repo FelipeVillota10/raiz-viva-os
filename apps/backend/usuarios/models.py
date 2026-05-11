@@ -1,92 +1,120 @@
 from django.db import models
 from django.contrib.auth.models import User
-from django.utils import timezone
+from django.core.validators import MaxValueValidator
+from django.core.exceptions import ValidationError
 
 
-class Role(models.Model):
-    nombre = models.CharField(max_length=50, unique=True)
-    icono = models.CharField(max_length=50)
-    descripcion = models.TextField()
+class EstadoAprobacion(models.TextChoices):
+    PENDIENTE = 'PENDIENTE', 'Pendiente'
+    APROBADO = 'APROBADO', 'Aprobado'
+    RECHAZADO = 'RECHAZADO', 'Rechazado'
+
+
+class Moneda(models.Model):
+    nombre = models.CharField(max_length=50)
+    simbolo = models.CharField(max_length=5)
+
+    class Meta:
+        db_table = 'moneda'
+
+    def __str__(self):
+        return f"{self.nombre} ({self.simbolo})"
+
+
+class Territorio(models.Model):
+    nombre_territorio = models.CharField(max_length=100)
+    region = models.CharField(max_length=50)
+
+    class Meta:
+        db_table = 'territorio'
+
+    def __str__(self):
+        return self.nombre_territorio
+
+
+class Cliente(models.Model):
+    id_usuario = models.ForeignKey(User, on_delete=models.CASCADE, related_name='cliente')
+    id_tipo_moneda = models.ForeignKey(Moneda, on_delete=models.CASCADE, related_name='clientes', null=True, blank=True)
+    id_territorio = models.ForeignKey(Territorio, on_delete=models.SET_NULL, null=True, blank=True, related_name='clientes')
+    servicio = models.TextField(blank=True)
+    telefono = models.CharField(max_length=20, blank=True)
+    reputacion = models.DecimalField(max_digits=3, decimal_places=2, validators=[MaxValueValidator(5)], default=0)
+    es_actor = models.BooleanField(default=False)
+    es_lider = models.BooleanField(default=False)
     es_turista = models.BooleanField(default=False)
 
     class Meta:
-        verbose_name = 'Rol'
-        verbose_name_plural = 'Roles'
-        ordering = ['id']
+        db_table = 'cliente'
+
+    def clean(self):
+        count_true = sum([self.es_actor, self.es_lider, self.es_turista])
+        if count_true > 1:
+            raise ValidationError("Solo un tipo de cliente puede ser verdadero (actor, líder o turista).")
+
+    def save(self, *args, **kwargs):
+        self.full_clean()
+        super().save(*args, **kwargs)
 
     def __str__(self):
-        return self.nombre
+        return f"{self.id_usuario.username} ({self.es_actor}, {self.es_lider}, {self.es_turista})"
 
 
-class ActorTerritorial(models.Model):
-    SECTOR_CHOICES = [
-        ('ejemplo', 'Ejemplo'),
-    ]
-
-    MONEDA_CHOICES = [
-        ('COP', 'Peso Colombiano (COP)'),
-        ('USD', 'Dólar Americano (USD)'),
-        ('EUR', 'Euro (EUR)'),
-    ]
-
-    usuario = models.OneToOneField(User, on_delete=models.CASCADE, related_name='actor_territorial')
-    servicios = models.TextField(blank=True)
-    sector = models.CharField(max_length=20, choices=SECTOR_CHOICES, default='ejemplo')
-    moneda = models.CharField(max_length=10, choices=MONEDA_CHOICES, default='COP')
-    telefono = models.CharField(max_length=20)
-    roles = models.ManyToManyField(Role, through='ActorRol', related_name='actores')
-    fecha_registro = models.DateTimeField(default=timezone.now)
+class TiposActores(models.Model):
+    nombre_tipo = models.CharField(max_length=50)
 
     class Meta:
-        verbose_name = 'Actor Territorial'
-        verbose_name_plural = 'Actores Territoriales'
+        db_table = 'tipos_actores'
+        verbose_name = 'Tipo de Actor'
+        verbose_name_plural = 'Tipos de Actores'
 
     def __str__(self):
-        return f"{self.usuario.get_full_name() or self.usuario.username}"
+        return self.nombre_tipo
 
 
-class ActorRol(models.Model):
-    actor = models.ForeignKey(ActorTerritorial, on_delete=models.CASCADE)
-    rol = models.ForeignKey(Role, on_delete=models.CASCADE)
-    fecha_asignacion = models.DateTimeField(default=timezone.now)
+class ClienteTiposActores(models.Model):
+    id_actor = models.ForeignKey(Cliente, on_delete=models.CASCADE, related_name='tipos_actores')
+    id_tipo = models.ForeignKey(TiposActores, on_delete=models.CASCADE, related_name='clientes')
+    fecha_asignacion = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        unique_together = ('actor', 'rol')
+        db_table = 'cliente_tipos_actores'
+        unique_together = ('id_actor', 'id_tipo')
 
     def __str__(self):
-        return f"{self.actor} - {self.rol}"
+        return f"{self.id_actor} - {self.id_tipo}"
 
 
-class SolicitudRegistro(models.Model):
-    ESTADO_CHOICES = [
-        ('pendiente', 'Pendiente'),
-        ('aprobado', 'Aprobado'),
-        ('rechazado', 'Rechazado'),
-    ]
-
-    actor = models.ForeignKey(ActorTerritorial, on_delete=models.CASCADE, related_name='solicitudes')
-    estado = models.CharField(max_length=20, choices=ESTADO_CHOICES, default='pendiente')
-    fecha_solicitud = models.DateTimeField(default=timezone.now)
-    notas = models.TextField(blank=True)
+class Aprobaciones(models.Model):
+    id_actor = models.ForeignKey(Cliente, on_delete=models.CASCADE, related_name='solicitudes_recibidas')
+    id_lider = models.ForeignKey(Cliente, on_delete=models.CASCADE, related_name='solicitudes_emitidas')
+    estado_resultado = models.CharField(
+        max_length=20,
+        choices=EstadoAprobacion.choices,
+        default=EstadoAprobacion.PENDIENTE
+    )
+    observaciones = models.TextField(blank=True)
+    fecha_solicitud = models.DateTimeField(auto_now_add=True)
     fecha_respuesta = models.DateTimeField(null=True, blank=True)
 
     class Meta:
-        verbose_name = 'Solicitud de Registro'
-        verbose_name_plural = 'Solicitudes de Registro'
+        db_table = 'aprobaciones'
+        verbose_name = 'Aprobación'
+        verbose_name_plural = 'Aprobaciones'
         ordering = ['-fecha_solicitud']
+        unique_together = ['id_actor', 'id_lider']
 
     def __str__(self):
-        return f"Solicitud {self.id} - {self.actor} ({self.estado})"
+        return f"Aprobación {self.id_actor} -> {self.id_lider} ({self.estado_resultado})"
 
 
-def crear_roles_default():
-    roles_data = [
-        {'nombre': 'productor', 'icono': 'seed', 'descripcion': 'Suministro de productos locales y artesanales', 'es_turista': False},
-        {'nombre': 'caminante', 'icono': 'hiking', 'descripcion': 'Guía de rutas e intérprete de saberes', 'es_turista': False},
-        {'nombre': 'custodio', 'icono': 'shield', 'descripcion': 'Protección de biodiversidad y patrimonio', 'es_turista': False},
-        {'nombre': 'facilitador', 'icono': 'users', 'descripcion': 'Tallerista y gestor de experiencias', 'es_turista': False},
-        {'nombre': 'anfitrion', 'icono': 'home', 'descripcion': 'Gestor de alojamiento, gastronomía y transporte', 'es_turista': False},
-        {'nombre': 'turista', 'icono': 'compass', 'descripcion': 'Visitante de experiencias', 'es_turista': True},
+def crear_tipos_actores_default():
+    tipos_data = [
+        {'nombre_tipo': 'productor'},
+        {'nombre_tipo': 'caminante'},
+        {'nombre_tipo': 'custodio'},
+        {'nombre_tipo': 'facilitador'},
+        {'nombre_tipo': 'anfitrion'},
+        {'nombre_tipo': 'turista'},
     ]
-    for rol_data in roles_data:
-        Role.objects.get_or_create(nombre=rol_data['nombre'], defaults=rol_data)
+    for tipo_data in tipos_data:
+        TiposActores.objects.get_or_create(nombre_tipo=tipo_data['nombre_tipo'], defaults=tipo_data)
