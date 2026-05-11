@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '../../components/ui/Button';
 import { Input, Select, Textarea } from '../../components/ui/Input';
@@ -8,7 +8,7 @@ import { UserIcon, MailIcon, LockIcon, PhoneIcon } from '../../components/ui/Ico
 import { HeaderSecundario } from '../../components/HeaderSecundario';
 import { Footer } from '../../components/Footer';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+import { API_URL } from '../../lib/auth';
 
 interface FormData {
   nombre_completo: string;
@@ -27,6 +27,7 @@ interface FormErrors {
 export default function ClientePage() {
   const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
+  const [selectedRoles, setSelectedRoles] = useState<number[]>([]);
   const [formData, setFormData] = useState<FormData>({
     nombre_completo: '',
     email: '',
@@ -38,18 +39,64 @@ export default function ClientePage() {
   });
   const [errors, setErrors] = useState<FormErrors>({});
   const [generalError, setGeneralError] = useState<string | null>(null);
+  const [territorioOptions, setTerritorioOptions] = useState<{ value: string; label: string }[]>([
+    { value: '', label: 'Cargando territorios...' },
+  ]);
+  const [monedaOptions, setMonedaOptions] = useState<{ value: string; label: string }[]>([
+    { value: '', label: 'Cargando...' },
+  ]);
+  const [loadingOptions, setLoadingOptions] = useState(true);
 
-  const territorioOptions = [
-    { value: '', label: 'Seleccione un territorio' },
-    { value: '1', label: 'Ejemplo' },
-  ];
+  useEffect(() => {
+    const stored = localStorage.getItem('selected_roles');
+    if (stored) {
+      try {
+        const roles = JSON.parse(stored);
+        if (Array.isArray(roles)) {
+          setSelectedRoles(roles);
+        }
+      } catch {
+        // invalid JSON
+      }
+    }
 
-  const monedaOptions = [
-    { value: '', label: 'Seleccione una moneda' },
-    { value: '1', label: 'Peso Colombiano (COP)' },
-    { value: '2', label: 'Euro (EUR)' },
-    { value: '3', label: 'Dólar Americano (USD)' },
-  ];
+    const fetchOptions = async () => {
+      try {
+        const [territoriosRes, monedasRes] = await Promise.all([
+          fetch(`${API_URL}/api/territorios/`),
+          fetch(`${API_URL}/api/monedass/`),
+        ]);
+
+        if (territoriosRes.ok) {
+          const territorios = await territoriosRes.json();
+          setTerritorioOptions([
+            { value: '', label: 'Seleccione un territorio' },
+            ...territorios.map((t: { id: number; nombre_territorio: string }) => ({
+              value: String(t.id),
+              label: t.nombre_territorio,
+            })),
+          ]);
+        }
+
+        if (monedasRes.ok) {
+          const monedas = await monedasRes.json();
+          setMonedaOptions([
+            { value: '', label: 'Seleccione una moneda' },
+            ...monedas.map((m: { id: number; nombre: string }) => ({
+              value: String(m.id),
+              label: `${m.nombre}`,
+            })),
+          ]);
+        }
+      } catch {
+        // error
+      } finally {
+        setLoadingOptions(false);
+      }
+    };
+
+    fetchOptions();
+  }, []);
 
   const validateField = (name: string, value: string): string | null => {
     switch (name) {
@@ -132,7 +179,6 @@ export default function ClientePage() {
     setIsLoading(true);
 
     try {
-      const tiposActoresIds = [1, 2, 3, 4, 5];
       const payload = {
         nombre_completo: formData.nombre_completo,
         email: formData.email,
@@ -141,7 +187,7 @@ export default function ClientePage() {
         id_territorio: formData.id_territorio ? parseInt(formData.id_territorio) : null,
         id_tipo_moneda: formData.id_tipo_moneda ? parseInt(formData.id_tipo_moneda) : null,
         telefono: formData.telefono,
-        tipos_actores: tiposActoresIds,
+        tipos_actores: selectedRoles,
         es_actor: true,
         es_lider: false,
         es_turista: false,

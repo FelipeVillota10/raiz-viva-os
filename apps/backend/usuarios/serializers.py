@@ -31,13 +31,14 @@ class ClienteSerializer(serializers.ModelSerializer):
     tipos_actores = serializers.SerializerMethodField()
     territorio_nombre = serializers.CharField(source='id_territorio.nombre_territorio', read_only=True, allow_null=True)
     moneda_nombre = serializers.CharField(source='id_tipo_moneda.nombre', read_only=True, allow_null=True)
+    territorio_id = serializers.IntegerField(source='id_territorio.id', read_only=True, allow_null=True)
 
     class Meta:
         model = Cliente
         fields = [
-            'id', 'usuario_username', 'usuario_email', 'usuario_nombre',
+            'id', 'nombre_completo', 'telefono', 'usuario_username', 'usuario_email', 'usuario_nombre',
             'servicio', 'reputacion', 'es_actor', 'es_lider', 'es_turista',
-            'territorio_nombre', 'moneda_nombre', 'tipos_actores'
+            'territorio_nombre', 'territorio_id', 'moneda_nombre', 'tipos_actores'
         ]
 
     def get_usuario_nombre(self, obj):
@@ -149,6 +150,7 @@ class RegistroClienteSerializer(serializers.Serializer):
 
         cliente = Cliente.objects.create(
             id_usuario=user,
+            nombre_completo=nombre_completo,
             servicio=validated_data.get('servicio', ''),
             id_territorio=territorio,
             id_tipo_moneda=tipo_moneda,

@@ -66,6 +66,8 @@ export function RoleSelector({ selectedRoles, onRoleToggle }: RoleSelectorProps)
       return;
     }
 
+    localStorage.setItem('selected_roles', JSON.stringify(selectedRoles));
+
     if (isTuristaSelected) {
       router.push('/registro/turista');
     } else {

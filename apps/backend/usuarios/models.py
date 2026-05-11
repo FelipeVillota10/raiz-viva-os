@@ -6,6 +6,7 @@ from django.core.exceptions import ValidationError
 
 class EstadoAprobacion(models.TextChoices):
     PENDIENTE = 'PENDIENTE', 'Pendiente'
+    EN_REVISION = 'EN_REVISION', 'En Revisión'
     APROBADO = 'APROBADO', 'Aprobado'
     RECHAZADO = 'RECHAZADO', 'Rechazado'
 
@@ -34,6 +35,7 @@ class Territorio(models.Model):
 
 class Cliente(models.Model):
     id_usuario = models.ForeignKey(User, on_delete=models.CASCADE, related_name='cliente')
+    nombre_completo = models.CharField(max_length=100, default='')
     id_tipo_moneda = models.ForeignKey(Moneda, on_delete=models.CASCADE, related_name='clientes', null=True, blank=True)
     id_territorio = models.ForeignKey(Territorio, on_delete=models.SET_NULL, null=True, blank=True, related_name='clientes')
     servicio = models.TextField(blank=True)
