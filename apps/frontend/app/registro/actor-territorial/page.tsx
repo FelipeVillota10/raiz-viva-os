@@ -9,18 +9,6 @@ import { HeaderSecundario } from '../../components/HeaderSecundario';
 import { Footer } from '../../components/Footer';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
-const API_URL_LOCAL = 'http://192.168.40.74:8000';
-
-const getApiUrl = () => {
-  if (typeof window !== 'undefined') {
-    const hostname = window.location.hostname;
-    if (hostname === 'localhost' || hostname === '127.0.0.1') {
-      return API_URL;
-    }
-    return API_URL_LOCAL;
-  }
-  return API_URL;
-};
 
 interface FormData {
   nombre_completo: string;
@@ -145,7 +133,6 @@ export default function ClientePage() {
 
     try {
       const tiposActoresIds = [1, 2, 3, 4, 5];
-      const apiUrl = getApiUrl();
       const payload = {
         nombre_completo: formData.nombre_completo,
         email: formData.email,
@@ -160,7 +147,7 @@ export default function ClientePage() {
         es_turista: false,
       };
       console.log('Datos enviados:', payload);
-      const response = await fetch(`${apiUrl}/api/registro/cliente/`, {
+      const response = await fetch(`${API_URL}/api/registro/cliente/`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),

@@ -18,3 +18,5 @@ node_modules/
 .DS_Store
 .env.local
 .AGENTS.md
+AGENTS.md
+apps/backend/env/
