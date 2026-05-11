@@ -19,9 +19,9 @@ export function Input({
   const inputId = id || label?.toLowerCase().replace(/\s+/g, '-');
 
   return (
-    <div className="flex flex-col gap-1.5 w-full">
+    <div className="flex flex-col gap-0.5 w-full">
       {label && (
-        <label htmlFor={inputId} className="text-sm font-medium text-[#353535]">
+        <label htmlFor={inputId} className="text-base font-bold text-[#353535]">
           {label}
         </label>
       )}
@@ -34,7 +34,7 @@ export function Input({
         <input
           id={inputId}
           className={`
-            w-full px-4 py-3 rounded-xl border-2 bg-gray-50 text-[#231F20] placeholder:text-gray-400
+            w-full px-3 py-2 rounded-xl border-2 bg-gray-50 text-[#231F20] placeholder:text-gray-400
             transition-all duration-200
             ${icon ? 'pl-11' : ''}
             ${error
@@ -70,7 +70,7 @@ export function Select({
   const selectId = id || label?.toLowerCase().replace(/\s+/g, '-');
 
   return (
-    <div className="flex flex-col gap-1.5 w-full">
+    <div className="flex flex-col gap-0.5 w-full">
       {label && (
         <label htmlFor={selectId} className="text-sm font-medium text-[#353535]">
           {label}
@@ -117,7 +117,7 @@ export function Textarea({
   const textareaId = id || label?.toLowerCase().replace(/\s+/g, '-');
 
   return (
-    <div className="flex flex-col gap-1.5 w-full">
+    <div className="flex flex-col gap-0.5 w-full">
       {label && (
         <label htmlFor={textareaId} className="text-sm font-medium text-[#353535]">
           {label}

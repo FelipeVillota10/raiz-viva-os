@@ -63,36 +63,45 @@ export default function LiderLoginPage() {
   return (
     <div className="flex flex-col min-h-screen bg-[#f9f3e7]">
       <div className="flex-1 flex items-center justify-center px-4 py-12">
-        <div className="bg-white rounded-2xl shadow-md p-8 border border-[#E6D3A3] w-full max-w-md">
+        <div className="w-full max-w-md">
           <div className="text-center mb-8">
-            <div className="w-20 h-20 mx-auto mb-4 bg-[#EFF7EA] rounded-full flex items-center justify-center">
-              <Image src="/raiz_header.png" alt="Logo de Raiz Viva" width={60} height={60} className="object-contain" />
-            </div>
-            <h2 className="text-2xl font-semibold text-[#557149]">Panel del Líder Territorial</h2>
-            <p className="text-[#353535] mt-1">Ingresa tus credenciales para acceder</p>
+            <Image src="/raizvivalideres.png" alt="Logo Líder Territorial" width={300} height={300} className="mx-auto mb-4 object-contain" />
+            <h2 className="text-sm font-normal text-[#231F20]">Conectando comunidades rurales, productores y viajeros para un desarrollo territorial sostenible</h2>
           </div>
 
-          <form onSubmit={handleLogin} className="space-y-6">
-            <Input
-              label="Correo Electrónico"
-              name="email"
-              type="email"
-              value={formData.email}
-              onChange={handleChange}
-              icon={<MailIcon size={20} />}
-              placeholder="correo@ejemplo.com"
-              autoComplete="email"
-            />
-            <Input
-              label="Contraseña"
-              name="password"
-              type="password"
-              value={formData.password}
-              onChange={handleChange}
-              icon={<LockIcon size={20} />}
-              placeholder="Tu contraseña"
-              autoComplete="current-password"
-            />
+          <form onSubmit={handleLogin} className="space-y-4">
+            <div className="bg-white rounded-2xl shadow-md p-3 border border-[#E6D3A3]">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 rounded-full bg-[#8c9a80] flex items-center justify-center shrink-0">
+                  <MailIcon size={22} />
+                </div>
+                <Input
+                  label="Correo Electrónico"
+                  name="email"
+                  type="email"
+                  value={formData.email}
+                  onChange={handleChange}
+                  placeholder="correo@ejemplo.com"
+                  autoComplete="email"
+                />
+              </div>
+            </div>
+            <div className="bg-white rounded-2xl shadow-md p-3 border border-[#E6D3A3]">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 rounded-full bg-[#8c9a80] flex items-center justify-center shrink-0">
+                  <LockIcon size={22} />
+                </div>
+                <Input
+                  label="Contraseña"
+                  name="password"
+                  type="password"
+                  value={formData.password}
+                  onChange={handleChange}
+                  placeholder="Tu contraseña"
+                  autoComplete="current-password"
+                />
+              </div>
+            </div>
 
             {error && (
               <div className="p-3 bg-red-50 border border-[#ef4444] rounded-xl text-center">
@@ -100,7 +109,7 @@ export default function LiderLoginPage() {
               </div>
             )}
 
-            <Button type="submit" size="lg" isLoading={isLoading} className="w-full">
+            <Button type="submit" size="lg" isLoading={isLoading} className="w-full text-lg">
               Iniciar Sesión
             </Button>
           </form>

@@ -18,10 +18,10 @@ export function Button({
   disabled,
   ...props
 }: ButtonProps) {
-  const baseClasses = 'rounded-lg font-medium transition-all duration-200 inline-flex items-center justify-center gap-2 cursor-pointer';
+  const baseClasses = 'rounded-full transition-all duration-200 inline-flex items-center justify-center gap-2 cursor-pointer';
 
   const variantClasses = {
-    primary: 'bg-[#3E853F] text-white hover:bg-[#2d6530] disabled:bg-gray-400',
+    primary: 'bg-[#8c9a80] text-[#231F20] font-extrabold hover:bg-[#748171] disabled:bg-gray-400',
     outline: 'border-2 border-[#3E853F] text-[#3E853F] hover:bg-[#EFF7EA] disabled:border-gray-400 disabled:text-gray-400',
     ghost: 'text-[#3E853F] hover:bg-[#EFF7EA] disabled:text-gray-400',
   };
@@ -29,7 +29,7 @@ export function Button({
   const sizeClasses = {
     sm: 'px-3 py-1.5 text-sm',
     md: 'px-5 py-2.5 text-base',
-    lg: 'px-8 py-3.5 text-lg',
+    lg: 'px-8 py-3.5 text-xl',
   };
 
   return (
