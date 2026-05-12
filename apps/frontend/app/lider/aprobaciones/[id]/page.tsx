@@ -55,7 +55,6 @@ export default function SolicitudDetallePage({ params }: { params: Promise<{ id:
         if (response.ok) {
           const data = await response.json();
           setSolicitud(data);
-          setEstado(data.estado_resultado);
           setObservaciones(data.observaciones || '');
         }
       } catch {
