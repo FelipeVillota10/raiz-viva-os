@@ -52,7 +52,7 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
         if cliente:
             if not cliente.es_actor and not cliente.es_turista and not cliente.es_lider:
                 raise ValidationError({
-                    'detail': 'Tu solicitud está pendiente de aprobación. El líder territorial la revisará pronto.'
+                    'detail': 'Tu solicitud está en revisión. El líder territorial la revisará pronto.'
                 })
 
         from rest_framework_simplejwt.tokens import RefreshToken
@@ -146,7 +146,7 @@ def registro_cliente(request):
                 Aprobaciones.objects.create(
                     id_actor=cliente,
                     id_lider=lider,
-                    estado_resultado='PENDIENTE',
+                    estado_resultado='EN_REVISION',
                 )
                 EmailService.send_notificacion_lider(
                     lider_email=lider.id_usuario.email,
@@ -244,7 +244,7 @@ def actualizar_solicitud(request, pk):
     estado = request.data.get('estado_resultado')
     observaciones = request.data.get('observaciones', '')
 
-    if estado not in ['PENDIENTE', 'EN_REVISION', 'APROBADO', 'RECHAZADO']:
+    if estado not in ['EN_REVISION', 'APROBADO', 'RECHAZADO']:
         return Response({'error': 'Estado inválido'}, status=status.HTTP_400_BAD_REQUEST)
 
     aprobacion.estado_resultado = estado
@@ -291,67 +291,8 @@ def dashboard_lider(request):
 
     return Response({
         'total': total,
-        'pendientes': resumen.get('PENDIENTE', 0),
         'en_revision': resumen.get('EN_REVISION', 0),
         'aprobados': resumen.get('APROBADO', 0),
         'rechazados': resumen.get('RECHAZADO', 0),
     })
 
-
-@api_view(['GET'])
-def listar_solicitudes_pendientes(request):
-    solicitudes = Aprobaciones.objects.filter(estado_resultado='PENDIENTE')
-    serializer = AprobacionesSerializer(solicitudes, many=True)
-    return Response(serializer.data)
-
-
-@api_view(['POST'])
-@api_view(['PATCH'])
-def aprobar_solicitud(request, pk):
-    try:
-        aprobacion = Aprobaciones.objects.get(pk=pk)
-    except Aprobaciones.DoesNotExist:
-        return Response({'error': 'Solicitud no encontrada'}, status=status.HTTP_404_NOT_FOUND)
-
-    if aprobacion.estado_resultado != 'PENDIENTE':
-        return Response({'error': 'Esta solicitud ya fue procesada'}, status=status.HTTP_400_BAD_REQUEST)
-
-    aprobacion.estado_resultado = 'APROBADO'
-    aprobacion.observaciones = request.data.get('observaciones', '')
-    aprobacion.fecha_respuesta = timezone.now()
-    aprobacion.save()
-
-    aprobacion.id_actor.es_actor = True
-    aprobacion.id_actor.save()
-
-    EmailService.send_solicitud_aprobada(
-        cliente_email=aprobacion.id_actor.id_usuario.email,
-        cliente_nombre=aprobacion.id_actor.nombre_completo,
-    )
-
-    return Response(AprobacionesSerializer(aprobacion).data)
-
-
-@api_view(['POST'])
-@api_view(['PATCH'])
-def rechazar_solicitud(request, pk):
-    try:
-        aprobacion = Aprobaciones.objects.get(pk=pk)
-    except Aprobaciones.DoesNotExist:
-        return Response({'error': 'Solicitud no encontrada'}, status=status.HTTP_404_NOT_FOUND)
-
-    if aprobacion.estado_resultado != 'PENDIENTE':
-        return Response({'error': 'Esta solicitud ya fue procesada'}, status=status.HTTP_400_BAD_REQUEST)
-
-    aprobacion.estado_resultado = 'RECHAZADO'
-    aprobacion.observaciones = request.data.get('observaciones', '')
-    aprobacion.fecha_respuesta = timezone.now()
-    aprobacion.save()
-
-    EmailService.send_solicitud_rechazada(
-        cliente_email=aprobacion.id_actor.id_usuario.email,
-        cliente_nombre=aprobacion.id_actor.nombre_completo,
-        observaciones=aprobacion.observaciones,
-    )
-
-    return Response(AprobacionesSerializer(aprobacion).data)

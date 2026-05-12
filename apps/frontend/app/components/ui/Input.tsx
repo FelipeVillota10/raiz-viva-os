@@ -132,6 +132,7 @@ export function Textarea({
             ? 'border-[#E53935] focus:border-[#E53935] focus:ring-2 focus:ring-[#E53935]/20'
             : 'border-transparent focus:border-[#3E853F] focus:ring-2 focus:ring-[#3E853F]/20'
           }
+          ${props.disabled ? 'bg-gray-100 cursor-not-allowed' : ''}
           ${className}
         `}
         {...props}

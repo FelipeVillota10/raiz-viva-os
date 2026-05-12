@@ -29,7 +29,6 @@ interface Solicitud {
 }
 
 const ESTADO_LABELS: Record<string, string> = {
-  PENDIENTE: 'Pendiente',
   EN_REVISION: 'En Revisión',
   APROBADO: 'Aprobado',
   RECHAZADO: 'Rechazado',
@@ -41,7 +40,6 @@ export default function SolicitudDetallePage({ params }: { params: Promise<{ id:
   const [solicitud, setSolicitud] = useState<Solicitud | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [estado, setEstado] = useState('');
   const [observaciones, setObservaciones] = useState('');
   const [toast, setToast] = useState<string | null>(null);
 
@@ -70,38 +68,9 @@ export default function SolicitudDetallePage({ params }: { params: Promise<{ id:
     fetchSolicitud();
   }, [id]);
 
-  const handleGuardar = async () => {
-    setSaving(true);
-    const token = getToken();
-    if (!token) return;
+  const estadoYaProcesado = solicitud?.estado_resultado === 'APROBADO' || solicitud?.estado_resultado === 'RECHAZADO';
 
-    try {
-      const response = await fetch(`${API_URL}/api/solicitudes/${id}/actualizar/`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify({
-          estado_resultado: estado,
-          observaciones,
-        }),
-      });
-
-      if (response.ok) {
-        const data = await response.json();
-        setSolicitud(data);
-        setToast('Cambios guardados correctamente');
-        setTimeout(() => setToast(null), 3000);
-      }
-    } catch {
-      // error
-    } finally {
-      setSaving(false);
-    }
-  };
-
-  const estadoYaProcesado = estado === 'APROBADO' || estado === 'RECHAZADO';
+  const puedeAccionar = estadoYaProcesado ? false : !!observaciones.trim();
   const tiposActores = solicitud?.actor_info.tipos_actores || [];
 
   return (
@@ -173,53 +142,44 @@ export default function SolicitudDetallePage({ params }: { params: Promise<{ id:
               <h2 className="text-xl font-semibold text-[#231F20] mb-4">Revisión</h2>
 
               <div className="mb-4">
-                <label className="text-sm font-medium text-[#353535] block mb-2">Estado de la Solicitud</label>
-                <select
-                  value={estado}
-                  onChange={e => setEstado(e.target.value)}
-                  disabled={estadoYaProcesado}
-                  className="w-full px-4 py-3 rounded-xl border-2 bg-gray-50 text-[#231F20] transition-all duration-200 cursor-pointer appearance-none disabled:bg-gray-100 disabled:cursor-not-allowed"
-                >
-                  <option value="PENDIENTE">Pendiente</option>
-                  <option value="EN_REVISION">En Revisión</option>
-                  <option value="APROBADO">Aprobado</option>
-                  <option value="RECHAZADO">Rechazado</option>
-                </select>
+                <p className="text-sm text-[#353535]">Estado de la Solicitud</p>
+                <p className="font-medium text-[#231F20] mt-1">{ESTADO_LABELS[solicitud.estado_resultado] || solicitud.estado_resultado}</p>
               </div>
 
               <Textarea
                 label="Observaciones"
-                value={observaciones}
+                value={solicitud?.observaciones || observaciones}
                 onChange={e => setObservaciones(e.target.value)}
                 placeholder="Escribe tus comentarios o razones para aprobar/rechazar la solicitud..."
                 rows={4}
+                disabled={estadoYaProcesado}
               />
 
               <div className="mt-6 flex flex-col sm:flex-row gap-3">
                 {estadoYaProcesado ? (
                   <>
-                    {estado === 'APROBADO' ? (
-                      <Button disabled className="flex items-center gap-2 bg-gray-300 text-gray-600 cursor-not-allowed">
-                        <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                    {solicitud?.estado_resultado === 'APROBADO' ? (
+                      <span className="inline-flex items-center gap-2 px-5 py-2.5 bg-[#10b981] text-white rounded-full text-sm font-medium">
+                        <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
                           <polyline points="20 6 9 17 4 12"/>
                         </svg>
                         Aprobado
-                      </Button>
+                      </span>
                     ) : (
-                      <Button disabled className="bg-gray-300 text-gray-600 cursor-not-allowed">
+                      <span className="inline-flex items-center gap-2 px-5 py-2.5 bg-red-500 text-white rounded-full text-sm font-medium">
+                        <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                          <line x1="18" y1="6" x2="6" y2="18"/>
+                          <line x1="6" y1="6" x2="18" y2="18"/>
+                        </svg>
                         Rechazado
-                      </Button>
+                      </span>
                     )}
                   </>
                 ) : (
                   <>
-                    <Button onClick={handleGuardar} isLoading={saving} size="lg">
-                      Guardar Cambios
-                    </Button>
                     <Button
                       variant="outline"
                       onClick={async () => {
-                        setEstado('APROBADO');
                         setSaving(true);
                         const token = getToken();
                         try {
@@ -234,7 +194,6 @@ export default function SolicitudDetallePage({ params }: { params: Promise<{ id:
                           if (response.ok) {
                             const data = await response.json();
                             setSolicitud(data);
-                            setEstado('APROBADO');
                             setToast('Solicitud aprobada correctamente');
                             setTimeout(() => setToast(null), 3000);
                           }
@@ -242,21 +201,15 @@ export default function SolicitudDetallePage({ params }: { params: Promise<{ id:
                           setSaving(false);
                         }
                       }}
+                      disabled={!puedeAccionar}
                       isLoading={saving}
-                      size="lg"
-                      className="bg-[#10b981] hover:bg-[#059669] text-white border-0"
+                      className="bg-[#10b981] hover:bg-[#059669] text-white border-0 disabled:bg-gray-300 disabled:text-gray-500"
                     >
                       Aprobar
                     </Button>
                     <Button
                       variant="outline"
                       onClick={async () => {
-                        if (!observaciones.trim()) {
-                          setToast('Por favor ingresa una razón para rechazar');
-                          setTimeout(() => setToast(null), 3000);
-                          return;
-                        }
-                        setEstado('RECHAZADO');
                         setSaving(true);
                         const token = getToken();
                         try {
@@ -271,7 +224,6 @@ export default function SolicitudDetallePage({ params }: { params: Promise<{ id:
                           if (response.ok) {
                             const data = await response.json();
                             setSolicitud(data);
-                            setEstado('RECHAZADO');
                             setToast('Solicitud rechazada');
                             setTimeout(() => setToast(null), 3000);
                           }
@@ -279,9 +231,9 @@ export default function SolicitudDetallePage({ params }: { params: Promise<{ id:
                           setSaving(false);
                         }
                       }}
+                      disabled={!puedeAccionar}
                       isLoading={saving}
-                      size="lg"
-                      className="bg-[#ef4444] hover:bg-[#dc2626] text-white border-0"
+                      className="bg-[#ef4444] hover:bg-[#dc2626] text-white border-0 disabled:bg-gray-300 disabled:text-gray-500"
                     >
                       Rechazar
                     </Button>

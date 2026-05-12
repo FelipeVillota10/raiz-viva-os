@@ -6,7 +6,6 @@ import { HeaderLider } from '../../components/HeaderLider';
 import { Footer } from '../../components/Footer';
 import { getToken } from '../../lib/auth';
 import { API_URL } from '../../lib/auth';
-import { ArrowLeftIcon } from '../../components/ui/Icons';
 
 interface Solicitud {
   id: number;
@@ -25,7 +24,6 @@ interface Solicitud {
 }
 
 const ESTADO_CONFIG: Record<string, { label: string; color: string; bg: string }> = {
-  PENDIENTE: { label: 'Pendiente', color: 'text-black', bg: 'bg-[#f59e0b]' },
   EN_REVISION: { label: 'En Revisión', color: 'text-white', bg: 'bg-[#0cc0df]' },
   APROBADO: { label: 'Aprobado', color: 'text-white', bg: 'bg-[#10b981]' },
   RECHAZADO: { label: 'Rechazado', color: 'text-white', bg: 'bg-[#ef4444]' },
@@ -61,26 +59,18 @@ export default function AprobacionesPage() {
     fetchSolicitudes();
   }, [filtro]);
 
-  const pendingCount = solicitudes.filter(s => s.estado_resultado === 'PENDIENTE').length;
+  const pendingCount = solicitudes.filter(s => s.estado_resultado === 'EN_REVISION').length;
 
   return (
     <div className="flex flex-col min-h-screen bg-[#f9f3e7]">
       <HeaderLider showNotification pendingCount={pendingCount} />
 
       <main className="flex-1 px-4 py-8 max-w-4xl mx-auto w-full">
-        <button
-          onClick={() => router.push('/lider/panel')}
-          className="flex items-center gap-2 text-[#3b5630] hover:text-[#2d6530] font-medium mb-6 transition cursor-pointer"
-        >
-          <ArrowLeftIcon size={20} />
-          Volver al Panel
-        </button>
-
         <h1 className="text-3xl font-bold text-[#557149] mb-2">Solicitudes de Registro</h1>
         <p className="text-[#353535] mb-6">Revisa y gestiona las solicitudes de actores territoriales en tu territorio</p>
 
         <div className="flex gap-2 mb-6 flex-wrap">
-          {['', 'PENDIENTE', 'EN_REVISION', 'APROBADO', 'RECHAZADO'].map(estado => (
+          {['', 'EN_REVISION', 'APROBADO', 'RECHAZADO'].map(estado => (
             <button
               key={estado}
               onClick={() => setFiltro(estado)}
@@ -102,7 +92,7 @@ export default function AprobacionesPage() {
         ) : (
           <div className="space-y-4">
             {solicitudes.map(solicitud => {
-              const estado = ESTADO_CONFIG[solicitud.estado_resultado] || ESTADO_CONFIG['PENDIENTE'];
+              const estado = ESTADO_CONFIG[solicitud.estado_resultado] || ESTADO_CONFIG['EN_REVISION'];
               const primerTipo = solicitud.actor_info.tipos_actores[0];
 
               return (

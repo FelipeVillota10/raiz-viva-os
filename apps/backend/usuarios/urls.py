@@ -12,7 +12,4 @@ urlpatterns = [
     path('solicitudes/<int:pk>/', views.obtener_solicitud, name='obtener_solicitud'),
     path('solicitudes/<int:pk>/actualizar/', views.actualizar_solicitud, name='actualizar_solicitud'),
     path('lider/dashboard/', views.dashboard_lider, name='dashboard_lider'),
-    path('solicitudes/pendientes/', views.listar_solicitudes_pendientes, name='listar_solicitudes_pendientes'),
-    path('solicitudes/<int:pk>/aprobar/', views.aprobar_solicitud, name='aprobar_solicitud'),
-    path('solicitudes/<int:pk>/rechazar/', views.rechazar_solicitud, name='rechazar_solicitud'),
 ]

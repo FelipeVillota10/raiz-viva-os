@@ -65,7 +65,9 @@ export default function LiderLoginPage() {
       <div className="flex-1 flex items-center justify-center px-4 py-12">
         <div className="w-full max-w-md">
           <div className="text-center mb-8">
-            <Image src="/raizvivalideres.png" alt="Logo Líder Territorial" width={300} height={300} className="mx-auto mb-4 object-contain" />
+            <a href="/">
+              <Image src="/raizvivalideres.png" alt="Logo Líder Territorial" width={300} height={300} className="mx-auto mb-4 object-contain cursor-pointer" />
+            </a>
             <h2 className="text-sm font-normal text-[#231F20]">Conectando comunidades rurales, productores y viajeros para un desarrollo territorial sostenible</h2>
           </div>
 

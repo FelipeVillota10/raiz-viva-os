@@ -2,7 +2,7 @@
 Script para generar datos de simulación:
 - 2 Territorios
 - 2 Líderes Territoriales
-- 3 Actores en solicitud (PENDIENTE)
+- 3 Actores en revisión (EN_REVISION)
 - 2 Actores aprobados
 - 1 Actor rechazado
 
@@ -70,7 +70,7 @@ else:
     cliente_lider2 = Cliente.objects.get(id_usuario__email=lider2_email)
     print(f'Líder 2 ya existe: {lider2_email}')
 
-# --- ACTORES PENDIENTES (no aprobados aún) ---
+# --- ACTORES EN REVISIÓN (no aprobados aún) ---
 actores_pendientes = [
     {'email': 'actor1@raizviva.com', 'pass': 'Actor1234', 'nombre': 'Juan Pérez', 'territorio': territorio1, 'servicio': 'Venta de cafés orgánicos y artesanales de la región', 'tipos': ['productor']},
     {'email': 'actor2@raizviva.com', 'pass': 'Actor1234', 'nombre': 'Ana López', 'territorio': territorio1, 'servicio': 'Guía de rutas ecoturísticas por senderos naturales', 'tipos': ['caminante']},
@@ -104,11 +104,11 @@ for actor_data in actores_pendientes:
         Aprobaciones.objects.create(
             id_actor=cliente,
             id_lider=cliente_lider1 if actor_data['territorio'] == territorio1 else cliente_lider2,
-            estado_resultado='PENDIENTE',
+            estado_resultado='EN_REVISION',
         )
-        print(f'Actor pendiente creado: {actor_data["email"]} / {actor_data["pass"]}')
+        print(f'Actor en revisión creado: {actor_data["email"]} / {actor_data["pass"]}')
     else:
-        print(f'Actor pendiente ya existe: {actor_data["email"]}')
+        print(f'Actor en revisión ya existe: {actor_data["email"]}')
 
 # --- ACTORES APROBADOS ---
 actores_aprobados = [

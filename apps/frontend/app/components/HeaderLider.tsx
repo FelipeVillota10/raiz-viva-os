@@ -34,11 +34,7 @@ export function HeaderLider({ showNotification = false, pendingCount = 0 }: Head
   return (
     <header className="flex justify-between items-center px-4 py-3 h-16 bg-[#3b5630] text-white shadow-md">
       <div className="flex items-center gap-3">
-        <Image src="/raiz_header.png" alt="Logo" width={80} height={80} className="w-14 h-14 object-contain" />
-        <div>
-          <span className="font-semibold text-lg">Raíz Viva</span>
-          <span className="text-xs text-gray-300 ml-2">Panel del Líder</span>
-        </div>
+        <Image src="/raiz_header.png" alt="Logo" width={80} height={80} className="w-44 h-44 object-contain" />
       </div>
 
       <div className="flex items-center gap-4">

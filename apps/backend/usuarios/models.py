@@ -5,7 +5,6 @@ from django.core.exceptions import ValidationError
 
 
 class EstadoAprobacion(models.TextChoices):
-    PENDIENTE = 'PENDIENTE', 'Pendiente'
     EN_REVISION = 'EN_REVISION', 'En Revisión'
     APROBADO = 'APROBADO', 'Aprobado'
     RECHAZADO = 'RECHAZADO', 'Rechazado'
@@ -92,7 +91,7 @@ class Aprobaciones(models.Model):
     estado_resultado = models.CharField(
         max_length=20,
         choices=EstadoAprobacion.choices,
-        default=EstadoAprobacion.PENDIENTE
+        default=EstadoAprobacion.EN_REVISION
     )
     observaciones = models.TextField(blank=True)
     fecha_solicitud = models.DateTimeField(auto_now_add=True)
