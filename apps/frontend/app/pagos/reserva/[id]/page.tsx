@@ -33,7 +33,7 @@ export default function PagarReservaPage({ params }: { params: { id: string } })
   }
 
   function handlePagar() {
-    router.push(`/pagos/reserva/${params.id}/tarjeta`)
+    router.push(`/pagos/reserva/${params.id}/${metodoActivo}`)
   }
 
   return (
@@ -68,7 +68,7 @@ export default function PagarReservaPage({ params }: { params: { id: string } })
 
         {/* Columna izquierda: card de resumen */}
         <div className="w-full lg:flex-[3]">
-          <div className="rounded-2xl shadow-sm overflow-hidden">
+          <div className="rounded-2xl shadow-md border border-[#e8e0d0] overflow-hidden">
 
             {/* Zona superior */}
             <div className="bg-white p-5 sm:p-6">
@@ -151,7 +151,7 @@ export default function PagarReservaPage({ params }: { params: { id: string } })
         <div className="flex-1 lg:flex-none lg:flex-[2]
                         bg-white
                         rounded-t-3xl lg:rounded-2xl
-                        shadow-[0_-4px_20px_rgba(0,0,0,0.1)] lg:shadow-md
+                        shadow-[0_-4px_20px_rgba(0,0,0,0.08)] lg:shadow-[0_-4px_20px_rgba(0,0,0,0.08)]
                         px-6 sm:px-7 pt-6 pb-8
                         flex flex-col
                         lg:sticky lg:top-6">
