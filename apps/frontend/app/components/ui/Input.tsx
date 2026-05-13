@@ -56,12 +56,14 @@ export function Input({
 interface SelectProps extends React.SelectHTMLAttributes<HTMLSelectElement> {
   label?: string;
   error?: string;
+  icon?: React.ReactNode;
   options: { value: string; label: string }[];
 }
 
 export function Select({
   label,
   error,
+  icon,
   options,
   className = '',
   id,
@@ -72,29 +74,42 @@ export function Select({
   return (
     <div className="flex flex-col gap-0.5 w-full">
       {label && (
-        <label htmlFor={selectId} className="text-sm font-medium text-[#353535]">
+        <label htmlFor={selectId} className="text-base font-bold text-[#353535]">
           {label}
         </label>
       )}
-      <select
-        id={selectId}
-        className={`
-          w-full px-4 py-3 rounded-xl border-2 bg-gray-50 text-[#231F20]
+      <div className="relative">
+        {icon && (
+          <div className="absolute left-3 top-1/2 -translate-y-1/2 z-10 text-[#8F9F81] pointer-events-none">
+            {icon}
+          </div>
+        )}
+        <select
+          id={selectId}
+          className={`
+          w-full py-3 rounded-xl border-2 bg-gray-50 text-[#231F20]
           transition-all duration-200 cursor-pointer appearance-none
+          ${icon ? 'pl-11 pr-10' : 'pl-4 pr-10'}
           ${error
             ? 'border-[#E53935] focus:border-[#E53935] focus:ring-2 focus:ring-[#E53935]/20'
             : 'border-transparent focus:border-[#3E853F] focus:ring-2 focus:ring-[#3E853F]/20'
           }
           ${className}
         `}
-        {...props}
-      >
+          {...props}
+        >
         {options.map((option) => (
           <option key={option.value} value={option.value}>
             {option.label}
           </option>
         ))}
-      </select>
+        </select>
+        <div className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none text-[#8F9F81]" aria-hidden>
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="m6 9 6 6 6-6" />
+          </svg>
+        </div>
+      </div>
       {error && (
         <span className="text-xs text-[#E53935] font-medium">{error}</span>
       )}

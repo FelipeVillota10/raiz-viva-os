@@ -5,6 +5,7 @@ from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework.exceptions import ValidationError
 from django.utils import timezone
+from django.db import transaction
 from django.db.models import Count
 from .models import TiposActores, Cliente, Aprobaciones, Territorio, Moneda
 from .serializers import (
@@ -126,7 +127,8 @@ def registro_cliente(request):
     serializer = RegistroClienteSerializer(data=request.data)
 
     if serializer.is_valid():
-        cliente = serializer.save()
+        with transaction.atomic():
+            cliente = serializer.save()
 
         territorio_nombre = cliente.id_territorio.nombre_territorio if cliente.id_territorio else None
 
@@ -134,9 +136,10 @@ def registro_cliente(request):
             cliente_email=cliente.id_usuario.email,
             cliente_nombre=cliente.nombre_completo,
             territorio=territorio_nombre,
+            es_turista=cliente.es_turista,
         )
 
-        if cliente.id_territorio:
+        if cliente.id_territorio and not cliente.es_turista:
             lider = Cliente.objects.filter(
                 id_territorio=cliente.id_territorio,
                 es_lider=True
@@ -155,9 +158,16 @@ def registro_cliente(request):
                     territorio=territorio_nombre or '',
                 )
 
+        if cliente.es_turista:
+            mensaje = 'Registro completado. Ya puedes iniciar sesión con tu correo y contraseña.'
+            correo_txt = f'Te enviamos un correo de bienvenida a {cliente.id_usuario.email}.'
+        else:
+            mensaje = 'Solicitud Enviada con Éxito, en próximas horas su solicitud de registro será atendida'
+            correo_txt = f'Se ha enviado información a su correo electrónico {cliente.id_usuario.email}'
+
         return Response({
-            'mensaje': 'Solicitud Enviada con Éxito, en próximas horas su solicitud de registro será atendida',
-            'correo': f'Se ha enviado información a su correo electrónico {cliente.id_usuario.email}',
+            'mensaje': mensaje,
+            'correo': correo_txt,
             'cliente': ClienteSerializer(cliente).data
         }, status=status.HTTP_201_CREATED)
 

@@ -58,7 +58,7 @@ class RegistroClienteSerializer(serializers.Serializer):
     id_tipo_moneda = serializers.IntegerField(required=False, allow_null=True)
     telefono = serializers.CharField(min_length=7, max_length=20)
     tipos_actores = serializers.ListField(child=serializers.IntegerField(), min_length=1)
-    es_actor = serializers.BooleanField(default=True)
+    es_actor = serializers.BooleanField(default=False)
     es_lider = serializers.BooleanField(default=False)
     es_turista = serializers.BooleanField(default=False)
 
@@ -155,7 +155,7 @@ class RegistroClienteSerializer(serializers.Serializer):
             id_territorio=territorio,
             id_tipo_moneda=tipo_moneda,
             telefono=validated_data['telefono'],
-            es_actor=validated_data.get('es_actor', True),
+            es_actor=validated_data.get('es_actor', False),
             es_lider=validated_data.get('es_lider', False),
             es_turista=validated_data.get('es_turista', False),
         )

@@ -128,6 +128,13 @@ export function RoleSelector({ selectedRoles, onRoleToggle }: RoleSelectorProps)
         </div>
         <h3 className="font-semibold text-[#231F20] mb-2">Turista</h3>
         <p className="text-sm text-[#353535]">Visitante de experiencias</p>
+        {isTuristaSelected && (
+          <div className="absolute top-3 right-3 w-6 h-6 bg-[#3E853F] rounded-full flex items-center justify-center">
+            <svg className="w-4 h-4 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
+              <polyline points="20 6 9 17 4 12" />
+            </svg>
+          </div>
+        )}
       </Card>
 
       {error && (
