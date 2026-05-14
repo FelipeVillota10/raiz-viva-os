@@ -44,7 +44,7 @@ export default function LoginInicioPage() {
     setErrors(prev => {
       const newErrors = { ...prev };
       if (error) newErrors[name as keyof FormErrors] = error;
-      else delete newErrors[name];
+      else delete newErrors[name as keyof FormErrors];
       return newErrors;
     });
   };
@@ -55,7 +55,7 @@ export default function LoginInicioPage() {
     setErrors(prev => {
       const newErrors = { ...prev };
       if (error) newErrors[name as keyof FormErrors] = error;
-      else delete newErrors[name];
+      else delete newErrors[name as keyof FormErrors];
       return newErrors;
     });
   };
