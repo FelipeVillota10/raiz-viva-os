@@ -10,7 +10,7 @@ export default function RegistroPage() {
 
   return (
     <div className="flex flex-col min-h-screen bg-[#F4F1EA]">
-      <HeaderSecundario backRoute="/" title="Registro" />
+      <HeaderSecundario backRoute="/login/inicio" title="Registro" />
       <main className="flex-1">
         <RoleSelector selectedRoles={selectedRoles} onRoleToggle={toggleRole} />
       </main>
