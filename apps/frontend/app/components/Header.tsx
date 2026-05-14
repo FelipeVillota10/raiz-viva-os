@@ -13,15 +13,15 @@ export function Header() {
         <Image
           src="/raiz_header.png"
           alt="Logo de Raiz Viva"
-          width={100}
-          height={100}
-          className="w-70 h-70 object-contain"
+          width={256}
+          height={256}
+          className="w-64 h-64 object-contain mt-2"
         />
       </div>
 
       <div className="flex items-center gap-4">
         <button
-          onClick={() => router.push('/registro')}
+          onClick={() => router.push('/login/inicio')}
           className="bg-white text-green-900 px-3 py-1 rounded-full text-sm hover:bg-gray-100 transition cursor-pointer"
         >
           login

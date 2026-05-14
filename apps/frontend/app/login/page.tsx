@@ -58,7 +58,7 @@ export default function LoginPage() {
         <div className="bg-white rounded-2xl shadow-lg p-8 border border-[#E6D3A3] w-full max-w-md">
           <div className="text-center mb-8">
             <div className="w-20 h-20 mx-auto mb-4 bg-[#EFF7EA] rounded-full flex items-center justify-center">
-              <Image src="/raiz_header.png" alt="Logo de Raiz Viva" width={60} height={60} className="object-contain" />
+              <Image src="/RaizLogoCirculo.png" alt="Logo de Raiz Viva" width={60} height={60} className="object-contain" />
             </div>
             <h2 className="text-2xl font-semibold text-[#231F20]">Raíz Viva</h2>
             <p className="text-[#353535] mt-1">Conecta con la naturaleza</p>

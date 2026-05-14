@@ -18,12 +18,12 @@ export function HeaderSecundario({ backRoute = '/', title }: HeaderSecundarioPro
         <Image
           src="/raiz_header.png"
           alt="Logo de Raiz Viva"
-          width={100}
-          height={100}
-          className="w-70 h-70 object-contain"
+          width={256}
+          height={256}
+          className="w-64 h-64 object-contain mt-2"
         />
         {title && (
-          <span className="font-medium text-base hidden sm:inline">{title}</span>
+          <span className="font-medium text-base hidden sm:inline self-center">{title}</span>
         )}
       </div>
 

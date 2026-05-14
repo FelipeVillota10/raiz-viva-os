@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { Header } from '../../components/Header';
+import { HeaderSecundario } from '../../components/HeaderSecundario';
 import { Footer } from '../../components/Footer';
 import { Button } from '../../components/ui/Button';
 import { Input, Select } from '../../components/ui/Input';
@@ -289,7 +289,7 @@ export default function RegistroTuristaPage() {
 
   return (
     <div className="flex flex-col min-h-screen bg-[#F4F1EA]">
-      <Header />
+      <HeaderSecundario backRoute="/registro" title="Registro Turista" />
 
       <main className="flex-1 w-full px-4 sm:px-8 lg:px-12 py-10 lg:py-14">
         <div className="max-w-5xl mx-auto">
