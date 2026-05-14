@@ -1,10 +1,11 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
-import { useState } from 'react'
+import { use, useState } from 'react'
 import { mockReserva } from '@/lib/mocks/reservas.mock'
 import type { Reserva } from '@/lib/types/reserva'
 import type { TipoMetodoPago } from '@/lib/types/pago'
+import { MOCK_MODE } from '@/lib/config'
 
 interface MetodoPagoTab {
   tipo: TipoMetodoPago
@@ -18,30 +19,80 @@ const METODOS: MetodoPagoTab[] = [
   { tipo: 'billetera',     label: 'Billetera Digital', icono: 'wallet' },
 ]
 
-export default function DetallesTarjetaPage({ params }: { params: { id: string } }) {
+const REGEX_NUMERO = /^\d{8,19}$/
+const REGEX_EXPIRACION = /^(0[1-9]|1[0-2])\/\d{2}$/
+const REGEX_CVV = /^\d{3,4}$/
+
+function esFechaVigente(exp: string): boolean {
+  const [mm, aa] = exp.split('/')
+  const fecha = new Date(2000 + parseInt(aa, 10), parseInt(mm, 10) - 1, 1)
+  const hoy = new Date()
+  return fecha >= new Date(hoy.getFullYear(), hoy.getMonth(), 1)
+}
+
+export default function DetallesTarjetaPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = use(params)
   const router = useRouter()
   const reserva: Reserva = mockReserva
 
-  const [titular,    setTitular]    = useState('')
-  const [numero,     setNumero]     = useState('')
-  const [expiracion, setExpiracion] = useState('')
-  const [cvv,        setCvv]        = useState('')
-  const [error,      setError]      = useState<boolean>(false)
-  const [loading,    setLoading]    = useState(false)
+  const [titular,      setTitular]      = useState('')
+  const [numero,       setNumero]       = useState('')
+  const [expiracion,   setExpiracion]   = useState('')
+  const [cvv,          setCvv]          = useState('')
+  const [errorMsg,     setErrorMsg]     = useState<string | null>(null)
+  const [loading,      setLoading]      = useState(false)
   const [metodoActivo, setMetodoActivo] = useState<TipoMetodoPago>('tarjeta')
 
   const total = reserva.total
 
-  function handlePagar() {
-    if (!titular.trim() || !numero.trim() || !expiracion.trim() || !cvv.trim()) {
-      setError(true)
+  function handleCambiarMetodo(tipo: TipoMetodoPago) {
+    if (tipo !== 'tarjeta') {
+      router.push(`/pagos/reserva/${id}/${tipo}`)
       return
     }
-    setError(false)
+    setMetodoActivo(tipo)
+  }
+
+  function handleNumeroChange(raw: string) {
+    setNumero(raw.replace(/[^\d\s]/g, ''))
+  }
+
+  function handleExpiracionChange(raw: string) {
+    const digits = raw.replace(/\D/g, '').slice(0, 4)
+    setExpiracion(digits.length >= 3 ? `${digits.slice(0, 2)}/${digits.slice(2)}` : digits)
+  }
+
+  function handleCvvChange(raw: string) {
+    setCvv(raw.replace(/\D/g, ''))
+  }
+
+  function handlePagar() {
+    const numeroLimpio = numero.replace(/\s/g, '')
+    if (!titular.trim()) {
+      setErrorMsg('Ingrese el nombre del titular')
+      return
+    }
+    if (!REGEX_NUMERO.test(numeroLimpio)) {
+      setErrorMsg('El número de tarjeta debe tener entre 8 y 19 dígitos')
+      return
+    }
+    if (!REGEX_EXPIRACION.test(expiracion)) {
+      setErrorMsg('Formato de expiración inválido (use MM/AA)')
+      return
+    }
+    if (!MOCK_MODE && !esFechaVigente(expiracion)) {
+      setErrorMsg('La tarjeta está vencida')
+      return
+    }
+    if (!REGEX_CVV.test(cvv)) {
+      setErrorMsg('El CVV debe tener 3 o 4 dígitos')
+      return
+    }
+    setErrorMsg(null)
     setLoading(true)
     setTimeout(() => {
       setLoading(false)
-      router.push(`/pagos/reserva/${params.id}/confirmacion`)
+      router.push(`/pagos/reserva/${id}/confirmacion`)
     }, 2000)
   }
 
@@ -75,12 +126,12 @@ export default function DetallesTarjetaPage({ params }: { params: { id: string }
         <div className="relative z-10 w-full lg:flex-[3] flex flex-col gap-4">
 
           {/* Alerta de error */}
-          {error && (
-            <div className="bg-red-50 border border-red-200 rounded-xl p-4 flex items-start gap-3">
-              <span className="text-xl leading-none mt-0.5">⚠️</span>
+          {errorMsg !== null && (
+            <div role="alert" className="bg-red-50 border border-red-200 rounded-xl p-4 flex items-start gap-3">
+              <span className="text-xl leading-none mt-0.5" aria-hidden="true">⚠️</span>
               <p className="text-sm text-red-600">
                 <span className="font-bold">Error: </span>
-                Tarjeta Declinada. Verifique los datos o use otro método.
+                {errorMsg}
               </p>
             </div>
           )}
@@ -90,8 +141,12 @@ export default function DetallesTarjetaPage({ params }: { params: { id: string }
 
             {/* Nombre en la tarjeta */}
             <div className="mb-2">
+              <label htmlFor="titular" className="sr-only">Nombre en la tarjeta</label>
               <input
+                id="titular"
+                name="ccname"
                 type="text"
+                autoComplete="cc-name"
                 placeholder="Nombre en la Tarjeta"
                 value={titular}
                 onChange={(e) => setTitular(e.target.value)}
@@ -103,16 +158,21 @@ export default function DetallesTarjetaPage({ params }: { params: { id: string }
 
             {/* Número de tarjeta */}
             <div className="mb-2 relative">
+              <label htmlFor="numero" className="sr-only">Número de tarjeta</label>
               <input
+                id="numero"
+                name="cardnumber"
                 type="text"
+                inputMode="numeric"
+                autoComplete="cc-number"
                 placeholder="Número de Tarjeta"
                 value={numero}
-                onChange={(e) => setNumero(e.target.value)}
+                onChange={(e) => handleNumeroChange(e.target.value)}
                 maxLength={19}
                 className={`w-full bg-white rounded-xl p-3.5 pr-16
                             text-gray-700 placeholder-gray-400 text-sm sm:text-base
                             focus:outline-none transition border
-                            ${error ? 'border-red-400' : 'border-[#6b7c45]'}`}
+                            ${errorMsg !== null ? 'border-red-400' : 'border-[#6b7c45]'}`}
               />
               <span className="absolute right-3.5 top-1/2 -translate-y-1/2
                                font-bold italic text-blue-900 font-serif text-sm select-none">
@@ -120,23 +180,33 @@ export default function DetallesTarjetaPage({ params }: { params: { id: string }
               </span>
             </div>
 
-            {/* Expiracion + CVV */}
+            {/* Expiración + CVV */}
             <div className="flex gap-3">
+              <label htmlFor="expiracion" className="sr-only">Fecha de expiración</label>
               <input
+                id="expiracion"
+                name="exp-date"
                 type="text"
+                inputMode="numeric"
+                autoComplete="cc-exp"
                 placeholder="MM/AA"
                 value={expiracion}
-                onChange={(e) => setExpiracion(e.target.value)}
+                onChange={(e) => handleExpiracionChange(e.target.value)}
                 maxLength={5}
                 className="w-1/2 bg-white border border-gray-200 rounded-xl p-3.5
                            text-gray-700 placeholder-gray-400 text-sm sm:text-base
                            focus:outline-none focus:border-[#6b7c45] transition"
               />
+              <label htmlFor="cvv" className="sr-only">Código de seguridad</label>
               <input
-                type="text"
+                id="cvv"
+                name="cvc"
+                type="password"
+                inputMode="numeric"
+                autoComplete="cc-csc"
                 placeholder="CVV"
                 value={cvv}
-                onChange={(e) => setCvv(e.target.value)}
+                onChange={(e) => handleCvvChange(e.target.value)}
                 maxLength={4}
                 className="w-1/2 bg-white border border-gray-200 rounded-xl p-3.5
                            text-gray-700 placeholder-gray-400 text-sm sm:text-base
@@ -157,12 +227,10 @@ export default function DetallesTarjetaPage({ params }: { params: { id: string }
         <div className="relative h-14 overflow-hidden lg:hidden" aria-hidden="true">
           <div className="absolute left-0 top-1/2 -translate-y-1/2 pointer-events-none select-none z-0">
             <svg width="58" height="90" viewBox="0 0 58 90" fill="none" xmlns="http://www.w3.org/2000/svg">
-              {/* Hoja café */}
               <g transform="translate(22, 36) rotate(-28)">
                 <path d="M 0 -28 C 12 -18 12 18 0 28 C -11 18 -11 -18 0 -28 Z" fill="#8B6914" opacity="0.40"/>
                 <line x1="0" y1="-24" x2="0" y2="24" stroke="#6B4F1A" strokeWidth="0.8" opacity="0.26"/>
               </g>
-              {/* Hoja verde — más pequeña */}
               <g transform="translate(38, 68) rotate(20)">
                 <path d="M 0 -18 C 8 -12 8 12 0 18 C -7 12 -7 -12 0 -18 Z" fill="#3b5630" opacity="0.34"/>
                 <line x1="0" y1="-15" x2="0" y2="15" stroke="#3b5630" strokeWidth="0.7" opacity="0.22"/>
@@ -171,7 +239,7 @@ export default function DetallesTarjetaPage({ params }: { params: { id: string }
           </div>
         </div>
 
-        {/* Columna derecha: metodo de pago + boton,  fijo al fondo en mobile */}
+        {/* Columna derecha: método de pago + botón, fijo al fondo en mobile */}
         <div className="fixed bottom-0 left-0 right-0 z-20
                         lg:relative lg:bottom-auto lg:left-auto lg:right-auto lg:z-10
                         lg:flex-none lg:flex-[2]
@@ -192,7 +260,8 @@ export default function DetallesTarjetaPage({ params }: { params: { id: string }
               return (
                 <button
                   key={metodo.tipo}
-                  onClick={() => setMetodoActivo(metodo.tipo)}
+                  onClick={() => handleCambiarMetodo(metodo.tipo)}
+                  aria-pressed={activo}
                   className={`
                     flex-1 flex flex-col items-center gap-1
                     py-3 sm:py-4
@@ -245,7 +314,7 @@ export default function DetallesTarjetaPage({ params }: { params: { id: string }
                   </svg>
                   Procesando...
                 </>
-              ) : error ? (
+              ) : errorMsg !== null ? (
                 `Reintentar Pago ($${total} USD)`
               ) : (
                 `Pagar ($${total} USD)`

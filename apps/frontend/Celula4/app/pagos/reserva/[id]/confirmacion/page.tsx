@@ -1,15 +1,11 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
+import { use } from 'react'
 import { mockPagoExitoso } from '@/lib/mocks/pagos.mock'
 import type { PagoResultado } from '@/lib/types/pago'
 import { FondoDecorado } from '@/app/pagos/_components/FondoDecorado'
-
-function formatearFecha(iso: string): string {
-  const [year, month, day] = iso.split('T')[0].split('-')
-  const meses = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic']
-  return `${meses[parseInt(month) - 1]} ${day}, ${year}`
-}
+import { formatearFecha } from '@/lib/utils/fecha'
 
 const FILAS: { label: string; valor: (p: PagoResultado) => string }[] = [
   { label: 'ID:',      valor: (p) => p.id },
@@ -18,7 +14,8 @@ const FILAS: { label: string; valor: (p: PagoResultado) => string }[] = [
   { label: 'Fecha:',   valor: (p) => formatearFecha(p.fecha) },
 ]
 
-export default function ConfirmacionPagoPage({ params }: { params: { id: string } }) {
+export default function ConfirmacionPagoPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = use(params)
   const router = useRouter()
   const pago: PagoResultado = mockPagoExitoso
 
@@ -87,7 +84,7 @@ export default function ConfirmacionPagoPage({ params }: { params: { id: string 
         </button>
 
         <button
-          onClick={() => router.push(`/pagos/reserva/${params.id}/detalle`)}
+          onClick={() => router.push(`/pagos/reserva/${id}/detalle`)}
           className="w-full mt-3 bg-[#6b7c45] hover:bg-[#5a6b3a] text-white
                      rounded-full py-3.5 font-semibold text-sm sm:text-base
                      transition cursor-pointer"
