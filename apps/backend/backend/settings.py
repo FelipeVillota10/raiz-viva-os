@@ -84,12 +84,40 @@ WSGI_APPLICATION = 'backend.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/6.0/ref/settings/#databases
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR / 'db.sqlite3',
+# Soporte para PostgreSQL (Neon/producción) y SQLite (desarrollo local)
+# Si DATABASE_URL está definido (Neon en Vercel), usa PostgreSQL
+# Si DB_HOST está definido (PostgreSQL local), usa PostgreSQL
+# Si no, usa SQLite por defecto
+
+db_url = env('DATABASE_URL', default='')
+db_host = env('DB_HOST', default='')
+
+if db_url:
+    # Production (Neon/Vercel) - usa DATABASE_URL completo
+    import dj_database_url
+    DATABASES = {
+        'default': dj_database_url.parse(db_url, conn_max_age=600)
     }
-}
+elif db_host:
+    # Desarrollo local con PostgreSQL
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': env('DB_NAME', default='raizviva_db'),
+            'USER': env('DB_USER', default='postgres'),
+            'PASSWORD': env('DB_PASSWORD', default='Postgres123'),
+            'HOST': db_host,
+            'PORT': env('DB_PORT', default='5432'),
+        }
+    }
+else:
+    # Desarrollo local con SQLite
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
+    }
 
 
 # Password validation
