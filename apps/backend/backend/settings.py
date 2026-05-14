@@ -41,6 +41,11 @@ INSTALLED_APPS = [
     'storages',
     'rest_framework',
     'rest_framework_simplejwt',
+    'Categorias',
+    'Estados',
+    'Eventos',
+    'Monedas',
+    'TiposActores', 
 ]
 
 MIDDLEWARE = [

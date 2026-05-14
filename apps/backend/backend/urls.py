@@ -18,21 +18,18 @@ from django.contrib import admin
 from django.urls import path
 from django.http import JsonResponse
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
+from Eventos.EventoController import EventoController
 
-# Vista simple para la raíz
 def home(request):
     return JsonResponse({
         "status": "ok",
-        "message": "Backend Raíz Viva OS está corriendo correctamente 🚀"
+        "message": "Backend Raíz Viva OS está corriendo correctamente"
     })
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    
-    # Rutas JWT
     path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
-    
-    # Ruta raíz (esto soluciona el 404)
+    path('api/eventos/', EventoController.as_view(), name='eventos'),
     path('', home, name='home'),
 ]
