@@ -18,6 +18,8 @@ from django.contrib import admin
 from django.urls import path
 from django.http import JsonResponse
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
+from django.urls import path, include
+from Growth.GrowthController import GrowthController 
 
 # Vista simple para la raíz
 def home(request):
@@ -32,7 +34,8 @@ urlpatterns = [
     # Rutas JWT
     path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
-    
+    path('api/growth/', GrowthController.as_view(), name='growth'),
+
     # Ruta raíz (esto soluciona el 404)
     path('', home, name='home'),
 ]
