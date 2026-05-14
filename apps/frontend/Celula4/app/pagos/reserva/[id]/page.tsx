@@ -2,10 +2,11 @@
 
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
-import { useState } from 'react'
+import { use, useState } from 'react'
 import { mockReserva } from '@/lib/mocks/reservas.mock'
 import type { Reserva } from '@/lib/types/reserva'
 import type { TipoMetodoPago } from '@/lib/types/pago'
+import { formatearFecha } from '@/lib/utils/fecha'
 
 interface MetodoPagoTab {
   tipo: TipoMetodoPago
@@ -19,21 +20,16 @@ const METODOS: MetodoPagoTab[] = [
   { tipo: 'billetera',     label: 'Billetera Digital', icono: 'wallet' },
 ]
 
-export default function PagarReservaPage({ params }: { params: { id: string } }) {
+export default function PagarReservaPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = use(params)
   const router = useRouter()
   const reserva: Reserva = mockReserva
   const [metodoActivo, setMetodoActivo] = useState<TipoMetodoPago>('tarjeta')
 
   const servicioAdicional = reserva.serviciosAdicionales[0]
 
-  function formatearFecha(iso: string): string {
-    const [year, month, day] = iso.split('-')
-    const meses = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic']
-    return `${meses[parseInt(month) - 1]} ${day}, ${year}`
-  }
-
   function handlePagar() {
-    router.push(`/pagos/reserva/${params.id}/${metodoActivo}`)
+    router.push(`/pagos/reserva/${id}/${metodoActivo}`)
   }
 
   return (

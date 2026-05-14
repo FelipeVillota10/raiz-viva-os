@@ -2,15 +2,11 @@
 
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
+import { use } from 'react'
 import { mockReserva } from '@/lib/mocks/reservas.mock'
 import type { Reserva } from '@/lib/types/reserva'
 import { FondoDecorado } from '@/app/pagos/_components/FondoDecorado'
-
-function formatearFecha(iso: string): string {
-  const [year, month, day] = iso.split('-')
-  const meses = ['Ene', 'Feb', 'Mar', 'Abr', 'May', 'Jun', 'Jul', 'Ago', 'Sep', 'Oct', 'Nov', 'Dic']
-  return `${meses[parseInt(month) - 1]} ${parseInt(day)}, ${year}`
-}
+import { formatearFecha } from '@/lib/utils/fecha'
 
 function IconoCalendario() {
   return (
@@ -43,7 +39,8 @@ function IconoPin() {
   )
 }
 
-export default function DetalleReservaPage({ params }: { params: { id: string } }) {
+export default function DetalleReservaPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = use(params)
   const router = useRouter()
   const reserva: Reserva = mockReserva
 
@@ -186,7 +183,7 @@ export default function DetalleReservaPage({ params }: { params: { id: string } 
             </div>
 
             <button
-              onClick={() => router.push(`/pagos/reserva/${params.id}/confirmacion`)}
+              onClick={() => router.push(`/pagos/reserva/${id}/confirmacion`)}
               className="w-full bg-[#6b7c45] hover:bg-[#5a6b3a] text-white
                          rounded-xl py-4 font-semibold text-base sm:text-lg
                          transition cursor-pointer"

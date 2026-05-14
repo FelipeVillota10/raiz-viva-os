@@ -5,7 +5,7 @@ export const mockReserva: Reserva = {
   experiencia: {
     id: 'EXP-001',
     nombre: 'Ruta Ancestral del Cacao',
-    imagen: '/cocora.jpg',
+    imagen: 'https://placehold.co/400x300/f5f0e8/3b5630?text=Ruta+del+Cacao',
     precio: 85,
     cantidad: 2,
   },
@@ -28,7 +28,7 @@ export const mockReserva: Reserva = {
   guia: {
     id: 'GUI-001',
     nombre: 'Carlos Mena',
-    avatar: undefined,
+    avatar: 'https://placehold.co/100x100/d1d5db/4b5563?text=DR',
   },
 }
 
