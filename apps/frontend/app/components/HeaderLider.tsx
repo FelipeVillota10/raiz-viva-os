@@ -34,7 +34,7 @@ export function HeaderLider({ showNotification = false, pendingCount = 0 }: Head
   return (
     <header className="flex justify-between items-center px-4 py-3 h-16 bg-[#3b5630] text-white shadow-md">
       <div className="flex items-center gap-3">
-        <Image src="/raiz_header.png" alt="Logo" width={80} height={80} className="w-44 h-44 object-contain" />
+        <Image src="/raiz_header.png" alt="Logo" width={256} height={256} className="w-64 h-64 object-contain mt-2" />
       </div>
 
       <div className="flex items-center gap-4">
