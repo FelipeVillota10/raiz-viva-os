@@ -46,11 +46,7 @@ export default function DetallesTarjetaPage({ params }: { params: { id: string }
   }
 
   return (
-    <div className="min-h-screen bg-[#f9f3e7] relative flex flex-col">
-
-      {/* Decoracion vegetal */}
-      <span className="absolute top-2 left-2 text-4xl opacity-20 pointer-events-none select-none">🍁</span>
-      <span className="absolute top-2 right-2 text-4xl opacity-20 pointer-events-none select-none rotate-12">🍂</span>
+    <div className="min-h-screen bg-[#f9f3e7] relative flex flex-col overflow-x-hidden">
 
       {/* Header */}
       <div className="w-full px-4 sm:px-6 lg:px-8 pt-6 pb-2">
@@ -73,10 +69,10 @@ export default function DetallesTarjetaPage({ params }: { params: { id: string }
       {/* Cuerpo principal */}
       <div className="flex-1 flex flex-col lg:flex-row lg:items-start lg:gap-6
                       max-w-md sm:max-w-lg lg:max-w-5xl mx-auto w-full
-                      px-4 sm:px-6 lg:px-8 pt-4 lg:pb-10">
+                      px-4 sm:px-6 lg:px-8 pt-4 pb-56 lg:pb-10">
 
         {/* Columna izquierda: alerta + formulario */}
-        <div className="w-full lg:flex-[3] flex flex-col gap-4">
+        <div className="relative z-10 w-full lg:flex-[3] flex flex-col gap-4">
 
           {/* Alerta de error */}
           {error && (
@@ -90,10 +86,10 @@ export default function DetallesTarjetaPage({ params }: { params: { id: string }
           )}
 
           {/* Card formulario */}
-          <div className="bg-[#f5f0e8] rounded-2xl shadow-md border border-[#e8e0d0] p-5 sm:p-6">
+          <div className="bg-[#f5f0e8] rounded-2xl shadow-md border border-[#e8e0d0] p-4">
 
             {/* Nombre en la tarjeta */}
-            <div className="mb-3">
+            <div className="mb-2">
               <input
                 type="text"
                 placeholder="Nombre en la Tarjeta"
@@ -106,7 +102,7 @@ export default function DetallesTarjetaPage({ params }: { params: { id: string }
             </div>
 
             {/* Número de tarjeta */}
-            <div className="mb-3 relative">
+            <div className="mb-2 relative">
               <input
                 type="text"
                 placeholder="Número de Tarjeta"
@@ -148,7 +144,7 @@ export default function DetallesTarjetaPage({ params }: { params: { id: string }
               />
             </div>
 
-            {/* Total a pagar — dentro de la card */}
+            {/* Total a pagar */}
             <div className="flex justify-between items-center mt-4 pt-4 border-t border-[#e0d8c8]">
               <span className="text-base text-[#1a1a1a]">Total a Pagar:</span>
               <span className="text-base font-bold text-[#1a1a1a]">${total} USD</span>
@@ -157,14 +153,32 @@ export default function DetallesTarjetaPage({ params }: { params: { id: string }
 
         </div>
 
-        {/* Columna derecha: método de pago + botón */}
-        <div className="flex-1 lg:flex-none lg:flex-[2]
+        {/* Hojas decorativas entre los dos cards, solo mobile */}
+        <div className="relative h-14 overflow-hidden lg:hidden" aria-hidden="true">
+          <div className="absolute left-0 top-1/2 -translate-y-1/2 pointer-events-none select-none z-0">
+            <svg width="58" height="90" viewBox="0 0 58 90" fill="none" xmlns="http://www.w3.org/2000/svg">
+              {/* Hoja café */}
+              <g transform="translate(22, 36) rotate(-28)">
+                <path d="M 0 -28 C 12 -18 12 18 0 28 C -11 18 -11 -18 0 -28 Z" fill="#8B6914" opacity="0.40"/>
+                <line x1="0" y1="-24" x2="0" y2="24" stroke="#6B4F1A" strokeWidth="0.8" opacity="0.26"/>
+              </g>
+              {/* Hoja verde — más pequeña */}
+              <g transform="translate(38, 68) rotate(20)">
+                <path d="M 0 -18 C 8 -12 8 12 0 18 C -7 12 -7 -12 0 -18 Z" fill="#3b5630" opacity="0.34"/>
+                <line x1="0" y1="-15" x2="0" y2="15" stroke="#3b5630" strokeWidth="0.7" opacity="0.22"/>
+              </g>
+            </svg>
+          </div>
+        </div>
+
+        {/* Columna derecha: metodo de pago + boton,  fijo al fondo en mobile */}
+        <div className="fixed bottom-0 left-0 right-0 z-20
+                        lg:relative lg:bottom-auto lg:left-auto lg:right-auto lg:z-10
+                        lg:flex-none lg:flex-[2]
                         bg-white
                         rounded-t-3xl lg:rounded-2xl
-                        shadow-[0_-4px_20px_rgba(0,0,0,0.08)] lg:shadow-[0_-4px_20px_rgba(0,0,0,0.08)]
-                        mt-6 lg:mt-0
-                        px-6 sm:px-7 pt-6 pb-8
-                        flex flex-col
+                        shadow-[0_-4px_20px_rgba(0,0,0,0.08)]
+                        px-6 sm:px-7 pt-5 pb-6
                         lg:sticky lg:top-6">
 
           <h2 className="font-bold text-[#1a1a1a] text-base sm:text-lg mb-4 flex items-center gap-2">
@@ -212,7 +226,7 @@ export default function DetallesTarjetaPage({ params }: { params: { id: string }
           <button
             onClick={handlePagar}
             disabled={loading}
-            className="w-full mt-auto pt-6"
+            className="w-full mt-5"
           >
             <span className={`
               flex items-center justify-center gap-2

@@ -21,7 +21,7 @@ export const mockReserva: Reserva = {
   fechaFin: '2026-10-28',
   subtotal: 170,
   total: 190,
-  estado: 'pendiente',
+  estado: 'confirmada',
   participantes: 2,
   ubicacion: 'Buitrera, Palmira, Valle del Cauca',
   hora: '09:00',
