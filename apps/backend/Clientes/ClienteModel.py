@@ -34,7 +34,7 @@ class ClienteModel(models.Model):
     es_turista    = models.BooleanField(default=False)
  
     class Meta:
-        managed  = True
+        managed = False
         db_table = 'clientes'
  
     def __str__(self):
