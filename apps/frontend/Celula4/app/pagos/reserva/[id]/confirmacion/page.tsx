@@ -1,14 +1,11 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
+import { use } from 'react'
 import { mockPagoExitoso } from '@/lib/mocks/pagos.mock'
 import type { PagoResultado } from '@/lib/types/pago'
-
-function formatearFecha(iso: string): string {
-  const [year, month, day] = iso.split('T')[0].split('-')
-  const meses = ['Ene','Feb','Mar','Abr','May','Jun','Jul','Ago','Sep','Oct','Nov','Dic']
-  return `${meses[parseInt(month) - 1]} ${day}, ${year}`
-}
+import { FondoDecorado } from '@/app/pagos/_components/FondoDecorado'
+import { formatearFecha } from '@/lib/utils/fecha'
 
 const FILAS: { label: string; valor: (p: PagoResultado) => string }[] = [
   { label: 'ID:',      valor: (p) => p.id },
@@ -17,19 +14,16 @@ const FILAS: { label: string; valor: (p: PagoResultado) => string }[] = [
   { label: 'Fecha:',   valor: (p) => formatearFecha(p.fecha) },
 ]
 
-export default function ConfirmacionPagoPage({ params }: { params: { id: string } }) {
+export default function ConfirmacionPagoPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = use(params)
   const router = useRouter()
   const pago: PagoResultado = mockPagoExitoso
 
   return (
-    <div className="min-h-screen bg-[#f9f3e7] relative flex flex-col">
-
-      {/* Decoracion vegetal */}
-      <span className="absolute top-2 left-2 text-4xl opacity-20 pointer-events-none select-none">🍁</span>
-      <span className="absolute top-2 right-2 text-4xl opacity-20 pointer-events-none select-none rotate-12">🍂</span>
+    <FondoDecorado>
 
       {/* Header */}
-      <div className="w-full px-4 sm:px-6 pt-6 pb-2">
+      <div className="relative z-10 w-full px-4 sm:px-6 pt-6 pb-2">
         <div className="max-w-md sm:max-w-lg mx-auto">
           <div className="flex items-center relative">
             <button
@@ -46,8 +40,8 @@ export default function ConfirmacionPagoPage({ params }: { params: { id: string 
         </div>
       </div>
 
-      {/* Contenido central */}
-      <div className="flex-1 flex flex-col items-center max-w-md sm:max-w-lg mx-auto w-full px-4 sm:px-6 pt-8 pb-10">
+      {/* Contenido */}
+      <div className="relative z-10 flex-1 flex flex-col items-center max-w-md sm:max-w-lg mx-auto w-full px-4 sm:px-6 pt-8 pb-10">
 
         {/* Icono de exito */}
         <div className="flex flex-col items-center mb-8">
@@ -58,7 +52,7 @@ export default function ConfirmacionPagoPage({ params }: { params: { id: string 
         </div>
 
         {/* Card comprobante */}
-        <div className="w-full bg-white rounded-2xl shadow-md border border-[#e8e0d0] border-l-4 border-l-[#6b7c45] p-5 sm:p-6">
+        <div className="w-full bg-white rounded-2xl shadow-md border border-[#e8e0d0] p-5 sm:p-6">
           <div className="space-y-3">
             {FILAS.map(({ label, valor }) => (
               <div key={label} className="flex justify-between items-center">
@@ -74,7 +68,7 @@ export default function ConfirmacionPagoPage({ params }: { params: { id: string 
       </div>
 
       {/* Bandeja inferior con botones */}
-      <div className="flex-1 max-w-md sm:max-w-lg mx-auto w-full mt-6
+      <div className="relative z-10 flex-1 max-w-md sm:max-w-lg mx-auto w-full mt-6
                       bg-white rounded-t-3xl shadow-[0_-4px_20px_rgba(0,0,0,0.08)]
                       px-6 pt-6 pb-8 flex flex-col">
 
@@ -90,7 +84,7 @@ export default function ConfirmacionPagoPage({ params }: { params: { id: string 
         </button>
 
         <button
-          onClick={() => router.push(`/pagos/reserva/${params.id}/detalle`)}
+          onClick={() => router.push(`/pagos/reserva/${id}/detalle`)}
           className="w-full mt-3 bg-[#6b7c45] hover:bg-[#5a6b3a] text-white
                      rounded-full py-3.5 font-semibold text-sm sm:text-base
                      transition cursor-pointer"
@@ -99,6 +93,7 @@ export default function ConfirmacionPagoPage({ params }: { params: { id: string 
         </button>
 
       </div>
-    </div>
+
+    </FondoDecorado>
   )
 }
