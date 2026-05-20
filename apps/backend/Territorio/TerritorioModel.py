@@ -1,5 +1,4 @@
 from django.db import models
-from Usuario.UsuarioModel import UsuarioModel
 from Estados.EstadoModel import EstadoModel
 from Clientes.ClienteModel import ClienteModel
 

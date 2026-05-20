@@ -1,12 +1,12 @@
 from django.db.models import Sum
 from django.utils import timezone
+from django.contrib.auth.models import User
 
 
 class GrowthRepository:
 
     def get_usuarios_activos(self):
-        from Usuario.UsuarioModel import UsuarioModel
-        return UsuarioModel.objects.count()
+        return User.objects.count()
 
     def get_actores_activos(self):
         from Clientes.ClienteModel import ClienteModel
