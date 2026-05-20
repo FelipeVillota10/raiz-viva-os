@@ -32,7 +32,7 @@ class AprobacionModel(models.Model):
     fecha_respuesta = models.DateTimeField(null=True, blank=True)
 
     class Meta:
-        managed = False
+        managed = True
         db_table = 'aprobaciones'
         verbose_name = 'Aprobacion'
         verbose_name_plural = 'Aprobaciones'

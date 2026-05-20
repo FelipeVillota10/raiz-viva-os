@@ -18,7 +18,7 @@ class ClienteTiposActoresModel(models.Model):
     fecha_asignacion = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        managed = False
+        managed = True
         db_table = 'cliente_tipos_actores'
         unique_together = ('id_actor', 'id_tipo')
 
