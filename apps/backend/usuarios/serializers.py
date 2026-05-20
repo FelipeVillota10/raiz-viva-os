@@ -58,6 +58,7 @@ class RegistroClienteSerializer(serializers.Serializer):
     id_territorio = serializers.IntegerField(required=False, allow_null=True)
     id_tipo_moneda = serializers.IntegerField(required=False, allow_null=True)
     tipos_actores = serializers.ListField(child=serializers.IntegerField(), min_length=1)
+    servicios = serializers.ListField(child=serializers.IntegerField(), required=False, default=[])
     es_actor = serializers.BooleanField(default=False)
     es_lider = serializers.BooleanField(default=False)
     es_turista = serializers.BooleanField(default=False)

@@ -28,7 +28,7 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
             raise ValidationError({'detail': error})
 
         from rest_framework_simplejwt.tokens import RefreshToken
-        refresh = RefreshToken.for_user(self.user)
+        refresh = RefreshToken.for_user(cliente.usuario)
 
         if cliente:
             refresh['es_actor'] = cliente.es_actor
@@ -89,7 +89,7 @@ class TerritoriosController(APIView):
 class MonedasController(APIView):
     def get(self, request):
         service = UsuarioService()
-        monedas = service.listar_monedass()
+        monedas = service.listar_monedas()
         serializer = MonedaSerializer(monedas, many=True)
         return Response(serializer.data)
 

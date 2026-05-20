@@ -14,7 +14,7 @@ urlpatterns = [
     path('auth/me/', PerfilUsuarioController.as_view(), name='perfil_usuario'),
     path('tipos-actores/', TiposActoresController.as_view(), name='listar_tipos_actores'),
     path('territorios/', TerritoriosController.as_view(), name='listar_territorios'),
-    path('monedass/', MonedasController.as_view(), name='listar_monedass'),
+    path('monedas/', MonedasController.as_view(), name='listar_monedas'),
     path('registro/cliente/', RegistroClienteController.as_view(), name='registro_cliente'),
     path('clientes/<int:pk>/', ClienteController.as_view(), name='obtener_cliente'),
 ]

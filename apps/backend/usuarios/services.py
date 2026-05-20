@@ -7,7 +7,9 @@ from TiposActores.TipoActorModel import TipoActorModel
 from TiposActores.ClienteTiposActoresModel import ClienteTiposActoresModel
 from Territorio.TerritorioModel import TerritorioModel
 from Monedas.MonedaModel import MonedaModel
+from Servicios.ServicioModel import ServicioModel
 from Aprobaciones.AprobacionModel import AprobacionModel, EstadoAprobacion
+from Servicios.ServicioModel import ClienteServicioModel
 from .repository import UsuarioRepository
 from .EmailService import EmailService
 
@@ -105,6 +107,14 @@ class UsuarioService:
             tipo = TipoActorModel.objects.get(id=tipo_id)
             ClienteTiposActoresModel.objects.create(id_actor=cliente, id_tipo=tipo)
 
+        servicios_ids = data.get('servicios', [])
+        for servicio_id in servicios_ids:
+            try:
+                servicio = ServicioModel.objects.get(id=servicio_id)
+                ClienteServicioModel.objects.create(cliente=cliente, servicio=servicio)
+            except ServicioModel.DoesNotExist:
+                pass
+
         return cliente
 
     def send_registration_notifications(self, cliente):
@@ -194,5 +204,5 @@ class UsuarioService:
     def listar_territorios(self):
         return TerritorioModel.objects.all()
 
-    def listar_monedass(self):
+    def listar_monedas(self):
         return MonedaModel.objects.all()
