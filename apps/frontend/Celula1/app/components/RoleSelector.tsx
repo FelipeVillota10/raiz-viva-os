@@ -1,17 +1,16 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from './ui/Button';
 import { Card } from './ui/Card';
 import { getRoleIcon } from './ui/Icons';
 
-interface Role {
+interface TipoActor {
   id: number;
-  nombre: string;
-  icono: string;
+  nombre_tipo: string;
+  icono: string | null;
   descripcion: string;
-  es_turista: boolean;
 }
 
 interface RoleSelectorProps {
@@ -19,30 +18,44 @@ interface RoleSelectorProps {
   onRoleToggle: (roleId: number) => void;
 }
 
+const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+
 export function RoleSelector({ selectedRoles, onRoleToggle }: RoleSelectorProps) {
   const router = useRouter();
+  const [roles, setRoles] = useState<TipoActor[]>([]);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [roles] = useState<Role[]>([
-    { id: 1, nombre: 'productor', icono: 'seed', descripcion: 'Suministro de productos locales y artesanales', es_turista: false },
-    { id: 2, nombre: 'caminante', icono: 'hiking', descripcion: 'Guía de rutas e intérprete de saberes', es_turista: false },
-    { id: 3, nombre: 'custodio', icono: 'shield', descripcion: 'Protección de biodiversidad y patrimonio', es_turista: false },
-    { id: 4, nombre: 'facilitador', icono: 'users', descripcion: 'Tallerista y gestor de experiencias', es_turista: false },
-    { id: 5, nombre: 'anfitrion', icono: 'home', descripcion: 'Gestor de alojamiento, gastronomía y transporte', es_turista: false },
-  ]);
 
-  const turistaRole = { id: 6, nombre: 'turista', icono: 'compass', descripcion: 'Visitante de experiencias', es_turista: true };
+  useEffect(() => {
+    const fetchRoles = async () => {
+      try {
+        const response = await fetch(`${API_URL}/api/tipos-actores/`);
+        if (response.ok) {
+          const data = await response.json();
+          setRoles(data);
+        } else {
+          setError('No se pudieron cargar los roles');
+        }
+      } catch {
+        setError('Error de conexion');
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  const handleRoleClick = (role: Role) => {
-    const isTurista = role.nombre === 'turista';
+    fetchRoles();
+  }, []);
+
+  const turistaRole = roles.find(r => r.nombre_tipo === 'turista');
+  const actorRoles = roles.filter(r => r.nombre_tipo !== 'turista');
+
+  const handleRoleClick = (role: TipoActor) => {
+    const isTurista = role.nombre_tipo === 'turista';
 
     if (isTurista) {
-      if (selectedRoles.includes(6)) {
-        onRoleToggle(6);
-      } else {
-        onRoleToggle(6);
-      }
+      onRoleToggle(role.id);
     } else {
-      if (selectedRoles.includes(6)) {
+      if (selectedRoles.includes(turistaRole?.id || 0)) {
         return;
       }
       onRoleToggle(role.id);
@@ -51,8 +64,8 @@ export function RoleSelector({ selectedRoles, onRoleToggle }: RoleSelectorProps)
     setError(null);
   };
 
-  const isTuristaSelected = selectedRoles.includes(6);
-  const otherRolesSelected = roles.some(r => selectedRoles.includes(r.id));
+  const isTuristaSelected = turistaRole ? selectedRoles.includes(turistaRole.id) : false;
+  const otherRolesSelected = actorRoles.some(r => selectedRoles.includes(r.id));
   const canContinue = selectedRoles.length > 0 && !(isTuristaSelected && otherRolesSelected);
 
   const handleContinue = () => {
@@ -62,7 +75,7 @@ export function RoleSelector({ selectedRoles, onRoleToggle }: RoleSelectorProps)
     }
 
     if (selectedRoles.length === 0) {
-      setError('Seleccione uno o más roles para continuar');
+      setError('Seleccione uno o mas roles para continuar');
       return;
     }
 
@@ -80,19 +93,39 @@ export function RoleSelector({ selectedRoles, onRoleToggle }: RoleSelectorProps)
     caminante: 'Caminante',
     custodio: 'Custodio',
     facilitador: 'Facilitador',
-    anfitrion: 'Anfitrión',
+    anfitrion: 'Anfitrion',
     turista: 'Turista',
   };
+
+  if (loading) {
+    return (
+      <main className="max-w-4xl mx-auto px-4 py-8">
+        <div className="text-center py-20">
+          <p className="text-[#353535]">Cargando roles...</p>
+        </div>
+      </main>
+    );
+  }
+
+  if (error) {
+    return (
+      <main className="max-w-4xl mx-auto px-4 py-8">
+        <div className="text-center py-20">
+          <p className="text-[#E53935]">{error}</p>
+        </div>
+      </main>
+    );
+  }
 
   return (
     <main className="max-w-4xl mx-auto px-4 py-8">
       <div className="text-center mb-8">
-        <h2 className="text-2xl font-semibold text-[#231F20] mb-2">¿Me identifico como?</h2>
-        <p className="text-[#353535]">Selecciona tu rol en el ecosistema Raíz Viva</p>
+        <h2 className="text-2xl font-semibold text-[#231F20] mb-2">Me identifico como?</h2>
+        <p className="text-[#353535]">Selecciona tu rol en el ecosistema Raiz Viva</p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4 mb-8">
-        {roles.map((role) => {
+        {actorRoles.map((role) => {
           const isSelected = selectedRoles.includes(role.id);
           return (
             <Card
@@ -102,9 +135,9 @@ export function RoleSelector({ selectedRoles, onRoleToggle }: RoleSelectorProps)
               className="flex flex-col items-center text-center p-6"
             >
               <div className={`w-16 h-16 rounded-full flex items-center justify-center mb-4 ${isSelected ? 'bg-[#3E853F] text-white' : 'bg-[#EFF7EA] text-[#3E853F]'}`}>
-                {getRoleIcon(role.nombre, '', 32)}
+                {getRoleIcon(role.nombre_tipo, '', 32)}
               </div>
-              <h3 className="font-semibold text-[#231F20] mb-2">{roleNames[role.nombre]}</h3>
+              <h3 className="font-semibold text-[#231F20] mb-2">{roleNames[role.nombre_tipo] || role.nombre_tipo}</h3>
               <p className="text-sm text-[#353535]">{role.descripcion}</p>
               {isSelected && (
                 <div className="absolute top-3 right-3 w-6 h-6 bg-[#3E853F] rounded-full flex items-center justify-center">
@@ -118,24 +151,26 @@ export function RoleSelector({ selectedRoles, onRoleToggle }: RoleSelectorProps)
         })}
       </div>
 
-      <Card
-        onClick={() => handleRoleClick(turistaRole)}
-        selected={isTuristaSelected}
-        className="flex flex-col items-center text-center p-6 mb-8 bg-[#E6D3A3]/30 border-[#8F9F81]"
-      >
-        <div className={`w-16 h-16 rounded-full flex items-center justify-center mb-4 ${isTuristaSelected ? 'bg-[#3E853F] text-white' : 'bg-[#E6D3A3] text-[#3E853F]'}`}>
-          {getRoleIcon('turista', '', 32)}
-        </div>
-        <h3 className="font-semibold text-[#231F20] mb-2">Turista</h3>
-        <p className="text-sm text-[#353535]">Visitante de experiencias</p>
-        {isTuristaSelected && (
-          <div className="absolute top-3 right-3 w-6 h-6 bg-[#3E853F] rounded-full flex items-center justify-center">
-            <svg className="w-4 h-4 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
-              <polyline points="20 6 9 17 4 12" />
-            </svg>
+      {turistaRole && (
+        <Card
+          onClick={() => handleRoleClick(turistaRole)}
+          selected={isTuristaSelected}
+          className="flex flex-col items-center text-center p-6 mb-8 bg-[#E6D3A3]/30 border-[#8F9F81]"
+        >
+          <div className={`w-16 h-16 rounded-full flex items-center justify-center mb-4 ${isTuristaSelected ? 'bg-[#3E853F] text-white' : 'bg-[#E6D3A3] text-[#3E853F]'}`}>
+            {getRoleIcon(turistaRole.nombre_tipo, '', 32)}
           </div>
-        )}
-      </Card>
+          <h3 className="font-semibold text-[#231F20] mb-2">Turista</h3>
+          <p className="text-sm text-[#353535]">{turistaRole.descripcion}</p>
+          {isTuristaSelected && (
+            <div className="absolute top-3 right-3 w-6 h-6 bg-[#3E853F] rounded-full flex items-center justify-center">
+              <svg className="w-4 h-4 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3">
+                <polyline points="20 6 9 17 4 12" />
+              </svg>
+            </div>
+          )}
+        </Card>
+      )}
 
       {error && (
         <div className="mb-6 p-4 bg-[#E53935]/10 border border-[#E53935] rounded-xl text-center">
