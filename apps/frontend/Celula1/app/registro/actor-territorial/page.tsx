@@ -112,9 +112,7 @@ export default function ClientePage() {
   const validateField = (name: string, value: string): string | null => {
     switch (name) {
       case 'nombre_completo':
-        if (/\d/.test(value)) return 'El nombre no puede contener números.';
-        if (value.trim().split(/\s+/).length < 2) return 'El nombre debe tener al menos 2 palabras.';
-        if (value.length < 5) return 'El nombre debe tener al menos 5 caracteres.';
+        if (value.length < 3) return 'El nombre del negocio debe tener al menos 3 caracteres.';
         return null;
       case 'email':
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
@@ -235,66 +233,74 @@ export default function ClientePage() {
     <div className="flex flex-col min-h-screen bg-[#F4F1EA]">
       <HeaderSecundario backRoute="/registro" title="Registro Actor Territorial" />
 
-      <main className="flex-1 max-w-3xl mx-auto px-4 py-8 w-full">
-        <h2 className="text-2xl font-semibold text-[#231F20] mb-2 text-center">
-          Registro del Actor Territorial
-        </h2>
-        <p className="text-[#353535] mb-8 text-center">Complete todos los campos para crear su cuenta</p>
+      <main className="flex-1 w-full px-4 sm:px-8 lg:px-12 py-10 lg:py-14">
+        <div className="max-w-5xl mx-auto">
+          <header className="text-center lg:text-left mb-8 lg:mb-10">
+            <h1 className="text-3xl sm:text-4xl font-bold text-[#231F20] tracking-tight">
+              Registro del Actor Territorial
+            </h1>
+            <p className="mt-2 text-lg text-[#353535] max-w-2xl mx-auto lg:mx-0">
+              Complete el formulario para registrar su negocio en la red.
+            </p>
+          </header>
 
-        <form onSubmit={handleSubmit} className="space-y-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <Input label="Nombre Completo" name="nombre_completo" value={formData.nombre_completo} onChange={handleChange} onBlur={handleBlur} error={errors.nombre_completo} icon={<UserIcon size={20} />} placeholder="Ej: Juan Pérez García" autoComplete="name" />
-            <Input label="Correo Electrónico" name="email" type="email" value={formData.email} onChange={handleChange} onBlur={handleBlur} error={errors.email} icon={<MailIcon size={20} />} placeholder="Ej: correo@ejemplo.com" autoComplete="email" />
-          </div>
+          <div className="bg-white rounded-2xl border border-[#E8E4DC] shadow-sm p-6 sm:p-8 lg:p-10">
+            <form onSubmit={handleSubmit} className="space-y-6 lg:space-y-8">
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8">
+                <Input label="Nombre del Negocio" name="nombre_completo" value={formData.nombre_completo} onChange={handleChange} onBlur={handleBlur} error={errors.nombre_completo} icon={<UserIcon size={20} />} placeholder="Ej: Restaurante El Sabor" autoComplete="name" />
+                <Input label="Correo Electrónico" name="email" type="email" value={formData.email} onChange={handleChange} onBlur={handleBlur} error={errors.email} icon={<MailIcon size={20} />} placeholder="Ej: correo@ejemplo.com" autoComplete="email" />
+              </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <Input label="Contraseña" name="password" type="password" value={formData.password} onChange={handleChange} onBlur={handleBlur} error={errors.password} icon={<LockIcon size={20} />} placeholder="Mínimo 8 caracteres, 1 mayúscula y 1 número" autoComplete="new-password" />
-            <Input label="Teléfono" name="telefono" type="tel" value={formData.telefono} onChange={handleChange} onBlur={handleBlur} error={errors.telefono} icon={<PhoneIcon size={20} />} placeholder="Ej: 3001234567" autoComplete="tel" />
-          </div>
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8">
+                <Input label="Contraseña" name="password" type="password" value={formData.password} onChange={handleChange} onBlur={handleBlur} error={errors.password} icon={<LockIcon size={20} />} placeholder="Mínimo 8 caracteres, 1 mayúscula y 1 número" autoComplete="new-password" />
+                <Input label="Teléfono" name="telefono" type="tel" value={formData.telefono} onChange={handleChange} onBlur={handleBlur} error={errors.telefono} icon={<PhoneIcon size={20} />} placeholder="Ej: 3001234567" autoComplete="tel" />
+              </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <Select label="Territorio" name="id_territorio" value={formData.id_territorio} onChange={handleChange} onBlur={handleBlur} error={errors.id_territorio} options={territorioOptions} />
-            <Select label="Moneda de Preferencia" name="id_tipo_moneda" value={formData.id_tipo_moneda} onChange={handleChange} onBlur={handleBlur} error={errors.id_tipo_moneda} options={monedaOptions} />
-          </div>
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-8">
+                <Select label="Territorio" name="id_territorio" value={formData.id_territorio} onChange={handleChange} onBlur={handleBlur} error={errors.id_territorio} options={territorioOptions} />
+                <Select label="Moneda de Preferencia" name="id_tipo_moneda" value={formData.id_tipo_moneda} onChange={handleChange} onBlur={handleBlur} error={errors.id_tipo_moneda} options={monedaOptions} />
+              </div>
 
-          <div className="space-y-3">
-            <label className="block text-sm font-medium text-[#231F20]">
-              Servicios que ofreces (opcional)
-            </label>
-            <div className="flex flex-wrap gap-2">
-              {serviciosOptions.length === 0 ? (
-                <p className="text-sm text-[#666]">Cargando servicios...</p>
-              ) : (
-                serviciosOptions.map((servicio) => (
-                  <button
-                    key={servicio.id}
-                    type="button"
-                    onClick={() => toggleServicio(servicio.id)}
-                    className={`px-4 py-2 rounded-full border transition-all text-sm font-medium ${
-                      selectedServicios.includes(servicio.id)
-                        ? 'bg-[#4CAF50] text-white border-[#4CAF50]'
-                        : 'bg-white text-[#353535] border-[#E8E4DC] hover:border-[#231F20]'
-                    }`}
-                  >
-                    {servicio.nombre}
-                  </button>
-                ))
+              <div className="space-y-3">
+                <label className="block text-sm font-medium text-[#231F20]">
+                  Servicios que ofreces (opcional)
+                </label>
+                <div className="flex flex-wrap gap-2">
+                  {serviciosOptions.length === 0 ? (
+                    <p className="text-sm text-[#666]">Cargando servicios...</p>
+                  ) : (
+                    serviciosOptions.map((servicio) => (
+                      <button
+                        key={servicio.id}
+                        type="button"
+                        onClick={() => toggleServicio(servicio.id)}
+                        className={`px-4 py-2 rounded-full border transition-all text-sm font-medium ${
+                          selectedServicios.includes(servicio.id)
+                            ? 'bg-[#3b5630] text-white border-[#3b5630]'
+                            : 'bg-white text-[#353535] border-[#E8E4DC] hover:border-[#231F20]'
+                        }`}
+                      >
+                        {servicio.nombre}
+                      </button>
+                    ))
+                  )}
+                </div>
+              </div>
+
+              {generalError && (
+                <div className="p-4 bg-[#E53935]/10 border border-[#E53935] rounded-xl text-center">
+                  <p className="text-[#E53935] font-medium">{generalError}</p>
+                </div>
               )}
-            </div>
-          </div>
 
-          {generalError && (
-            <div className="p-4 bg-[#E53935]/10 border border-[#E53935] rounded-xl text-center">
-              <p className="text-[#E53935] font-medium">{generalError}</p>
-            </div>
-          )}
-
-          <div className="flex justify-center pt-4">
-            <Button type="submit" size="lg" isLoading={isLoading} className="px-12">
-              Finalizar Registro
-            </Button>
+              <div className="flex justify-center pt-2 lg:pt-4">
+                <Button type="submit" size="lg" isLoading={isLoading} className="w-full sm:w-auto min-w-[280px] lg:min-w-[320px] uppercase tracking-wide text-base lg:text-lg">
+                  Finalizar Registro
+                </Button>
+              </div>
+            </form>
           </div>
-        </form>
+        </div>
       </main>
 
       <Footer />

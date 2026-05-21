@@ -6,7 +6,7 @@ import { getToken, API_URL } from '../../services/api';
 
 interface ActorInfo {
   id: number;
-  nombre_completo: string;
+  nombre: string;
   telefono: string;
   servicio: string;
   territorio_nombre: string | null;
@@ -110,7 +110,7 @@ export default function AprobacionesPage() {
                 <div className="flex justify-between items-start mb-3">
                   <div>
                     <h3 className="font-semibold text-lg text-[#231F20]">
-                      {solicitud.actor_info.nombre_completo}
+                      {solicitud.actor_info.nombre}
                     </h3>
                     <p className="text-sm text-[#353535]">
                       {solicitud.actor_info.telefono} · {solicitud.actor_info.territorio_nombre || 'Sin territorio'}
@@ -122,7 +122,7 @@ export default function AprobacionesPage() {
                 </div>
 
                 <p className="text-sm text-[#353535] mb-2">
-                  <span className="font-medium">Solicita aprobación para:</span> {solicitud.actor_info.servicio || 'Sin descripción'}
+                  <span className="font-medium">Solicita aprobación para:</span> {solicitud.actor_info.nombre || 'Sin nombre'}
                 </p>
 
                 {primerTipo && (

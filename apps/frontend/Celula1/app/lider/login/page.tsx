@@ -1,16 +1,17 @@
 'use client';
 
 import React, { useState } from 'react';
+import { useRouter } from 'next/navigation';
+import Image from 'next/image';
 import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
 import { LockIcon, MailIcon } from '../../components/ui/Icons';
-import Image from 'next/image';
 import { Footer } from '../../components/Footer';
-import { setTokens } from '../../services/api';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 
 export default function LiderLoginPage() {
+  const router = useRouter();
   const [isLoading, setIsLoading] = useState(false);
   const [formData, setFormData] = useState({ email: '', password: '' });
   const [error, setError] = useState<string | null>(null);
@@ -59,62 +60,59 @@ export default function LiderLoginPage() {
   };
 
   return (
-    <div className="flex flex-col min-h-screen bg-[#f9f3e7]">
-      <div className="flex-1 flex items-center justify-center px-4 py-12">
-        <div className="w-full max-w-md">
-          <div className="text-center mb-8">
-            <a href="/">
-              <Image src="/RaizLogoCirculo.png" alt="Logo Líder Territorial" width={180} height={180} className="mx-auto mb-4 object-contain cursor-pointer" />
-            </a>
-            <h2 className="text-sm font-normal text-[#231F20]">Conectando comunidades rurales, productores y viajeros para un desarrollo territorial sostenible</h2>
+    <div className="flex flex-col min-h-screen bg-[#F4F1EA]">
+      <main className="flex-1 flex items-center justify-center px-4 py-12">
+        <div className="bg-white rounded-2xl shadow-lg p-8 border border-[#E6D3A3] w-full max-w-md">
+          <div className="flex justify-center mb-1">
+            <Image
+              src="/RaizLogoCirculo.png"
+              alt="Logo de Raíz Viva"
+              width={400}
+              height={400}
+              className="object-contain"
+            />
           </div>
 
-          <form onSubmit={handleLogin} className="space-y-4">
-            <div className="bg-white rounded-2xl shadow-md p-3 border border-[#E6D3A3]">
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-full bg-[#8c9a80] flex items-center justify-center shrink-0">
-                  <MailIcon size={22} />
-                </div>
-                <Input
-                  label="Correo Electrónico"
-                  name="email"
-                  type="email"
-                  value={formData.email}
-                  onChange={handleChange}
-                  placeholder="correo@ejemplo.com"
-                  autoComplete="email"
-                />
-              </div>
-            </div>
-            <div className="bg-white rounded-2xl shadow-md p-3 border border-[#E6D3A3]">
-              <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-full bg-[#8c9a80] flex items-center justify-center shrink-0">
-                  <LockIcon size={22} />
-                </div>
-                <Input
-                  label="Contraseña"
-                  name="password"
-                  type="password"
-                  value={formData.password}
-                  onChange={handleChange}
-                  placeholder="Tu contraseña"
-                  autoComplete="current-password"
-                />
-              </div>
-            </div>
+          <p className="text-center text-[#353535] text-sm mb-8">
+            Conectando comunidades rurales, productores y viajeros para un desarrollo territorial sostenible
+          </p>
+
+          <form onSubmit={handleLogin} className="space-y-5">
+            <Input
+              label="Correo Electrónico"
+              name="email"
+              type="email"
+              value={formData.email}
+              onChange={handleChange}
+              icon={<MailIcon size={20} />}
+              placeholder="correo@ejemplo.com"
+              autoComplete="email"
+            />
+
+            <Input
+              label="Contraseña"
+              name="password"
+              type="password"
+              value={formData.password}
+              onChange={handleChange}
+              icon={<LockIcon size={20} />}
+              placeholder="Tu contraseña"
+              autoComplete="current-password"
+            />
 
             {error && (
-              <div className="p-3 bg-red-50 border border-[#ef4444] rounded-xl text-center">
-                <p className="text-[#ef4444] text-sm font-medium">{error}</p>
+              <div className="p-3 bg-[#E53935]/10 border border-[#E53935] rounded-xl text-center">
+                <p className="text-[#E53935] text-sm font-medium">{error}</p>
               </div>
             )}
 
-            <Button type="submit" size="lg" isLoading={isLoading} className="w-full text-lg">
+            <Button type="submit" size="lg" isLoading={isLoading} className="w-full">
               Iniciar Sesión
             </Button>
           </form>
         </div>
-      </div>
+      </main>
+
       <Footer />
     </div>
   );

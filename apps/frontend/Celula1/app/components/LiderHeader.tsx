@@ -15,17 +15,19 @@ export function LiderHeader() {
 
   return (
     <header className="flex justify-between items-center px-4 py-2 h-16 bg-[#3b5630] text-white">
-      <div className="flex items-center gap-3">
+      <div className="flex items-center gap-2">
         <Image
           src="/raiz_header.png"
           alt="Logo de Raiz Viva"
           width={256}
           height={256}
-          className="w-16 h-16 object-contain"
+          className="w-64 h-64 object-contain mt-2"
         />
-        <div className="hidden sm:flex flex-col">
-          <span className="font-semibold text-sm">Panel Líder Territorial</span>
-        </div>
+        {isLoginPage ? (
+          <span className="font-medium text-base hidden sm:inline self-center">Inicio de Sesión - Líder Territorial</span>
+        ) : (
+          <span className="font-medium text-base hidden sm:inline self-center">Panel Líder Territorial</span>
+        )}
       </div>
 
       {!isLoginPage && (

@@ -16,7 +16,7 @@ interface Solicitud {
   fecha_respuesta: string | null;
   actor_info: {
     id: number;
-    nombre_completo: string;
+    nombre: string;
     telefono: string;
     servicio: string;
     territorio_nombre: string | null;
@@ -116,8 +116,8 @@ export default function SolicitudDetallePage({ params }: { params: Promise<{ id:
             <h2 className="text-xl font-semibold text-[#231F20] mb-4">Información del Solicitante</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <p className="text-sm text-[#353535]">Nombre completo</p>
-                <p className="font-medium text-[#231F20]">{solicitud.actor_info.nombre_completo}</p>
+                <p className="text-sm text-[#353535]">Nombre del Negocio</p>
+                <p className="font-medium text-[#231F20]">{solicitud.actor_info.nombre}</p>
               </div>
               <div>
                 <p className="text-sm text-[#353535]">Correo electrónico</p>
