@@ -98,7 +98,11 @@ export default function LoginInicioPage() {
 
         const payload = JSON.parse(atob(data.access.split('.')[1]));
         if (payload['es_lider']) {
-          window.location.href = '/lider/aprobaciones';
+          localStorage.removeItem('access_token');
+          localStorage.removeItem('refresh_token');
+          setGeneralError('Los líderes territoriales deben iniciar sesión desde el panel de líder.');
+        } else if (payload['es_actor']) {
+          router.push('/mi-perfil');
         } else {
           router.push('/');
         }

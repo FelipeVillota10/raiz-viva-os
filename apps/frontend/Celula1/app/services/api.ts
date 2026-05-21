@@ -1,4 +1,4 @@
-import { LoginCredentials, RegistroData, Territorio, Moneda, TipoActor, UserPerfil, Solicitud } from '../models/types';
+import { LoginCredentials, RegistroData, Territorio, Moneda, TipoActor, UserPerfil, Solicitud, PerfilActor, ServicioPerfil, Servicio } from '../models/types';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 
@@ -155,6 +155,64 @@ export const solicitudesService = {
       method: 'PATCH',
       body: JSON.stringify(data),
     });
+    return response.json();
+  },
+};
+
+export const perfilService = {
+  async getPerfil(): Promise<PerfilActor> {
+    const response = await fetchWithAuth(`${API_URL}/api/auth/me/`);
+    return response.json();
+  },
+
+  async actualizarPerfil(data: FormData): Promise<PerfilActor> {
+    const token = getToken();
+    const response = await fetch(`${API_URL}/api/perfil/actualizar/`, {
+      method: 'PATCH',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      body: data,
+    });
+
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({}));
+      throw new Error(error.error || 'Error al actualizar perfil');
+    }
+
+    return response.json();
+  },
+
+  async getServicios(): Promise<ServicioPerfil[]> {
+    const response = await fetchWithAuth(`${API_URL}/api/perfil/servicios/`);
+    return response.json();
+  },
+
+  async addServicio(servicio_id: number, precio_acordado?: number): Promise<ServicioPerfil> {
+    const response = await fetchWithAuth(`${API_URL}/api/perfil/servicios/`, {
+      method: 'POST',
+      body: JSON.stringify({ servicio_id, precio_acordado }),
+    });
+    return response.json();
+  },
+
+  async updateServicio(servicio_id: number, precio_acordado: number): Promise<ServicioPerfil> {
+    const response = await fetchWithAuth(`${API_URL}/api/perfil/servicios/${servicio_id}/`, {
+      method: 'PATCH',
+      body: JSON.stringify({ precio_acordado }),
+    });
+    return response.json();
+  },
+
+  async deleteServicio(servicio_id: number): Promise<void> {
+    await fetchWithAuth(`${API_URL}/api/perfil/servicios/${servicio_id}/`, {
+      method: 'DELETE',
+    });
+  },
+
+  async getServiciosCatalogo(): Promise<Servicio[]> {
+    const response = await fetch(`${API_URL}/api/servicios/`);
+    if (!response.ok) throw new Error('Error al obtener servicios');
     return response.json();
   },
 };

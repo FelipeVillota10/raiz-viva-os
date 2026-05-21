@@ -102,26 +102,43 @@ USE_TZ = True
 
 STATIC_URL = 'static/'
 
-STORAGES = {
-    "default": {
-        "BACKEND": "storages.backends.s3.S3Storage",
-        "OPTIONS": {
-            "access_key": os.environ.get("R2_ACCESS_KEY_ID"),
-            "secret_key": os.environ.get("R2_SECRET_ACCESS_KEY"),
-            "bucket_name": os.environ.get("R2_BUCKET_NAME"),
-            "endpoint_url": os.environ.get("R2_ENDPOINT_URL"),
-            "region_name": "auto",
-            "signature_version": "s3v4",
-            "custom_domain": os.environ.get("R2_PUBLIC_URL"),
-            "default_acl": "public-read",
-        },
-    },
-    "staticfiles": {
-        "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
-    },
-}
+MEDIA_URL = '/media/'
+MEDIA_ROOT = BASE_DIR / 'media'
 
-MEDIA_URL = f"https://{os.environ.get('R2_PUBLIC_URL')}/"
+if os.environ.get("R2_ACCESS_KEY_ID") and os.environ.get("R2_BUCKET_NAME"):
+    STORAGES = {
+        "default": {
+            "BACKEND": "storages.backends.s3.S3Storage",
+            "OPTIONS": {
+                "access_key": os.environ.get("R2_ACCESS_KEY_ID"),
+                "secret_key": os.environ.get("R2_SECRET_ACCESS_KEY"),
+                "bucket_name": os.environ.get("R2_BUCKET_NAME"),
+                "endpoint_url": os.environ.get("R2_ENDPOINT_URL"),
+                "region_name": "auto",
+                "signature_version": "s3v4",
+                "custom_domain": os.environ.get("R2_PUBLIC_URL"),
+                "default_acl": "public-read",
+            },
+        },
+        "staticfiles": {
+            "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
+        },
+    }
+else:
+    STORAGES = {
+        "default": {
+            "BACKEND": "django.core.files.storage.FileSystemStorage",
+        },
+        "staticfiles": {
+            "BACKEND": "django.contrib.staticfiles.storage.StaticFilesStorage",
+        },
+    }
+
+r2_public_url = os.environ.get('R2_PUBLIC_URL')
+if r2_public_url:
+    MEDIA_URL = f"https://{r2_public_url}/"
+else:
+    MEDIA_URL = '/media/'
 
 
 REST_FRAMEWORK = {

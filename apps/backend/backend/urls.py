@@ -1,6 +1,8 @@
 from django.contrib import admin
 from django.urls import path, include
 from django.http import JsonResponse
+from django.conf import settings
+from django.conf.urls.static import static
 from Growth.GrowthController import GrowthController
 
 def home(request):
@@ -17,3 +19,6 @@ urlpatterns = [
     path('api/growth/', GrowthController.as_view(), name='growth'),
     path('', home, name='home'),
 ]
+
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

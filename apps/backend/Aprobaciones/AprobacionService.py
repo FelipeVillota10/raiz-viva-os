@@ -28,6 +28,7 @@ class AprobacionService:
 
         if estado == EstadoAprobacion.APROBADO:
             aprobacion.id_actor.es_actor = True
+            aprobacion.id_actor.activo = True
             aprobacion.id_actor.save()
             EmailService.send_solicitud_aprobada(
                 cliente_email=aprobacion.id_actor.usuario.email,

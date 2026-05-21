@@ -32,6 +32,10 @@ class ClienteModel(models.Model):
     es_actor      = models.BooleanField(default=False)
     es_lider      = models.BooleanField(default=False)
     es_turista    = models.BooleanField(default=False)
+    descripcion   = models.CharField(max_length=250, null=True, blank=True)
+    foto_perfil   = models.ImageField(upload_to='perfiles/', null=True, blank=True)
+    foto_portada  = models.ImageField(upload_to='portadas/', null=True, blank=True)
+    activo        = models.BooleanField(default=True)
  
     class Meta:
         managed = True

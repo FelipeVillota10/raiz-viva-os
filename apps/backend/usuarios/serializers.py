@@ -7,6 +7,8 @@ from TiposActores.TipoActorModel import TipoActorModel
 from TiposActores.ClienteTiposActoresModel import ClienteTiposActoresModel
 from Territorio.TerritorioModel import TerritorioModel
 from Monedas.MonedaModel import MonedaModel
+from Servicios.ServicioModel import ClienteServicioModel
+from Aprobaciones.AprobacionModel import AprobacionModel
 
 
 class TiposActoresSerializer(serializers.ModelSerializer):
@@ -32,14 +34,22 @@ class ClienteSerializer(serializers.ModelSerializer):
     usuario_email = serializers.EmailField(source='usuario.email', read_only=True)
     usuario_nombre = serializers.SerializerMethodField()
     tipos_actores = serializers.SerializerMethodField()
-    territorio_nombre = serializers.CharField(source='estado.nombre_estado', read_only=True, allow_null=True)
+    territorio_nombre = serializers.SerializerMethodField()
+    moneda_nombre = serializers.CharField(source='tipo_moneda.nombre', read_only=True, allow_null=True)
+    servicio = serializers.SerializerMethodField()
+    estado_aprobacion = serializers.SerializerMethodField()
+    observaciones = serializers.SerializerMethodField()
+    foto_perfil_url = serializers.SerializerMethodField()
+    foto_portada_url = serializers.SerializerMethodField()
 
     class Meta:
         model = ClienteModel
         fields = [
             'id_cliente', 'nombre', 'telefono', 'usuario_username', 'usuario_email',
             'usuario_nombre', 'reputacion', 'es_actor', 'es_lider', 'es_turista',
-            'territorio_nombre', 'tipos_actores'
+            'territorio_nombre', 'moneda_nombre', 'tipos_actores', 'servicio',
+            'descripcion', 'foto_perfil', 'foto_portada', 'foto_perfil_url', 'foto_portada_url',
+            'activo', 'estado_aprobacion', 'observaciones'
         ]
 
     def get_usuario_nombre(self, obj):
@@ -48,6 +58,53 @@ class ClienteSerializer(serializers.ModelSerializer):
     def get_tipos_actores(self, obj):
         return [{'id': ct.id_tipo.id, 'nombre_tipo': ct.id_tipo.nombre_tipo}
                 for ct in obj.tipos_actores.all()]
+
+    def get_territorio_nombre(self, obj):
+        from Territorio.TerritorioModel import TerritorioModel
+        if obj.es_lider:
+            territorio = TerritorioModel.objects.filter(administrador=obj).first()
+            return territorio.nombre_territorio if territorio else None
+        aprobacion = AprobacionModel.objects.filter(id_actor=obj, estado_resultado='APROBADO').order_by('-fecha_solicitud').first()
+        if aprobacion:
+            territorio = TerritorioModel.objects.filter(administrador=aprobacion.id_lider).first()
+            return territorio.nombre_territorio if territorio else None
+        return None
+
+    def get_servicio(self, obj):
+        cliente_servicios = ClienteServicioModel.objects.filter(cliente=obj).select_related('servicio')
+        return ', '.join([cs.servicio.nombre for cs in cliente_servicios]) if cliente_servicios else ''
+
+    def get_estado_aprobacion(self, obj):
+        aprobacion = AprobacionModel.objects.filter(id_actor=obj).order_by('-fecha_solicitud').first()
+        return aprobacion.estado_resultado if aprobacion else None
+
+    def get_observaciones(self, obj):
+        aprobacion = AprobacionModel.objects.filter(id_actor=obj).order_by('-fecha_solicitud').first()
+        return aprobacion.observaciones if aprobacion else None
+
+    def _build_media_url(self, obj, field_name):
+        file_field = getattr(obj, field_name, None)
+        if not file_field:
+            return None
+        
+        from django.conf import settings
+        media_url = settings.MEDIA_URL.rstrip('/')
+        file_path = file_field.name
+        
+        if media_url.startswith('http'):
+            return f"{media_url}/{file_path}"
+        
+        url = f"{media_url}/{file_path}"
+        request = self.context.get('request')
+        if request:
+            return request.build_absolute_uri(url)
+        return url
+
+    def get_foto_perfil_url(self, obj):
+        return self._build_media_url(obj, 'foto_perfil')
+
+    def get_foto_portada_url(self, obj):
+        return self._build_media_url(obj, 'foto_portada')
 
 
 class RegistroClienteSerializer(serializers.Serializer):

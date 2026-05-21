@@ -13,6 +13,38 @@ export interface UserPerfil {
   reputacion: number;
 }
 
+export interface PerfilActor {
+  id_cliente: number;
+  nombre: string;
+  telefono: string;
+  usuario_email: string;
+  es_actor: boolean;
+  es_lider: boolean;
+  es_turista: boolean;
+  territorio_nombre: string | null;
+  moneda_nombre: string | null;
+  tipos_actores: { id: number; nombre_tipo: string }[];
+  servicio: string;
+  reputacion: number | null;
+  descripcion: string | null;
+  foto_perfil: string | null;
+  foto_portada: string | null;
+  foto_perfil_url: string | null;
+  foto_portada_url: string | null;
+  activo: boolean;
+  estado_aprobacion: string | null;
+  observaciones: string | null;
+}
+
+export interface ServicioPerfil {
+  id: number;
+  servicio_id: number;
+  nombre: string;
+  descripcion: string | null;
+  precio_acordado: number | null;
+  unidad: string | null;
+}
+
 export interface Territorio {
   id_territorio: number;
   nombre_estado: string;

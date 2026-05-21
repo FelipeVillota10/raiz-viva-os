@@ -1,5 +1,6 @@
 from rest_framework.response import Response
 from rest_framework.views import APIView
+from rest_framework.parsers import JSONParser, MultiPartParser, FormParser
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework.exceptions import ValidationError
@@ -14,6 +15,7 @@ from .serializers import (
 )
 from Aprobaciones.AprobacionSerializer import AprobacionesSerializer
 from Clientes.ClienteModel import ClienteModel
+from Servicios.ServicioModel import ServicioModel, ClienteServicioModel
 
 
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
@@ -24,18 +26,17 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
         service = UsuarioService()
         cliente, error = service.authenticate(username, password)
 
-        if error:
-            raise ValidationError({'detail': error})
+        if error or not cliente:
+            raise ValidationError({'detail': error or 'No se encontró un perfil asociado a esta cuenta'})
 
         from rest_framework_simplejwt.tokens import RefreshToken
         refresh = RefreshToken.for_user(cliente.usuario)
 
-        if cliente:
-            refresh['es_actor'] = cliente.es_actor
-            refresh['es_lider'] = cliente.es_lider
-            refresh['es_turista'] = cliente.es_turista
-            refresh['nombre_completo'] = cliente.nombre
-            refresh['territorio'] = cliente.estado.nombre_estado if cliente.estado else None
+        refresh['es_actor'] = cliente.es_actor
+        refresh['es_lider'] = cliente.es_lider
+        refresh['es_turista'] = cliente.es_turista
+        refresh['nombre_completo'] = cliente.nombre
+        refresh['territorio'] = cliente.estado.nombre_estado if cliente.estado else None
 
         return {
             'refresh': str(refresh),
@@ -52,6 +53,8 @@ class CustomTokenObtainPairView(TokenObtainPairView):
 
 
 class PerfilUsuarioController(APIView):
+    parser_classes = [JSONParser, MultiPartParser, FormParser]
+
     def get(self, request):
         auth_header = request.headers.get('Authorization', '')
         if not auth_header.startswith('Bearer '):
@@ -66,7 +69,46 @@ class PerfilUsuarioController(APIView):
 
         service = UsuarioService()
         cliente = service.get_perfil(user_id)
-        serializer = ClienteSerializer(cliente)
+        serializer = ClienteSerializer(cliente, context={'request': request})
+        return Response(serializer.data)
+
+    def patch(self, request):
+        auth_header = request.headers.get('Authorization', '')
+        if not auth_header.startswith('Bearer '):
+            return Response({'error': 'Token no proporcionado'}, status=401)
+
+        token = auth_header.split(' ')[1]
+        try:
+            access = AccessToken(token)
+            user_id = access['user_id']
+        except Exception:
+            return Response({'error': 'Token invalido o expirado'}, status=401)
+
+        service = UsuarioService()
+        try:
+            cliente = service.get_perfil(user_id)
+        except ClienteModel.DoesNotExist:
+            return Response({'error': 'Perfil no encontrado'}, status=404)
+
+        if 'descripcion' in request.data:
+            descripcion = request.data['descripcion']
+            if descripcion and len(descripcion) > 250:
+                return Response({'error': 'La descripcion no puede exceder 250 caracteres'}, status=400)
+            cliente.descripcion = descripcion if descripcion else None
+
+        if 'nombre' in request.data:
+            nombre = request.data['nombre']
+            if nombre and len(nombre.strip()) >= 3:
+                cliente.nombre = nombre.strip()
+
+        if 'foto_perfil' in request.FILES:
+            cliente.foto_perfil = request.FILES['foto_perfil']
+
+        if 'foto_portada' in request.FILES:
+            cliente.foto_portada = request.FILES['foto_portada']
+
+        cliente.save()
+        serializer = ClienteSerializer(cliente, context={'request': request})
         return Response(serializer.data)
 
 
@@ -127,5 +169,121 @@ class ClienteController(APIView):
         except ClienteModel.DoesNotExist:
             return Response({'error': 'Cliente no encontrado'}, status=404)
 
-        serializer = ClienteSerializer(cliente)
+        serializer = ClienteSerializer(cliente, context={'request': request})
         return Response(serializer.data)
+
+
+class PerfilServiciosController(APIView):
+    parser_classes = [JSONParser, MultiPartParser, FormParser]
+
+    def get_user_from_token(self, request):
+        auth_header = request.headers.get('Authorization', '')
+        if not auth_header.startswith('Bearer '):
+            return None
+        token = auth_header.split(' ')[1]
+        try:
+            access = AccessToken(token)
+            return access['user_id']
+        except Exception:
+            return None
+
+    def get(self, request):
+        user_id = self.get_user_from_token(request)
+        if not user_id:
+            return Response({'error': 'Token no proporcionado o invalido'}, status=401)
+
+        try:
+            cliente = ClienteModel.objects.get(usuario_id=user_id)
+        except ClienteModel.DoesNotExist:
+            return Response({'error': 'Cliente no encontrado'}, status=404)
+
+        servicios = ClienteServicioModel.objects.filter(cliente=cliente).select_related('servicio')
+        data = [{
+            'id': cs.id,
+            'servicio_id': cs.servicio.id,
+            'nombre': cs.servicio.nombre,
+            'descripcion': cs.servicio.descripcion,
+            'precio_acordado': cs.precio_acordado,
+            'unidad': cs.servicio.unidad,
+        } for cs in servicios]
+        return Response(data)
+
+    def post(self, request):
+        user_id = self.get_user_from_token(request)
+        if not user_id:
+            return Response({'error': 'Token no proporcionado o invalido'}, status=401)
+
+        try:
+            cliente = ClienteModel.objects.get(usuario_id=user_id)
+        except ClienteModel.DoesNotExist:
+            return Response({'error': 'Cliente no encontrado'}, status=404)
+
+        servicio_id = request.data.get('servicio_id')
+        precio_acordado = request.data.get('precio_acordado')
+
+        if not servicio_id:
+            return Response({'error': 'servicio_id es requerido'}, status=400)
+
+        try:
+            servicio = ServicioModel.objects.get(id=servicio_id)
+        except ServicioModel.DoesNotExist:
+            return Response({'error': 'Servicio no encontrado'}, status=404)
+
+        if ClienteServicioModel.objects.filter(cliente=cliente, servicio=servicio).exists():
+            return Response({'error': 'Ya tienes este servicio asignado'}, status=400)
+
+        cs = ClienteServicioModel.objects.create(
+            cliente=cliente,
+            servicio=servicio,
+            precio_acordado=precio_acordado
+        )
+        return Response({
+            'id': cs.id,
+            'servicio_id': cs.servicio.id,
+            'nombre': cs.servicio.nombre,
+            'precio_acordado': cs.precio_acordado,
+        }, status=201)
+
+    def patch(self, request, servicio_id):
+        user_id = self.get_user_from_token(request)
+        if not user_id:
+            return Response({'error': 'Token no proporcionado o invalido'}, status=401)
+
+        try:
+            cliente = ClienteModel.objects.get(usuario_id=user_id)
+        except ClienteModel.DoesNotExist:
+            return Response({'error': 'Cliente no encontrado'}, status=404)
+
+        try:
+            cs = ClienteServicioModel.objects.get(cliente=cliente, id=servicio_id)
+        except ClienteServicioModel.DoesNotExist:
+            return Response({'error': 'Servicio no encontrado'}, status=404)
+
+        if 'precio_acordado' in request.data:
+            cs.precio_acordado = request.data['precio_acordado']
+
+        cs.save()
+        return Response({
+            'id': cs.id,
+            'servicio_id': cs.servicio.id,
+            'nombre': cs.servicio.nombre,
+            'precio_acordado': cs.precio_acordado,
+        })
+
+    def delete(self, request, servicio_id):
+        user_id = self.get_user_from_token(request)
+        if not user_id:
+            return Response({'error': 'Token no proporcionado o invalido'}, status=401)
+
+        try:
+            cliente = ClienteModel.objects.get(usuario_id=user_id)
+        except ClienteModel.DoesNotExist:
+            return Response({'error': 'Cliente no encontrado'}, status=404)
+
+        try:
+            cs = ClienteServicioModel.objects.get(cliente=cliente, id=servicio_id)
+        except ClienteServicioModel.DoesNotExist:
+            return Response({'error': 'Servicio no encontrado'}, status=404)
+
+        cs.delete()
+        return Response({'mensaje': 'Servicio eliminado'}, status=200)
