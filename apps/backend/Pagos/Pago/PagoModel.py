@@ -1,18 +1,25 @@
 from django.db import models
 
+
 class PagoModel(models.Model):
-    
+
+    ESTADO_CHOICES = [
+        (1, 'PENDING'),
+        (2, 'APPROVED'),
+        (3, 'DECLINED'),
+        (4, 'EXPIRED'),
+    ]
+
     id_pago = models.AutoField(primary_key=True)
-    id_estado = models.ForeignKey('Estados.EstadoModel', on_delete=models.PROTECT, db_column='id_estado')
-    id_metodo_pago = models.ForeignKey('MetodoPago.MetodoPagoModel', on_delete=models.PROTECT, db_column='id_metodo_pago')
-    id_cliente = models.ForeignKey('Clientes.ClienteModel', on_delete=models.PROTECT, db_column='id_cliente')
+    estado = models.IntegerField(choices=ESTADO_CHOICES, default=1)
+    id_cliente = models.IntegerField(null=True, blank=True)
     monto = models.DecimalField(max_digits=12, decimal_places=2)
     moneda = models.CharField(max_length=10, default='COP')
     fecha_creacion = models.DateTimeField(auto_now_add=True)
     fecha_confirmacion = models.DateTimeField(blank=True, null=True)
     referencia = models.CharField(max_length=100, unique=True)
-    
-
+    preference_id = models.CharField(max_length=100, blank=True, null=True)
+    mp_payment_id = models.CharField(max_length=100, blank=True, null=True)
 
     class Meta:
         db_table = 'pagos'
