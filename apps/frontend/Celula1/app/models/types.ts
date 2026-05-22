@@ -1,16 +1,19 @@
 export interface UserPerfil {
-  id: number;
-  nombre_completo: string;
-  telefono: string;
-  usuario_email: string;
-  es_actor: boolean;
-  es_lider: boolean;
-  es_turista: boolean;
-  territorio_nombre: string | null;
-  territorio_id: number | null;
-  tipos_actores: { id: number; nombre_tipo: string }[];
-  servicio: string;
-  reputacion: number;
+  id?: number;
+  user_id?: number;
+  id_cliente?: number;
+  nombre_completo?: string;
+  nombre?: string;
+  telefono?: string;
+  usuario_email?: string;
+  es_actor?: boolean;
+  es_lider?: boolean;
+  es_turista?: boolean;
+  territorio_nombre?: string | null;
+  territorio_id?: number | null;
+  tipos_actores?: { id: number; nombre_tipo: string }[];
+  servicio?: string;
+  reputacion?: number;
 }
 
 export interface PerfilActor {

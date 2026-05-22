@@ -33,6 +33,7 @@ class ClienteSerializer(serializers.ModelSerializer):
     usuario_username = serializers.CharField(source='usuario.username', read_only=True)
     usuario_email = serializers.EmailField(source='usuario.email', read_only=True)
     usuario_nombre = serializers.SerializerMethodField()
+    nombre_completo = serializers.CharField(source='nombre', read_only=True)
     tipos_actores = serializers.SerializerMethodField()
     territorio_nombre = serializers.SerializerMethodField()
     moneda_nombre = serializers.CharField(source='tipo_moneda.nombre', read_only=True, allow_null=True)
@@ -45,7 +46,7 @@ class ClienteSerializer(serializers.ModelSerializer):
     class Meta:
         model = ClienteModel
         fields = [
-            'id_cliente', 'nombre', 'telefono', 'usuario_username', 'usuario_email',
+            'id_cliente', 'nombre', 'nombre_completo', 'telefono', 'usuario_username', 'usuario_email',
             'usuario_nombre', 'reputacion', 'es_actor', 'es_lider', 'es_turista',
             'territorio_nombre', 'moneda_nombre', 'tipos_actores', 'servicio',
             'descripcion', 'foto_perfil', 'foto_portada', 'foto_perfil_url', 'foto_portada_url',

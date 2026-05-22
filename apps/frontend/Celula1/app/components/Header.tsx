@@ -25,7 +25,7 @@ export function Header() {
         {isLider ? (
           <>
             <span className="text-sm text-white">
-              Hola, {user?.nombre_completo?.split(' ')[0]}
+              Hola, {user?.nombre_completo}
             </span>
             <button
               onClick={() => router.push('/lider/aprobaciones')}
@@ -44,7 +44,7 @@ export function Header() {
           <>
             <Link href="/mi-perfil">
               <span className="text-sm text-white hover:underline cursor-pointer">
-                Hola, {user?.nombre_completo?.split(' ')[0]}
+                Hola, {user?.nombre_completo}
               </span>
             </Link>
             <button

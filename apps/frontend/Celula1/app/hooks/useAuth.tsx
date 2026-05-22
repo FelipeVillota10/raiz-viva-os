@@ -40,7 +40,11 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     try {
       setLoading(true);
       const perfil = await authService.getPerfil();
-      setUser(perfil);
+      setUser({
+        ...perfil,
+        nombre_completo: perfil.nombre_completo || perfil.nombre,
+        id: perfil.id || perfil.id_cliente || perfil.user_id,
+      });
       setError(null);
     } catch (err) {
       logout();
