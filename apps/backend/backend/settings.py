@@ -9,6 +9,8 @@ import dj_database_url
 
 load_dotenv(os.path.join(Path(__file__).resolve().parent.parent, '.env'))
 
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 
