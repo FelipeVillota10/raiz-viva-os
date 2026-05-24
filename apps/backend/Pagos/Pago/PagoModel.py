@@ -4,14 +4,15 @@ from django.db import models
 class PagoModel(models.Model):
 
     ESTADO_CHOICES = [
-        (1, 'PENDING'),
-        (2, 'APPROVED'),
-        (3, 'DECLINED'),
-        (4, 'EXPIRED'),
+        ('PENDING', 'PENDING'),
+        ('APPROVED', 'APPROVED'),
+        ('DECLINED', 'DECLINED'),
+        ('EXPIRED', 'EXPIRED'),
     ]
 
     id_pago = models.AutoField(primary_key=True)
-    estado = models.IntegerField(choices=ESTADO_CHOICES, default=1)
+    estado = models.CharField(max_length=20, choices=ESTADO_CHOICES, default='PENDING')
+    metodo_pago = models.CharField(max_length=50, null=True, blank=True)
     id_cliente = models.IntegerField(null=True, blank=True)
     monto = models.DecimalField(max_digits=12, decimal_places=2)
     moneda = models.CharField(max_length=10, default='COP')

@@ -1,4 +1,5 @@
 import uuid
+import random
 from decimal import Decimal
 
 import mercadopago
@@ -40,9 +41,10 @@ class PagoService:
 
         referencia = f"REF-{uuid.uuid4().hex[:10].upper()}"
 
+        id_cliente = data.get('id_cliente') or random.randint(100000, 999999)
         pago = PagoRepository.crear({
-            'estado': 1,
-            'id_cliente': data.get('id_cliente'),
+            'estado': 'PENDING',
+            'id_cliente': id_cliente,
             'monto': monto,
             'moneda': moneda,
             'referencia': referencia,
@@ -52,6 +54,23 @@ class PagoService:
             CuponRepository.incrementar_uso(cupon.id_cupon)
 
         sdk = PagoService._get_sdk()
+
+        id_evento = data.get('id_evento')
+        frontend_base = data.get('frontend_base_url', '') or settings.MERCADOPAGO.get('FRONTEND_BASE_URL', '')
+
+        back_urls = {
+            "success": settings.MERCADOPAGO['SUCCESS_URL'],
+            "failure": settings.MERCADOPAGO['FAILURE_URL'],
+            "pending": settings.MERCADOPAGO['PENDING_URL'],
+        }
+
+        if frontend_base and id_evento:
+            base_path = f"{frontend_base}/pagos/reserva/{id_evento}/confirmacion"
+            back_urls = {
+                "success": f"{base_path}?status=approved",
+                "failure": f"{base_path}?status=rejected",
+                "pending": f"{base_path}?status=pending",
+            }
 
         currency_id = moneda
         preference_data = {
@@ -66,11 +85,7 @@ class PagoService:
                 "name": data['nombre_comprador'],
             },
             "external_reference": referencia,
-            "back_urls": {
-                "success": settings.MERCADOPAGO['SUCCESS_URL'],
-                "failure": settings.MERCADOPAGO['FAILURE_URL'],
-                "pending": settings.MERCADOPAGO['PENDING_URL'],
-            },
+            "back_urls": back_urls,
             "auto_return": "approved",
         }
 
@@ -155,18 +170,18 @@ class PagoService:
 
         mp_status = payment_data.get('status', '')
         ESTADO_MAP = {
-            'approved': 2,
-            'rejected': 3,
-            'cancelled': 4,
-            'expired': 4,
+            'approved': 'APPROVED',
+            'rejected': 'DECLINED',
+            'cancelled': 'EXPIRED',
+            'expired': 'EXPIRED',
         }
-        estado_id = ESTADO_MAP.get(mp_status, 1)
+        estado = ESTADO_MAP.get(mp_status, 'PENDING')
 
         mp_payment_id = str(payment_data.get('id', ''))
         mp_payment_type = payment_data.get('payment_type', '')
 
-        if estado_id != 1:
-            PagoRepository.confirmar(external_reference, estado_id, mp_payment_id)
+        if estado != 'PENDING':
+            PagoRepository.confirmar(external_reference, estado, mp_payment_id, mp_payment_type)
 
         TransaccionMPRepository.crear({
             'id_pago_id': pago.id_pago,
@@ -191,16 +206,19 @@ class PagoService:
         payments = order_data.get('payments', [])
 
         ESTADO_MAP = {
-            'paid': 2,
-            'payment_in_process': 1,
-            'payment_required': 1,
-            'cancelled': 4,
-            'expired': 4,
+            'paid': 'APPROVED',
+            'payment_in_process': 'PENDING',
+            'payment_required': 'PENDING',
+            'cancelled': 'EXPIRED',
+            'expired': 'EXPIRED',
         }
-        estado_id = ESTADO_MAP.get(order_status, 1)
+        estado = ESTADO_MAP.get(order_status, 'PENDING')
 
-        if estado_id != 1 and estado_id != pago.estado:
-            PagoRepository.confirmar(external_reference, estado_id)
+        if estado != 'PENDING' and estado != pago.estado:
+            mp_payment_type = ''
+            if payments:
+                mp_payment_type = payments[0].get('payment_type', '')
+            PagoRepository.confirmar(external_reference, estado, metodo_pago=mp_payment_type)
 
         for p in payments:
             mp_payment_id = str(p.get('id', ''))

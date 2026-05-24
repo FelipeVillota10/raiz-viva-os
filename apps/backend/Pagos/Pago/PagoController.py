@@ -19,6 +19,7 @@ import io
 
 
 class IniciarPagoController(APIView):
+    permission_classes = [AllowAny]
 
     def post(self, request):
         s = IniciarPagoSerializer(data=request.data)
@@ -166,7 +167,7 @@ class ComprobantePagoView(APIView):
         except Exception:
             return Response({'error': 'Pago no encontrado'}, status=404)
 
-        if pago.estado != 2:
+        if pago.estado != 'APPROVED':
             return Response({'error': 'El pago no está aprobado'}, status=400)
 
         buffer = io.BytesIO()

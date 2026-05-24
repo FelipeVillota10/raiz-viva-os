@@ -1,45 +1,145 @@
 'use client'
 
-import Image from 'next/image'
 import { useRouter } from 'next/navigation'
-import { use, useState } from 'react'
-import { mockReserva } from '@/lib/mocks/reservas.mock'
-import type { Reserva } from '@/lib/types/reserva'
-import type { TipoMetodoPago } from '@/lib/types/pago'
+import { use, useState, useEffect, useCallback } from 'react'
+import { obtenerEvento } from '@/lib/services/evento.service'
+import { iniciarPago, validarCupon } from '@/lib/services/pago.service'
+import type { EventoDetalle } from '@/lib/types/evento'
+import type { CuponRespuesta } from '@/lib/types/pago'
 import { formatearFecha } from '@/lib/utils/fecha'
-
-interface MetodoPagoTab {
-  tipo: TipoMetodoPago
-  label: string
-  icono: string
-}
-
-const METODOS: MetodoPagoTab[] = [
-  { tipo: 'tarjeta',       label: 'Tarjeta',           icono: '💳' },
-  { tipo: 'transferencia', label: 'Transferencia',     icono: '⇄' },
-  { tipo: 'billetera',     label: 'Billetera Digital', icono: 'wallet' },
-]
 
 export default function PagarReservaPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params)
   const router = useRouter()
-  const reserva: Reserva = mockReserva
-  const [metodoActivo, setMetodoActivo] = useState<TipoMetodoPago>('tarjeta')
 
-  const servicioAdicional = reserva.serviciosAdicionales[0]
+  const [evento, setEvento] = useState<EventoDetalle | null>(null)
+  const [loadingEvento, setLoadingEvento] = useState(true)
+  const [errorEvento, setErrorEvento] = useState<string | null>(null)
 
-  function handlePagar() {
-    router.push(`/pagos/reserva/${id}/${metodoActivo}`)
+  const [cuponCodigo, setCuponCodigo] = useState('')
+  const [cupon, setCupon] = useState<CuponRespuesta | null>(null)
+  const [validandoCupon, setValidandoCupon] = useState(false)
+  const [errorCupon, setErrorCupon] = useState<string | null>(null)
+
+  const [email, setEmail] = useState('')
+  const [nombre, setNombre] = useState('')
+  const [loadingPago, setLoadingPago] = useState(false)
+  const [errorPago, setErrorPago] = useState<string | null>(null)
+
+  useEffect(() => {
+    obtenerEvento(Number(id))
+      .then(setEvento)
+      .catch((e: any) => setErrorEvento(e.message))
+      .finally(() => setLoadingEvento(false))
+  }, [id])
+
+  const montoBase = evento?.costo_evento ? parseFloat(evento.costo_evento) : 0
+
+  const montoFinal = cupon
+    ? cupon.tipo === 'porcentaje'
+      ? Math.max(montoBase - montoBase * parseFloat(cupon.valor) / 100, 0)
+      : Math.max(montoBase - parseFloat(cupon.valor), 0)
+    : montoBase
+
+  const tieneDescuento = montoFinal < montoBase
+
+  const handleAplicarCupon = useCallback(async () => {
+    if (!cuponCodigo.trim()) return
+    setValidandoCupon(true)
+    setErrorCupon(null)
+    setCupon(null)
+    try {
+      const result = await validarCupon(cuponCodigo.trim())
+      if (!result.disponible) {
+        setErrorCupon('El cupon no esta disponible o ha expirado')
+        return
+      }
+      setCupon(result)
+    } catch (e: any) {
+      setErrorCupon(e.message || 'Cupon no valido')
+    } finally {
+      setValidandoCupon(false)
+    }
+  }, [cuponCodigo])
+
+  const handleQuitarCupon = useCallback(() => {
+    setCupon(null)
+    setCuponCodigo('')
+    setErrorCupon(null)
+  }, [])
+
+  const handlePagar = useCallback(async () => {
+    if (!evento) return
+    if (!email.trim()) {
+      setErrorPago('Ingrese su correo electronico')
+      return
+    }
+    if (!nombre.trim()) {
+      setErrorPago('Ingrese su nombre completo')
+      return
+    }
+
+    setErrorPago(null)
+    setLoadingPago(true)
+
+    try {
+      const result = await iniciarPago({
+        monto: montoFinal,
+        moneda: 'COP',
+        email_comprador: email.trim(),
+        nombre_comprador: nombre.trim(),
+        descripcion: evento.nombre,
+        codigo_cupon: cupon?.codigo || undefined,
+        id_evento: evento.id_evento,
+        frontend_base_url: window.location.origin,
+      })
+
+      const redirectUrl = result.sandbox_init_point || result.init_point
+      if (redirectUrl) {
+        window.location.href = redirectUrl
+      } else {
+        setErrorPago('No se obtuvo la URL de pago de MercadoPago')
+      }
+    } catch (e: any) {
+      setErrorPago(e.message || 'Error al iniciar el pago')
+    } finally {
+      setLoadingPago(false)
+    }
+  }, [evento, email, nombre, montoFinal, cupon])
+
+  if (loadingEvento) {
+    return (
+      <div className="min-h-screen bg-[#f9f3e7] flex items-center justify-center">
+        <div className="flex flex-col items-center gap-3">
+          <svg className="animate-spin h-8 w-8 text-[#6b7c45]" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+            <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+            <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+          </svg>
+          <p className="text-[#3b5630] font-medium">Cargando evento...</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (errorEvento || !evento) {
+    return (
+      <div className="min-h-screen bg-[#f9f3e7] flex items-center justify-center">
+        <div className="bg-white rounded-2xl shadow-md border border-[#e8e0d0] p-8 max-w-md text-center">
+          <span className="text-4xl">⚠️</span>
+          <p className="mt-4 text-red-600 font-medium">{errorEvento || 'Evento no encontrado'}</p>
+          <button onClick={() => router.back()} className="mt-4 text-[#6b7c45] font-semibold underline cursor-pointer">
+            Volver
+          </button>
+        </div>
+      </div>
+    )
   }
 
   return (
     <div className="min-h-screen bg-[#f9f3e7] relative flex flex-col">
-
-      {/* Decoracion esquinas */}
       <span className="absolute top-2 left-2 text-4xl opacity-20 pointer-events-none select-none">🌿</span>
       <span className="absolute top-2 right-2 text-4xl opacity-20 pointer-events-none select-none rotate-45">🍂</span>
 
-      {/* Header */}
       <div className="w-full px-4 sm:px-6 lg:px-8 pt-6 pb-2">
         <div className="max-w-md sm:max-w-lg lg:max-w-5xl mx-auto">
           <div className="flex items-center relative">
@@ -57,150 +157,144 @@ export default function PagarReservaPage({ params }: { params: Promise<{ id: str
         </div>
       </div>
 
-      {/* Cuerpo principal */}
-      <div className="flex-1 flex flex-col lg:flex-row lg:items-start lg:gap-6
-                      max-w-md sm:max-w-lg lg:max-w-5xl mx-auto w-full
-                      px-4 sm:px-6 lg:px-8 pt-4 lg:pb-10">
-
-        {/* Columna izquierda: card de resumen */}
-        <div className="w-full lg:flex-[3]">
+      <div className="flex-1 flex flex-col lg:flex-row lg:items-start lg:gap-6 max-w-md sm:max-w-lg lg:max-w-5xl mx-auto w-full px-4 sm:px-6 lg:px-8 pt-4 lg:pb-10">
+        <div className="w-full lg:flex-[3] flex flex-col gap-4">
           <div className="rounded-2xl shadow-md border border-[#e8e0d0] overflow-hidden">
-
-            {/* Zona superior */}
             <div className="bg-white p-5 sm:p-6">
-              <div className="flex gap-4 items-start">
-                <div className="relative w-28 h-32 sm:w-32 sm:h-36 flex-shrink-0 rounded-lg overflow-hidden">
-                  <Image
-                    src={reserva.experiencia.imagen}
-                    alt={reserva.experiencia.nombre}
-                    fill
-                    className="object-cover"
-                  />
-                </div>
-                <div className="flex-1">
-                  <p className="font-bold text-sm sm:text-base text-[#1a1a1a] mb-2">
-                    Resumen Detallado de Compra
-                  </p>
-                  <p className="font-semibold text-sm sm:text-base text-[#1a1a1a]">
-                    Servicios de Experiencia:
-                  </p>
-                  <p className="text-sm sm:text-base text-gray-700 mt-1">
-                    {reserva.experiencia.nombre}
-                  </p>
-                  <div className="flex justify-between items-center mt-2">
-                    <span className="text-xs sm:text-sm text-gray-500">
-                      Cantidad: {reserva.experiencia.cantidad}
-                    </span>
-                    <span className="text-sm sm:text-base font-semibold text-[#1a1a1a]">
-                      ${reserva.experiencia.precio * reserva.experiencia.cantidad} USD
-                    </span>
-                  </div>
-                </div>
+              <p className="font-bold text-sm sm:text-base text-[#1a1a1a] mb-2">Resumen Detallado de Compra</p>
+              <p className="font-semibold text-sm sm:text-base text-[#1a1a1a]">Servicios de Experiencia:</p>
+              <p className="text-sm sm:text-base text-gray-700 mt-1">{evento.nombre}</p>
+              <div className="flex justify-between items-center mt-2">
+                <span className="text-xs sm:text-sm text-gray-500">Territorio: {evento.territorio.nombre_territorio}</span>
+                <span className="text-sm sm:text-base font-semibold text-[#1a1a1a]">
+                  ${Number(evento.costo_evento || 0).toLocaleString('es-CO')} COP
+                </span>
               </div>
             </div>
 
-            {/* Zona inferior: fondo crema */}
             <div className="bg-[#f5f0e8] px-5 sm:px-6 py-4 sm:py-5 space-y-4">
-
-              {servicioAdicional && (
-                <div>
-                  <p className="font-semibold text-sm sm:text-base text-[#1a1a1a] mb-1">
-                    Servicios Adicionales:
-                  </p>
-                  <p className="text-sm sm:text-base text-gray-700">{servicioAdicional.nombre}</p>
-                  <div className="flex justify-between items-center mt-2">
-                    <span className="text-xs sm:text-sm text-gray-500">
-                      Cantidad: {servicioAdicional.cantidad}
-                    </span>
-                    <span className="text-sm sm:text-base text-gray-700">
-                      Subtotal: ${servicioAdicional.subtotal} USD
-                    </span>
-                  </div>
+              {evento.fecha_inicio && (
+                <div className="flex justify-between text-sm sm:text-base text-gray-600">
+                  <span>{formatearFecha(evento.fecha_inicio)}</span>
+                  {evento.fecha_fin && <span>{formatearFecha(evento.fecha_fin)}</span>}
                 </div>
               )}
 
               <hr className="border-[#e0d8c8]" />
 
-              <div className="flex justify-between text-sm sm:text-base text-gray-600">
-                <span>{formatearFecha(reserva.fechaInicio)}</span>
-                <span>{formatearFecha(reserva.fechaFin)}</span>
-              </div>
-
-              <hr className="border-[#e0d8c8]" />
-
               <div className="space-y-2">
-                <div className="flex justify-between text-sm sm:text-base text-gray-700">
-                  <span>Subtotal (Experiencia + Adicionales):</span>
-                  <span className="font-medium">${reserva.subtotal} USD</span>
-                </div>
+                {tieneDescuento && (
+                  <div className="flex justify-between text-sm sm:text-base text-gray-500 line-through">
+                    <span>Subtotal:</span>
+                    <span>${montoBase.toLocaleString('es-CO')} COP</span>
+                  </div>
+                )}
+                {cupon && tieneDescuento && (
+                  <div className="flex justify-between text-sm sm:text-base text-green-700">
+                    <span>Descuento ({cupon.tipo === 'porcentaje' ? `${cupon.valor}%` : `$${Number(cupon.valor).toLocaleString('es-CO')}`}):</span>
+                    <span>-${(montoBase - montoFinal).toLocaleString('es-CO')} COP</span>
+                  </div>
+                )}
                 <div className="flex justify-between items-center">
                   <span className="text-xl sm:text-2xl font-bold text-[#1a1a1a]">Total a Pagar:</span>
-                  <span className="font-bold sm:text-lg text-[#1a1a1a]">${reserva.total} USD</span>
+                  <span className="font-bold sm:text-lg text-[#1a1a1a]">${montoFinal.toLocaleString('es-CO')} COP</span>
                 </div>
               </div>
-
             </div>
+          </div>
+
+          <div className="bg-white rounded-2xl shadow-md border border-[#e8e0d0] p-5 sm:p-6">
+            <h2 className="font-bold text-sm sm:text-base text-[#1a1a1a] mb-3">Cupon de Descuento</h2>
+
+            {cupon ? (
+              <div className="flex items-center justify-between bg-green-50 border border-green-200 rounded-xl p-3">
+                <div>
+                  <p className="font-semibold text-sm text-green-800">
+                    {cupon.codigo} — {cupon.tipo === 'porcentaje' ? `${cupon.valor}% de descuento` : `$${Number(cupon.valor).toLocaleString('es-CO')} de descuento`}
+                  </p>
+                  <p className="text-xs text-green-600 mt-0.5">Cupon aplicado correctamente</p>
+                </div>
+                <button onClick={handleQuitarCupon} className="text-green-700 hover:text-green-900 font-bold text-lg cursor-pointer" aria-label="Quitar cupon">×</button>
+              </div>
+            ) : (
+              <div className="flex gap-2">
+                <input
+                  type="text"
+                  value={cuponCodigo}
+                  onChange={(e) => { setCuponCodigo(e.target.value.toUpperCase()); setErrorCupon(null) }}
+                  placeholder="Ingrese su codigo"
+                  className="flex-1 bg-[#f5f0e8] border border-[#e8e0d0] rounded-xl p-3 text-gray-700 placeholder-gray-400 text-sm sm:text-base focus:outline-none focus:border-[#6b7c45] transition"
+                />
+                <button
+                  onClick={handleAplicarCupon}
+                  disabled={validandoCupon || !cuponCodigo.trim()}
+                  className="bg-[#6b7c45] hover:bg-[#5a6b3a] disabled:opacity-50 text-white rounded-xl px-5 font-semibold text-sm sm:text-base transition cursor-pointer"
+                >
+                  {validandoCupon ? '...' : 'Aplicar'}
+                </button>
+              </div>
+            )}
+
+            {errorCupon && <p className="mt-2 text-sm text-red-600">{errorCupon}</p>}
           </div>
         </div>
 
-        {/* Columna derecha: método de pago + botón */}
-        <div className="flex-1 lg:flex-none lg:flex-[2]
-                        bg-white
-                        rounded-t-3xl lg:rounded-2xl
-                        shadow-[0_-4px_20px_rgba(0,0,0,0.08)] lg:shadow-[0_-4px_20px_rgba(0,0,0,0.08)]
-                        px-6 sm:px-7 pt-6 pb-8
-                        flex flex-col
-                        lg:sticky lg:top-6">
-
+        <div className="flex-1 lg:flex-none lg:flex-[2] bg-white rounded-t-3xl lg:rounded-2xl shadow-[0_-4px_20px_rgba(0,0,0,0.08)] lg:shadow-[0_-4px_20px_rgba(0,0,0,0.08)] px-6 sm:px-7 pt-6 pb-8 flex flex-col lg:sticky lg:top-6">
           <h2 className="font-bold text-[#1a1a1a] text-base sm:text-lg mb-4 flex items-center gap-2">
-            <span>💳</span> Método de Pago
+            <span>👤</span> Datos del Comprador
           </h2>
 
-          <div className="flex bg-[#f5f0e8] rounded-2xl p-1.5">
-            {METODOS.map((metodo) => {
-              const activo = metodoActivo === metodo.tipo
-              return (
-                <button
-                  key={metodo.tipo}
-                  onClick={() => setMetodoActivo(metodo.tipo)}
-                  className={`
-                    flex-1 flex flex-col items-center gap-1
-                    py-3 sm:py-4
-                    text-xs sm:text-sm font-medium
-                    rounded-xl transition-all duration-200 cursor-pointer
-                    ${activo
-                      ? 'bg-white shadow-sm text-[#1a1a1a]'
-                      : 'bg-transparent text-gray-500'
-                    }
-                  `}
-                >
-                  {metodo.icono === '⇄' ? (
-                    <span className="text-2xl sm:text-3xl font-bold text-black leading-none">⇄</span>
-                  ) : metodo.icono === 'wallet' ? (
-                    <svg width="26" height="22" viewBox="0 0 26 22" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
-                      <rect x="1" y="5" width="24" height="16" rx="3" stroke="#1a1a1a" strokeWidth="1.8"/>
-                      <path d="M1 9C1 7.34 2.34 6 4 6H22C23.66 6 25 7.34 25 9V9H1V9Z" fill="#1a1a1a"/>
-                      <path d="M1 5C1 3.34 2.34 2 4 2H18L22 6H4C2.34 6 1 4.66 1 3V5Z" stroke="#1a1a1a" strokeWidth="1.8" strokeLinejoin="round"/>
-                      <rect x="17" y="12" width="6" height="4" rx="1.5" fill="#1a1a1a"/>
-                    </svg>
-                  ) : (
-                    <span className="text-2xl sm:text-3xl">{metodo.icono}</span>
-                  )}
-                  <span className="text-center leading-tight">{metodo.label}</span>
-                </button>
-              )
-            })}
+          {errorPago && (
+            <div role="alert" className="bg-red-50 border border-red-200 rounded-xl p-3 flex items-start gap-2 mb-4">
+              <span className="text-lg leading-none">⚠️</span>
+              <p className="text-sm text-red-600">{errorPago}</p>
+            </div>
+          )}
+
+          <div className="space-y-3 mb-6">
+            <div>
+              <label htmlFor="nombre" className="sr-only">Nombre completo</label>
+              <input
+                id="nombre"
+                type="text"
+                autoComplete="name"
+                placeholder="Nombre Completo"
+                value={nombre}
+                onChange={(e) => setNombre(e.target.value)}
+                className="w-full bg-[#f5f0e8] border border-[#e8e0d0] rounded-xl p-3.5 text-gray-700 placeholder-gray-400 text-sm sm:text-base focus:outline-none focus:border-[#6b7c45] transition"
+              />
+            </div>
+            <div>
+              <label htmlFor="email" className="sr-only">Correo electronico</label>
+              <input
+                id="email"
+                type="email"
+                autoComplete="email"
+                placeholder="Correo Electronico"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                className="w-full bg-[#f5f0e8] border border-[#e8e0d0] rounded-xl p-3.5 text-gray-700 placeholder-gray-400 text-sm sm:text-base focus:outline-none focus:border-[#6b7c45] transition"
+              />
+            </div>
           </div>
 
-          <button
-            onClick={handlePagar}
-            className="w-full mt-auto pt-6"
-          >
-            <span className="block bg-[#6b7c45] hover:bg-[#5a6b3a] transition text-white rounded-full py-4 text-lg sm:text-xl font-semibold cursor-pointer">
-              Pagar ${reserva.total} USD
+          <p className="text-xs text-gray-400 mb-4">Seras redirigido a MercadoPago para completar el pago de forma segura.</p>
+
+          <button onClick={handlePagar} disabled={loadingPago} className="w-full mt-auto">
+            <span className={`flex items-center justify-center gap-2 rounded-full py-4 text-lg sm:text-xl font-semibold transition text-white cursor-pointer ${loadingPago ? 'bg-[#8a9d6a]' : 'bg-[#6b7c45] hover:bg-[#5a6b3a]'}`}>
+              {loadingPago ? (
+                <>
+                  <svg className="animate-spin h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" aria-hidden="true">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v8H4z" />
+                  </svg>
+                  Redirigiendo a MercadoPago...
+                </>
+              ) : (
+                `Pagar $${montoFinal.toLocaleString('es-CO')} COP`
+              )}
             </span>
           </button>
-
         </div>
       </div>
     </div>

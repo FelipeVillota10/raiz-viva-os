@@ -11,7 +11,11 @@ export function middleware(request: Request) {
       return NextResponse.next();
     }
 
-    return NextResponse.rewrite(new URL(url.pathname, backendUrl));
+        let backendPath = url.pathname.replace('/api/c/', '/api/');
+        if (!backendPath.endsWith('/')) {
+            backendPath += '/';
+        }
+        return NextResponse.rewrite(new URL(backendPath, backendUrl));
   }
 
   return NextResponse.next();

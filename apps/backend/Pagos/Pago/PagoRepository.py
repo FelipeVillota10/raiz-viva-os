@@ -32,11 +32,13 @@ class PagoRepository:
         return PagoRepository.obtener_por_referencia(referencia)
 
     @staticmethod
-    def confirmar(referencia: str, estado_id: int, mp_payment_id: str = None) -> PagoModel:
+    def confirmar(referencia: str, estado: str, mp_payment_id: str = None, metodo_pago: str = None) -> PagoModel:
         data = {
-            'estado': estado_id,
+            'estado': estado,
             'fecha_confirmacion': timezone.now(),
         }
         if mp_payment_id:
             data['mp_payment_id'] = mp_payment_id
+        if metodo_pago:
+            data['metodo_pago'] = metodo_pago
         return PagoRepository.actualizar(referencia, data)

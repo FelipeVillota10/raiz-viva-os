@@ -36,6 +36,9 @@ urlpatterns = [
     path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('api/growth/', GrowthController.as_view(), name='growth'),
 
+    # Eventos
+    path('api/eventos/', include('Evento.urls')),
+
     # Pagos
     path('api/pagos/', include('Pagos.urls')),
 

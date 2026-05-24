@@ -27,7 +27,7 @@ SECRET_KEY = 'django-insecure-fr7m8^$tta$*r7fmhd=4per$&xs!#r))_-6u!$55nt+!a#!=(n
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ['.vercel.app', 'localhost', '127.0.0.1']
+ALLOWED_HOSTS = ['.vercel.app', 'localhost', '127.0.0.1', '.ngrok-free.app']
 
 
 # Application definition
@@ -177,8 +177,9 @@ MERCADOPAGO = {
     'ACCESS_TOKEN': os.environ.get('MP_ACCESS_TOKEN', 'APP_USR-5815355695083802-052101-47b2f68295d3791e6da10e6a822de011-3417407198'),
     'PUBLIC_KEY': os.environ.get('MP_PUBLIC_KEY', 'APP_USR-1b79ee2a-9880-4ad8-bab3-5c825aa431ba'),
     'WEBHOOK_SECRET': os.environ.get('MP_WEBHOOK_SECRET', '099663a788ebda008a12b1f24be4170bb61bc0274d738ce634315927ff203c20'),
-    'NOTIFICATION_URL': os.environ.get('MP_NOTIFICATION_URL', 'https://3997-186-98-40-77.ngrok-free.app/api/pagos/webhook/'),
-    'SUCCESS_URL': os.environ.get('MP_SUCCESS_URL', 'https://3997-186-98-40-77.ngrok-free.app/pago/exito'),
-    'FAILURE_URL': os.environ.get('MP_FAILURE_URL', 'https://3997-186-98-40-77.ngrok-free.app/pago/fallo'),
-    'PENDING_URL': os.environ.get('MP_PENDING_URL', 'https://3997-186-98-40-77.ngrok-free.app/pago/pendiente'),
+    'NOTIFICATION_URL': os.environ.get('MP_NOTIFICATION_URL', 'https://1f47-186-98-40-77.ngrok-free.app/api/pagos/webhook/'),
+    'SUCCESS_URL': os.environ.get('MP_SUCCESS_URL', 'https://ec56-186-98-40-77.ngrok-free.app/pago/exito'),
+    'FAILURE_URL': os.environ.get('MP_FAILURE_URL', 'https://ec56-186-98-40-77.ngrok-free.app/pago/fallo'),
+    'PENDING_URL': os.environ.get('MP_PENDING_URL', 'https://ec56-186-98-40-77.ngrok-free.app/pago/pendiente'),
+    'FRONTEND_BASE_URL': os.environ.get('MP_FRONTEND_BASE_URL', 'https://ec56-186-98-40-77.ngrok-free.app'),
 }
