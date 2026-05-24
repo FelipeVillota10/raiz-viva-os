@@ -14,6 +14,7 @@ class DetalleEventoSerializer(serializers.ModelSerializer):
         fields = ['id_detalle', 'distribucion_pago', 'es_local', 'colaboradores']
 
 class EventoSerializer(serializers.ModelSerializer):
+    """
     detalle = DetalleEventoSerializer(
         source='detalleeventomodel_set',
         many=True,
@@ -24,14 +25,14 @@ class EventoSerializer(serializers.ModelSerializer):
         many=True,
         read_only=True
     )
-
+    """
     class Meta:
         model = EventoModel
         fields = [
             'id_evento', 'nombre', 'descripcion', 'costo_evento',
             'capacidad', 'fecha_inicio', 'fecha_fin', 'es_gratuito',
-            'id_estado', 'id_territorio', 'id_actor_principal',
-            'imagen', 'detalle', 'productos'
+            #'id_estado', 'id_territorio', 'id_actor_principal',
+            'imagen'#, 'detalle', 'productos'
         ]
 
     def validate_imagen(self, value):
