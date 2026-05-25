@@ -14,6 +14,7 @@ from .serializers import (
     TerritorioSerializer,
     MonedaSerializer,
     AdminTerritorioSerializer,
+    AdminLiderSerializer,
 )
 from .permissions import IsAdmin
 from Aprobaciones.AprobacionSerializer import AprobacionesSerializer
@@ -339,4 +340,48 @@ class AdminTerritoriosController(APIView):
 
         territorio.save()
         serializer = AdminTerritorioSerializer(territorio)
+        return Response(serializer.data)
+
+    def post(self, request):
+        nombre = request.data.get('nombre_territorio')
+        region = request.data.get('region')
+        id_estado = request.data.get('id_estado')
+        id_administrador = request.data.get('id_administrador')
+
+        if not nombre:
+            return Response({'error': 'nombre_territorio es requerido'}, status=400)
+        if not region:
+            return Response({'error': 'region es requerido'}, status=400)
+        if not id_estado:
+            return Response({'error': 'id_estado es requerido'}, status=400)
+        if not id_administrador:
+            return Response({'error': 'id_administrador es requerido'}, status=400)
+
+        try:
+            estado = EstadoModel.objects.get(id=id_estado)
+        except EstadoModel.DoesNotExist:
+            return Response({'error': 'Estado no encontrado'}, status=400)
+
+        try:
+            administrador = ClienteModel.objects.get(id_cliente=id_administrador)
+        except ClienteModel.DoesNotExist:
+            return Response({'error': 'Administrador no encontrado'}, status=400)
+
+        territorio = TerritorioModel.objects.create(
+            nombre_territorio=nombre.strip(),
+            region=region.strip(),
+            estado=estado,
+            administrador=administrador,
+        )
+
+        serializer = AdminTerritorioSerializer(territorio)
+        return Response(serializer.data, status=201)
+
+
+class AdminLideresController(APIView):
+    permission_classes = [IsAdmin]
+
+    def get(self, request):
+        lideres = ClienteModel.objects.filter(es_lider=True).select_related('usuario')
+        serializer = AdminLiderSerializer(lideres, many=True)
         return Response(serializer.data)

@@ -232,6 +232,7 @@ class AdminTerritorioSerializer(serializers.ModelSerializer):
     administrador_nombre = serializers.CharField(source='administrador.nombre', read_only=True)
     administrador_id = serializers.IntegerField(source='administrador.id_cliente', read_only=True)
     id_estado = serializers.IntegerField(source='estado.id', required=False)
+    id_administrador = serializers.IntegerField(write_only=True, required=False)
 
     class Meta:
         model = TerritorioModel
@@ -241,6 +242,15 @@ class AdminTerritorioSerializer(serializers.ModelSerializer):
             'region',
             'estado_nombre',
             'id_estado',
+            'id_administrador',
             'administrador_nombre',
             'administrador_id',
         ]
+
+
+class AdminLiderSerializer(serializers.ModelSerializer):
+    usuario_email = serializers.EmailField(source='usuario.email', read_only=True)
+
+    class Meta:
+        model = ClienteModel
+        fields = ['id_cliente', 'nombre', 'usuario_email']

@@ -9,6 +9,7 @@ from .UsuarioController import (
     ClienteController,
     PerfilServiciosController,
     AdminTerritoriosController,
+    AdminLideresController,
 )
 
 urlpatterns = [
@@ -24,4 +25,5 @@ urlpatterns = [
     path('clientes/<int:pk>/', ClienteController.as_view(), name='obtener_cliente'),
     path('admin/territorios/', AdminTerritoriosController.as_view(), name='admin_territorios'),
     path('admin/territorios/<int:pk>/', AdminTerritoriosController.as_view(), name='admin_territorio_detalle'),
+    path('admin/lideres/', AdminLideresController.as_view(), name='admin_lideres'),
 ]
