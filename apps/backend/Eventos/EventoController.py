@@ -1,8 +1,8 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from .EventoService import EventoService
-from .EventoSerializer import EventoSerializer
+from Eventos.EventoService import EventoService
+from Eventos.EventoSerializer import EventoSerializer
 
 class EventoController(APIView):
     def __init__(self, **kwargs):

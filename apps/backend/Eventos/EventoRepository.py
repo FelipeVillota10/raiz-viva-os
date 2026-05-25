@@ -12,3 +12,10 @@ class EventoRepository:
     @staticmethod
     def create(data):
         return EventoModel.objects.create(**data)
+
+    @staticmethod
+    def update(evento, data):
+        for key, value in data.items():
+            setattr(evento, key, value)
+        evento.save()
+        return evento

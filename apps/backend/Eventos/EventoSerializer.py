@@ -1,20 +1,12 @@
 from rest_framework import serializers
 from .EventoModel import EventoModel
-from .DetalleEventoModel import DetalleEventoModel
-from .ProductoModel import ProductoModel
+from DetallesEventos.DetalleEventoSerializer import DetalleEventoSerializer
+from Productos.ProductoSerializer import ProductoSerializer
 
-class ProductoSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = ProductoModel
-        fields = ['id_producto', 'nombre', 'descripcion', 'precio', 'stock']
 
-class DetalleEventoSerializer(serializers.ModelSerializer):
-    class Meta:
-        model = DetalleEventoModel
-        fields = ['id_detalle', 'distribucion_pago', 'es_local', 'colaboradores']
 
 class EventoSerializer(serializers.ModelSerializer):
-    """
+    
     detalle = DetalleEventoSerializer(
         source='detalleeventomodel_set',
         many=True,
@@ -25,14 +17,15 @@ class EventoSerializer(serializers.ModelSerializer):
         many=True,
         read_only=True
     )
-    """
+    
     class Meta:
         model = EventoModel
         fields = [
             'id_evento', 'nombre', 'descripcion', 'costo_evento',
             'capacidad', 'fecha_inicio', 'fecha_fin', 'es_gratuito',
-            #'id_estado', 'id_territorio', 'id_actor_principal',
-            'imagen'#, 'detalle', 'productos'
+            'id_estado', 'id_territorio', 'id_actor_principal',
+            'imagen', 'detalle', 'productos'
+            
         ]
 
     def validate_imagen(self, value):

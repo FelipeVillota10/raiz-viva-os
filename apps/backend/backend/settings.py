@@ -43,6 +43,8 @@ INSTALLED_APPS = [
     'rest_framework_simplejwt',
     'Categorias',
     'Estados',
+    'DetallesEventos',
+    'Productos',
     'Eventos',
     'Monedas',
     'TiposActores', 
@@ -118,6 +120,8 @@ TIME_ZONE = 'UTC'
 USE_I18N = True
 
 USE_TZ = True
+
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 
 # Static files (CSS, JavaScript, Images)

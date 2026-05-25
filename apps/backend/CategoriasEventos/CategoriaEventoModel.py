@@ -1,5 +1,5 @@
 from django.db import models
-from .EventoModel import EventoModel
+from ..Eventos.EventoModel import EventoModel
 
 class CategoriaEventoModel(models.Model):
     id_categoria = models.IntegerField()

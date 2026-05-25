@@ -1,5 +1,5 @@
 from django.db import models
-from .EventoModel import EventoModel
+from Eventos.EventoModel import EventoModel
 
 class DetalleEventoModel(models.Model):
     id_detalle = models.AutoField(primary_key=True)
