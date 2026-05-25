@@ -1,4 +1,4 @@
-import { LoginCredentials, RegistroData, Territorio, Moneda, TipoActor, UserPerfil, Solicitud, PerfilActor, ServicioPerfil, Servicio } from '../models/types';
+import { LoginCredentials, RegistroData, Territorio, Moneda, TipoActor, UserPerfil, Solicitud, PerfilActor, ServicioPerfil, Servicio, AdminTerritorio, TerritorioUpdatePayload } from '../models/types';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 
@@ -213,6 +213,32 @@ export const perfilService = {
   async getServiciosCatalogo(): Promise<Servicio[]> {
     const response = await fetch(`${API_URL}/api/servicios/`);
     if (!response.ok) throw new Error('Error al obtener servicios');
+    return response.json();
+  },
+};
+
+export const adminService = {
+  async getTerritorios(): Promise<AdminTerritorio[]> {
+    const response = await fetchWithAuth(`${API_URL}/api/admin/territorios/`);
+    return response.json();
+  },
+
+  async getTerritorio(id: number): Promise<AdminTerritorio> {
+    const response = await fetchWithAuth(`${API_URL}/api/admin/territorios/${id}/`);
+    return response.json();
+  },
+
+  async actualizarTerritorio(id: number, data: TerritorioUpdatePayload): Promise<AdminTerritorio> {
+    const response = await fetchWithAuth(`${API_URL}/api/admin/territorios/${id}/`, {
+      method: 'PATCH',
+      body: JSON.stringify(data),
+    });
+
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({}));
+      throw new Error(error.error || 'Error al actualizar territorio');
+    }
+
     return response.json();
   },
 };

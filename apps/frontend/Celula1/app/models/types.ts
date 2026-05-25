@@ -109,3 +109,19 @@ export interface Solicitud {
     nombre: string;
   };
 }
+
+export interface AdminTerritorio {
+  id_territorio: number;
+  nombre_territorio: string;
+  region: string;
+  estado_nombre: string;
+  id_estado: number;
+  administrador_nombre: string;
+  administrador_id: number;
+}
+
+export interface TerritorioUpdatePayload {
+  nombre_territorio?: string;
+  region?: string;
+  id_estado?: number;
+}
