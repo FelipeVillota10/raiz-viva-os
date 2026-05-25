@@ -37,7 +37,7 @@ class UsuarioService:
 
         cliente = self.repository.get_cliente_by_user(user_obj)
         if cliente:
-            if not cliente.es_actor and not cliente.es_turista and not cliente.es_lider:
+            if not cliente.es_actor and not cliente.es_turista and not cliente.es_lider and not cliente.es_admin:
                 return None, 'Tu solicitud esta en revision. El lider territorial la revisara pronto.'
 
         return cliente, None
@@ -58,6 +58,7 @@ class UsuarioService:
         es_actor = data.get('es_actor', False)
         es_lider = data.get('es_lider', False)
         es_turista = data.get('es_turista', False)
+        es_admin = data.get('es_admin', False)
 
         partes_nombre = nombre_completo.split(' ', 1)
         first_name = partes_nombre[0]
@@ -101,6 +102,7 @@ class UsuarioService:
             es_actor=es_actor,
             es_lider=es_lider,
             es_turista=es_turista,
+            es_admin=es_admin,
         )
 
         for tipo_id in tipos_actores:

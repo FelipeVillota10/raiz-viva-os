@@ -1,6 +1,7 @@
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.parsers import JSONParser, MultiPartParser, FormParser
+from rest_framework.permissions import IsAuthenticated
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
 from rest_framework.exceptions import ValidationError
@@ -12,10 +13,14 @@ from .serializers import (
     ClienteSerializer,
     TerritorioSerializer,
     MonedaSerializer,
+    AdminTerritorioSerializer,
 )
+from .permissions import IsAdmin
 from Aprobaciones.AprobacionSerializer import AprobacionesSerializer
 from Clientes.ClienteModel import ClienteModel
 from Servicios.ServicioModel import ServicioModel, ClienteServicioModel
+from Territorio.TerritorioModel import TerritorioModel
+from Estados.EstadoModel import EstadoModel
 
 
 class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
@@ -35,6 +40,7 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
         refresh['es_actor'] = cliente.es_actor
         refresh['es_lider'] = cliente.es_lider
         refresh['es_turista'] = cliente.es_turista
+        refresh['es_admin'] = cliente.es_admin
         refresh['nombre_completo'] = cliente.nombre
         refresh['territorio'] = cliente.estado.nombre_estado if cliente.estado else None
 
@@ -287,3 +293,50 @@ class PerfilServiciosController(APIView):
 
         cs.delete()
         return Response({'mensaje': 'Servicio eliminado'}, status=200)
+
+
+class AdminTerritoriosController(APIView):
+    permission_classes = [IsAdmin]
+
+    def get(self, request, pk=None):
+        if pk:
+            try:
+                territorio = TerritorioModel.objects.select_related(
+                    'estado', 'administrador'
+                ).get(id_territorio=pk)
+            except TerritorioModel.DoesNotExist:
+                return Response({'error': 'Territorio no encontrado'}, status=404)
+            serializer = AdminTerritorioSerializer(territorio)
+            return Response(serializer.data)
+
+        territorios = TerritorioModel.objects.select_related(
+            'estado', 'administrador'
+        ).all()
+        serializer = AdminTerritorioSerializer(territorios, many=True)
+        return Response(serializer.data)
+
+    def patch(self, request, pk):
+        try:
+            territorio = TerritorioModel.objects.get(id_territorio=pk)
+        except TerritorioModel.DoesNotExist:
+            return Response({'error': 'Territorio no encontrado'}, status=404)
+
+        if 'nombre_territorio' in request.data:
+            nombre = request.data['nombre_territorio']
+            if nombre and len(nombre.strip()) >= 2:
+                territorio.nombre_territorio = nombre.strip()
+
+        if 'region' in request.data:
+            region = request.data['region']
+            territorio.region = region if region else None
+
+        if 'id_estado' in request.data:
+            try:
+                estado = EstadoModel.objects.get(id=request.data['id_estado'])
+                territorio.estado = estado
+            except EstadoModel.DoesNotExist:
+                return Response({'error': 'Estado no encontrado'}, status=400)
+
+        territorio.save()
+        serializer = AdminTerritorioSerializer(territorio)
+        return Response(serializer.data)

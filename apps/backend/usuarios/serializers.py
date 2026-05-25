@@ -47,7 +47,7 @@ class ClienteSerializer(serializers.ModelSerializer):
         model = ClienteModel
         fields = [
             'id_cliente', 'nombre', 'nombre_completo', 'telefono', 'usuario_username', 'usuario_email',
-            'usuario_nombre', 'reputacion', 'es_actor', 'es_lider', 'es_turista',
+            'usuario_nombre', 'reputacion', 'es_actor', 'es_lider', 'es_turista', 'es_admin',
             'territorio_nombre', 'moneda_nombre', 'tipos_actores', 'servicio',
             'descripcion', 'foto_perfil', 'foto_portada', 'foto_perfil_url', 'foto_portada_url',
             'activo', 'estado_aprobacion', 'observaciones'
@@ -120,6 +120,7 @@ class RegistroClienteSerializer(serializers.Serializer):
     es_actor = serializers.BooleanField(default=False)
     es_lider = serializers.BooleanField(default=False)
     es_turista = serializers.BooleanField(default=False)
+    es_admin = serializers.BooleanField(default=False)
 
     def validate_nombre_completo(self, value):
         if any(char.isdigit() for char in value):
@@ -167,9 +168,10 @@ class RegistroClienteSerializer(serializers.Serializer):
         es_actor = attrs.get('es_actor', False)
         es_lider = attrs.get('es_lider', False)
         es_turista = attrs.get('es_turista', False)
-        count_true = sum([es_actor, es_lider, es_turista])
+        es_admin = attrs.get('es_admin', False)
+        count_true = sum([es_actor, es_lider, es_turista, es_admin])
         if count_true > 1:
-            raise ValidationError("Solo un tipo de cliente puede ser verdadero (actor, lider o turista).")
+            raise ValidationError("Solo un tipo de cliente puede ser verdadero (actor, lider, turista o admin).")
         return attrs
 
     def create(self, validated_data):
@@ -223,3 +225,22 @@ class RegistroClienteSerializer(serializers.Serializer):
             ClienteTiposActoresModel.objects.create(id_actor=cliente, id_tipo=tipo)
 
         return cliente
+
+
+class AdminTerritorioSerializer(serializers.ModelSerializer):
+    estado_nombre = serializers.CharField(source='estado.nombre_estado', read_only=True)
+    administrador_nombre = serializers.CharField(source='administrador.nombre', read_only=True)
+    administrador_id = serializers.IntegerField(source='administrador.id_cliente', read_only=True)
+    id_estado = serializers.IntegerField(source='estado.id', required=False)
+
+    class Meta:
+        model = TerritorioModel
+        fields = [
+            'id_territorio',
+            'nombre_territorio',
+            'region',
+            'estado_nombre',
+            'id_estado',
+            'administrador_nombre',
+            'administrador_id',
+        ]
