@@ -43,6 +43,7 @@ INSTALLED_APPS = [
     'ConsolidadoEvento',
     'ConsolidadoExperiencia',
     'DetalleEvento',
+    'EcoAventuras',
     'Servicios',
     'Aprobaciones',
     'usuarios',
