@@ -398,3 +398,63 @@ class EstadosController(APIView):
         estados = EstadoModel.objects.all()
         serializer = EstadoSerializer(estados, many=True)
         return Response(serializer.data)
+
+
+class ActoresLiderController(APIView):
+    def get(self, request):
+        auth_header = request.headers.get('Authorization', '')
+        if not auth_header.startswith('Bearer '):
+            return Response({'error': 'Token no proporcionado'}, status=401)
+
+        token = auth_header.split(' ')[1]
+        try:
+            access = AccessToken(token)
+            user_id = access['user_id']
+        except Exception:
+            return Response({'error': 'Token invalido o expirado'}, status=401)
+
+        service = UsuarioService()
+        try:
+            lider = service.get_perfil(user_id)
+        except ClienteModel.DoesNotExist:
+            return Response({'error': 'Perfil no encontrado'}, status=404)
+
+        if not lider.es_lider:
+            return Response({'error': 'No tienes permisos de lider'}, status=403)
+
+        actores = service.get_actores_by_lider(lider)
+        return Response(actores)
+
+
+class DeshabilitarActorController(APIView):
+    def patch(self, request, actor_id):
+        auth_header = request.headers.get('Authorization', '')
+        if not auth_header.startswith('Bearer '):
+            return Response({'error': 'Token no proporcionado'}, status=401)
+
+        token = auth_header.split(' ')[1]
+        try:
+            access = AccessToken(token)
+            user_id = access['user_id']
+        except Exception:
+            return Response({'error': 'Token invalido o expirado'}, status=401)
+
+        service = UsuarioService()
+        try:
+            lider = service.get_perfil(user_id)
+        except ClienteModel.DoesNotExist:
+            return Response({'error': 'Perfil no encontrado'}, status=404)
+
+        if not lider.es_lider:
+            return Response({'error': 'No tienes permisos de lider'}, status=403)
+
+        accion = request.data.get('accion', 'deshabilitar')
+        if accion == 'habilitar':
+            success, message = service.habilitar_actor(actor_id, lider)
+        else:
+            success, message = service.deshabilitar_actor(actor_id, lider)
+
+        if success:
+            return Response({'mensaje': message}, status=200)
+        else:
+            return Response({'error': message}, status=400)

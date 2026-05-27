@@ -1,4 +1,4 @@
-import { LoginCredentials, RegistroData, Territorio, Moneda, TipoActor, UserPerfil, Solicitud, PerfilActor, ServicioPerfil, Servicio, AdminTerritorio, TerritorioUpdatePayload } from '../models/types';
+import { LoginCredentials, RegistroData, Territorio, Moneda, TipoActor, UserPerfil, Solicitud, PerfilActor, ServicioPerfil, Servicio, AdminTerritorio, TerritorioUpdatePayload, ActorTerritorial } from '../models/types';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 
@@ -6,22 +6,22 @@ export { API_URL };
 
 export function getToken(): string | null {
   if (typeof window === 'undefined') return null;
-  return localStorage.getItem('access_token');
+  return sessionStorage.getItem('access_token');
 }
 
 export function getRefreshToken(): string | null {
   if (typeof window === 'undefined') return null;
-  return localStorage.getItem('refresh_token');
+  return sessionStorage.getItem('refresh_token');
 }
 
 export function setTokens(access: string, refresh: string): void {
-  localStorage.setItem('access_token', access);
-  localStorage.setItem('refresh_token', refresh);
+  sessionStorage.setItem('access_token', access);
+  sessionStorage.setItem('refresh_token', refresh);
 }
 
 export function clearAuth(): void {
-  localStorage.removeItem('access_token');
-  localStorage.removeItem('refresh_token');
+  sessionStorage.removeItem('access_token');
+  sessionStorage.removeItem('refresh_token');
 }
 
 export function decodeJWT(token: string): UserPerfil | null {
@@ -51,7 +51,41 @@ async function fetchWithAuth(url: string, options: RequestInit = {}) {
     (headers as Record<string, string>)['Authorization'] = `Bearer ${token}`;
   }
 
-  const response = await fetch(url, { ...options, headers });
+  let response = await fetch(url, { ...options, headers });
+
+  if (response.status === 401) {
+    const refreshToken = getRefreshToken();
+    if (refreshToken) {
+      try {
+        const refreshRes = await fetch(`${API_URL}/api/token/refresh/`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ refresh: refreshToken }),
+        });
+
+        if (refreshRes.ok) {
+          const data = await refreshRes.json();
+          setTokens(data.access, refreshToken);
+          (headers as Record<string, string>)['Authorization'] = `Bearer ${data.access}`;
+          response = await fetch(url, { ...options, headers });
+          if (response.ok) return response;
+        }
+      } catch {
+        // fall through to error
+      }
+    }
+
+    clearAuth();
+    if (typeof window !== 'undefined') {
+      const path = window.location.pathname;
+      if (path.startsWith('/lider')) {
+        window.location.href = '/lider/login';
+      } else {
+        window.location.href = '/login/inicio';
+      }
+    }
+    throw new Error('Sesión expirada');
+  }
 
   if (!response.ok) {
     const error = await response.json().catch(() => ({}));
@@ -154,6 +188,21 @@ export const solicitudesService = {
     const response = await fetchWithAuth(`${API_URL}/api/solicitudes/${id}/actualizar/`, {
       method: 'PATCH',
       body: JSON.stringify(data),
+    });
+    return response.json();
+  },
+};
+
+export const actoresLiderService = {
+  async getActores(): Promise<ActorTerritorial[]> {
+    const response = await fetchWithAuth(`${API_URL}/api/lider/actores/`);
+    return response.json();
+  },
+
+  async toggleEstadoActor(actorId: number, accion: 'deshabilitar' | 'habilitar'): Promise<{ mensaje: string }> {
+    const response = await fetchWithAuth(`${API_URL}/api/lider/actores/${actorId}/toggle-estado/`, {
+      method: 'PATCH',
+      body: JSON.stringify({ accion }),
     });
     return response.json();
   },

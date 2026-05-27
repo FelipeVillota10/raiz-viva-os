@@ -11,6 +11,8 @@ from .UsuarioController import (
     AdminTerritoriosController,
     AdminLideresController,
     EstadosController,
+    ActoresLiderController,
+    DeshabilitarActorController,
 )
 
 urlpatterns = [
@@ -28,4 +30,6 @@ urlpatterns = [
     path('admin/territorios/', AdminTerritoriosController.as_view(), name='admin_territorios'),
     path('admin/territorios/<int:pk>/', AdminTerritoriosController.as_view(), name='admin_territorio_detalle'),
     path('admin/lideres/', AdminLideresController.as_view(), name='admin_lideres'),
+    path('lider/actores/', ActoresLiderController.as_view(), name='lider_actores'),
+    path('lider/actores/<int:actor_id>/toggle-estado/', DeshabilitarActorController.as_view(), name='lider_toggle_actor'),
 ]

@@ -6,6 +6,7 @@ import Image from 'next/image';
 import { Button } from '../../components/ui/Button';
 import { Input } from '../../components/ui/Input';
 import { LockIcon, MailIcon } from '../../components/ui/Icons';
+import { setTokens, clearAuth } from '../../services/api';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 
@@ -35,13 +36,11 @@ export default function AdminLoginPage() {
       const data = await response.json();
 
       if (response.ok) {
-        localStorage.setItem('access_token', data.access);
-        localStorage.setItem('refresh_token', data.refresh);
+        setTokens(data.access, data.refresh);
 
         const payload = JSON.parse(atob(data.access.split('.')[1]));
         if (!payload['es_admin']) {
-          localStorage.removeItem('access_token');
-          localStorage.removeItem('refresh_token');
+          clearAuth();
           setError('No tienes permisos de administrador.');
           setIsLoading(false);
           return;
@@ -49,7 +48,8 @@ export default function AdminLoginPage() {
 
         router.push('/admin/territorios');
       } else {
-        setError(data.detail || 'Credenciales inválidas.');
+        const mensaje = Array.isArray(data.detail) ? data.detail[0] : (data.detail || data.error || 'Credenciales inválidas.');
+        setError(mensaje);
       }
     } catch {
       setError('Error de conexión. Asegúrate de que el backend esté corriendo.');

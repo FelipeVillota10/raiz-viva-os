@@ -110,6 +110,16 @@ export interface Solicitud {
   };
 }
 
+export interface ActorTerritorial {
+  id_cliente: number;
+  nombre: string;
+  telefono: string;
+  email: string;
+  territorio_nombre: string | null;
+  tipos_actores: { id: number; nombre_tipo: string }[];
+  activo: boolean;
+}
+
 export interface AdminTerritorio {
   id_territorio: number;
   nombre_territorio: string;

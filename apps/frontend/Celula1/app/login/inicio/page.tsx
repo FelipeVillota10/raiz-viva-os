@@ -8,6 +8,7 @@ import { Input } from '../../components/ui/Input';
 import { MailIcon, LockIcon } from '../../components/ui/Icons';
 import { HeaderSecundario } from '../../components/HeaderSecundario';
 import { Footer } from '../../components/Footer';
+import { setTokens } from '../../services/api';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 
@@ -93,13 +94,10 @@ export default function LoginInicioPage() {
       const data = await response.json();
 
       if (response.ok) {
-        localStorage.setItem('access_token', data.access);
-        localStorage.setItem('refresh_token', data.refresh);
+        setTokens(data.access, data.refresh);
 
         const payload = JSON.parse(atob(data.access.split('.')[1]));
         if (payload['es_lider']) {
-          localStorage.removeItem('access_token');
-          localStorage.removeItem('refresh_token');
           setGeneralError('Los líderes territoriales deben iniciar sesión desde el panel de líder.');
         } else if (payload['es_actor']) {
           router.push('/mi-perfil');
@@ -107,7 +105,8 @@ export default function LoginInicioPage() {
           router.push('/');
         }
       } else {
-        setGeneralError('Credenciales inválidas. Verifique su correo y contraseña.');
+        const mensaje = Array.isArray(data.detail) ? data.detail[0] : (data.detail || data.error || 'Credenciales inválidas. Verifique su correo y contraseña.');
+        setGeneralError(mensaje);
       }
     } catch {
       setGeneralError('Error de conexión. Asegúrate de que el backend esté corriendo.');
