@@ -1,7 +1,6 @@
 import { fetchGrowthMetrics } from "./lib/growth";
 import { EstadisticaCard } from "./components/EstadisticaCard";
 import { DashboardError } from "./components/DashboardError";
-import Image from "next/image";
 
 function fmtMoney(val: string | number): string {
     const n = typeof val === "string" ? parseFloat(val) : val;
@@ -60,14 +59,11 @@ export default async function DashboardPage() {
                         alignItems: "center",
                         justifyContent: "center",
                         flexShrink: 0,
+                        fontSize: "20px",
+                        fontWeight: 700,
+                        color: "#3b5630",
                     }}>
-                        <Image
-                            src="/arbol.jpg"
-                            alt="Logo Raíz Viva"
-                            width={42}
-                            height={42}
-                            style={{ objectFit: "cover", borderRadius: "50%" }}
-                        />
+                        🌿
                     </div>
                     <div>
                         <p style={{ fontSize: "16px", fontWeight: 700, margin: 0, lineHeight: 1.1 }}>
