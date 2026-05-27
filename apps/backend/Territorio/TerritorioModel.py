@@ -1,5 +1,4 @@
 from django.db import models
-from Usuario.UsuarioModel import UsuarioModel
 from Estados.EstadoModel import EstadoModel
 from Clientes.ClienteModel import ClienteModel
 
@@ -20,7 +19,7 @@ class TerritorioModel(models.Model):
     region            = models.CharField(max_length=255, null=True, blank=True)
  
     class Meta:
-        managed  = False
+        managed = True
         db_table = 'territorios'
  
     def __str__(self):
