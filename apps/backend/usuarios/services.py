@@ -38,7 +38,8 @@ class UsuarioService:
         cliente = self.repository.get_cliente_by_user(user_obj)
         if cliente:
             if cliente.es_turista or cliente.es_lider or cliente.es_admin:
-                pass
+                if not cliente.activo:
+                    return None, 'Tu cuenta ha sido deshabilitada. Contacta al administrador.'
             elif cliente.es_actor:
                 tiene_aprobacion = AprobacionModel.objects.filter(
                     id_actor=cliente,

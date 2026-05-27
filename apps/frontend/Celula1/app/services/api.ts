@@ -1,4 +1,4 @@
-import { LoginCredentials, RegistroData, Territorio, Moneda, TipoActor, UserPerfil, Solicitud, PerfilActor, ServicioPerfil, Servicio, AdminTerritorio, TerritorioUpdatePayload, ActorTerritorial } from '../models/types';
+import { LoginCredentials, RegistroData, Territorio, Moneda, TipoActor, UserPerfil, Solicitud, PerfilActor, ServicioPerfil, Servicio, AdminTerritorio, TerritorioUpdatePayload, ActorTerritorial, AdminLider } from '../models/types';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 
@@ -286,6 +286,34 @@ export const adminService = {
     if (!response.ok) {
       const error = await response.json().catch(() => ({}));
       throw new Error(error.error || 'Error al actualizar territorio');
+    }
+
+    return response.json();
+  },
+
+  async getLideres(): Promise<AdminLider[]> {
+    const response = await fetchWithAuth(`${API_URL}/api/admin/lideres/`);
+    return response.json();
+  },
+
+  async getLider(id: number): Promise<PerfilActor> {
+    const response = await fetchWithAuth(`${API_URL}/api/admin/lideres/${id}/`);
+    return response.json();
+  },
+
+  async actualizarLider(id: number, data: FormData): Promise<PerfilActor> {
+    const token = getToken();
+    const response = await fetch(`${API_URL}/api/admin/lideres/${id}/`, {
+      method: 'PATCH',
+      headers: {
+        Authorization: `Bearer ${token}`,
+      },
+      body: data,
+    });
+
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({}));
+      throw new Error(error.error || 'Error al actualizar lider');
     }
 
     return response.json();

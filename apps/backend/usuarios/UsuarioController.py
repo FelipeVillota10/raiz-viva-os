@@ -18,6 +18,7 @@ from .serializers import (
     EstadoSerializer,
 )
 from .permissions import IsAdmin
+from django.contrib.auth.models import User
 from Aprobaciones.AprobacionSerializer import AprobacionesSerializer
 from Clientes.ClienteModel import ClienteModel
 from Servicios.ServicioModel import ServicioModel, ClienteServicioModel
@@ -338,6 +339,13 @@ class AdminTerritoriosController(APIView):
             except EstadoModel.DoesNotExist:
                 return Response({'error': 'Estado no encontrado'}, status=400)
 
+        if 'administrador_activo' in request.data and territorio.administrador:
+            activo = request.data['administrador_activo']
+            if isinstance(activo, str):
+                activo = activo.lower() in ('true', '1', 'yes')
+            territorio.administrador.activo = bool(activo)
+            territorio.administrador.save()
+
         territorio.save()
         serializer = AdminTerritorioSerializer(territorio)
         return Response(serializer.data)
@@ -383,13 +391,90 @@ class AdminTerritoriosController(APIView):
 
 class AdminLideresController(APIView):
     permission_classes = [IsAdmin]
+    parser_classes = [JSONParser, MultiPartParser, FormParser]
 
-    def get(self, request):
+    def get(self, request, pk=None):
+        if pk:
+            try:
+                lider = ClienteModel.objects.select_related('usuario').get(id_cliente=pk, es_lider=True)
+            except ClienteModel.DoesNotExist:
+                return Response({'error': 'Lider no encontrado'}, status=404)
+            serializer = ClienteSerializer(lider, context={'request': request})
+            return Response(serializer.data)
+
         lideres = ClienteModel.objects.filter(es_lider=True).select_related('usuario')
         if request.query_params.get('disponibles') == 'true':
             ids_con_territorio = TerritorioModel.objects.values_list('administrador_id', flat=True)
             lideres = lideres.exclude(id_cliente__in=ids_con_territorio)
         serializer = AdminLiderSerializer(lideres, many=True)
+        return Response(serializer.data)
+
+    def patch(self, request, pk):
+        try:
+            lider = ClienteModel.objects.select_related('usuario').get(id_cliente=pk, es_lider=True)
+        except ClienteModel.DoesNotExist:
+            return Response({'error': 'Lider no encontrado'}, status=404)
+
+        if 'nombre' in request.data:
+            nombre = request.data['nombre']
+            if nombre and len(nombre.strip()) >= 3:
+                lider.nombre = nombre.strip()
+
+        if 'telefono' in request.data:
+            lider.telefono = request.data['telefono']
+
+        if 'activo' in request.data:
+            activo = request.data['activo']
+            if isinstance(activo, str):
+                activo = activo.lower() in ('true', '1', 'yes')
+            lider.activo = bool(activo)
+
+        if 'email' in request.data:
+            email = request.data['email']
+            if email:
+                user = lider.usuario
+                if User.objects.filter(email=email).exclude(pk=user.pk).exists():
+                    return Response({'error': 'Este correo ya esta siendo usado por otro usuario'}, status=400)
+                user.email = email
+                user.save()
+
+        if 'foto_perfil' in request.FILES:
+            lider.foto_perfil = request.FILES['foto_perfil']
+
+        if 'territorio_id' in request.data:
+            nuevo_territorio_id = request.data['territorio_id']
+            territorio_actual = TerritorioModel.objects.filter(administrador=lider).first()
+
+            if nuevo_territorio_id and nuevo_territorio_id != 'null' and nuevo_territorio_id != '':
+                try:
+                    nuevo_territorio_id = int(nuevo_territorio_id)
+                except (ValueError, TypeError):
+                    return Response({'error': 'territorio_id invalido'}, status=400)
+
+                if territorio_actual and territorio_actual.id_territorio == nuevo_territorio_id:
+                    pass
+                else:
+                    if territorio_actual:
+                        territorio_actual.administrador = None
+                        territorio_actual.save()
+
+                    try:
+                        nuevo_territorio = TerritorioModel.objects.get(id_territorio=nuevo_territorio_id)
+                    except TerritorioModel.DoesNotExist:
+                        return Response({'error': 'Territorio no encontrado'}, status=400)
+
+                    if nuevo_territorio.administrador and nuevo_territorio.administrador != lider:
+                        return Response({'error': 'Este territorio ya tiene un lider asignado'}, status=400)
+
+                    nuevo_territorio.administrador = lider
+                    nuevo_territorio.save()
+            else:
+                if territorio_actual:
+                    territorio_actual.administrador = None
+                    territorio_actual.save()
+
+        lider.save()
+        serializer = ClienteSerializer(lider, context={'request': request})
         return Response(serializer.data)
 
 

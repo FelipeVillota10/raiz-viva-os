@@ -37,6 +37,7 @@ class ClienteSerializer(serializers.ModelSerializer):
     nombre_completo = serializers.CharField(source='nombre', read_only=True)
     tipos_actores = serializers.SerializerMethodField()
     territorio_nombre = serializers.SerializerMethodField()
+    territorio_id = serializers.SerializerMethodField()
     moneda_nombre = serializers.CharField(source='tipo_moneda.nombre', read_only=True, allow_null=True)
     servicio = serializers.SerializerMethodField()
     estado_aprobacion = serializers.SerializerMethodField()
@@ -49,7 +50,7 @@ class ClienteSerializer(serializers.ModelSerializer):
         fields = [
             'id_cliente', 'nombre', 'nombre_completo', 'telefono', 'usuario_username', 'usuario_email',
             'usuario_nombre', 'reputacion', 'es_actor', 'es_lider', 'es_turista', 'es_admin',
-            'territorio_nombre', 'moneda_nombre', 'tipos_actores', 'servicio',
+            'territorio_nombre', 'territorio_id', 'moneda_nombre', 'tipos_actores', 'servicio',
             'descripcion', 'foto_perfil', 'foto_portada', 'foto_perfil_url', 'foto_portada_url',
             'activo', 'estado_aprobacion', 'observaciones'
         ]
@@ -70,6 +71,13 @@ class ClienteSerializer(serializers.ModelSerializer):
         if aprobacion:
             territorio = TerritorioModel.objects.filter(administrador=aprobacion.id_lider).first()
             return territorio.nombre_territorio if territorio else None
+        return None
+
+    def get_territorio_id(self, obj):
+        from Territorio.TerritorioModel import TerritorioModel
+        if obj.es_lider:
+            territorio = TerritorioModel.objects.filter(administrador=obj).first()
+            return territorio.id_territorio if territorio else None
         return None
 
     def get_servicio(self, obj):
@@ -234,6 +242,7 @@ class AdminTerritorioSerializer(serializers.ModelSerializer):
     estado_nombre = serializers.CharField(source='estado.nombre_estado', read_only=True)
     administrador_nombre = serializers.CharField(source='administrador.nombre', read_only=True)
     administrador_id = serializers.IntegerField(source='administrador.id_cliente', read_only=True)
+    administrador_activo = serializers.BooleanField(source='administrador.activo', read_only=True)
     id_estado = serializers.IntegerField(source='estado.id', required=False)
     id_administrador = serializers.IntegerField(write_only=True, required=False)
 
@@ -248,6 +257,7 @@ class AdminTerritorioSerializer(serializers.ModelSerializer):
             'id_administrador',
             'administrador_nombre',
             'administrador_id',
+            'administrador_activo',
         ]
 
 
@@ -259,7 +269,36 @@ class EstadoSerializer(serializers.ModelSerializer):
 
 class AdminLiderSerializer(serializers.ModelSerializer):
     usuario_email = serializers.EmailField(source='usuario.email', read_only=True)
+    foto_perfil_url = serializers.SerializerMethodField()
+    territorio_nombre = serializers.SerializerMethodField()
+    territorio_id = serializers.SerializerMethodField()
 
     class Meta:
         model = ClienteModel
-        fields = ['id_cliente', 'nombre', 'usuario_email']
+        fields = [
+            'id_cliente', 'nombre', 'telefono', 'usuario_email',
+            'activo', 'foto_perfil_url', 'territorio_nombre', 'territorio_id',
+        ]
+
+    def get_foto_perfil_url(self, obj):
+        if not obj.foto_perfil:
+            return None
+        from django.conf import settings
+        media_url = settings.MEDIA_URL.rstrip('/')
+        file_path = obj.foto_perfil.name
+        if media_url.startswith('http'):
+            return f"{media_url}/{file_path}"
+        request = self.context.get('request')
+        if request:
+            return request.build_absolute_uri(f"{media_url}/{file_path}")
+        return f"{media_url}/{file_path}"
+
+    def get_territorio_nombre(self, obj):
+        from Territorio.TerritorioModel import TerritorioModel
+        territorio = TerritorioModel.objects.filter(administrador=obj).first()
+        return territorio.nombre_territorio if territorio else None
+
+    def get_territorio_id(self, obj):
+        from Territorio.TerritorioModel import TerritorioModel
+        territorio = TerritorioModel.objects.filter(administrador=obj).first()
+        return territorio.id_territorio if territorio else None

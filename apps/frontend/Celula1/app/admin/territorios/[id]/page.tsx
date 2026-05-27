@@ -3,15 +3,10 @@
 import { useEffect, useState, use } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '../../../components/ui/Button';
-import { Input, Select } from '../../../components/ui/Input';
+import { Input } from '../../../components/ui/Input';
 import { ArrowLeftIcon } from '../../../components/ui/Icons';
 import { getToken, adminService } from '../../../services/api';
 import { AdminTerritorio } from '../../../models/types';
-
-const ESTADOS_OPCIONES = [
-  { value: '4', label: 'Activo' },
-  { value: '5', label: 'Inactivo' },
-];
 
 export default function TerritorioDetallePage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params);
@@ -24,7 +19,8 @@ export default function TerritorioDetallePage({ params }: { params: Promise<{ id
 
   const [editNombre, setEditNombre] = useState('');
   const [editRegion, setEditRegion] = useState('');
-  const [editEstado, setEditEstado] = useState('');
+  const [editEstadoActivo, setEditEstadoActivo] = useState(true);
+  const [editAdminActivo, setEditAdminActivo] = useState(true);
   const [isEditing, setIsEditing] = useState(false);
 
   useEffect(() => {
@@ -51,7 +47,8 @@ export default function TerritorioDetallePage({ params }: { params: Promise<{ id
         setTerritorio(data);
         setEditNombre(data.nombre_territorio);
         setEditRegion(data.region);
-        setEditEstado(String(data.id_estado));
+        setEditEstadoActivo(data.estado_nombre?.toLowerCase() === 'activo');
+        setEditAdminActivo(data.administrador_activo);
       } catch (err: any) {
         setError(err.message || 'Error al cargar territorio');
       } finally {
@@ -67,10 +64,12 @@ export default function TerritorioDetallePage({ params }: { params: Promise<{ id
     setSaving(true);
     setError(null);
 
-    const payload: { nombre_territorio?: string; region?: string; id_estado?: number } = {};
+    const payload: Record<string, any> = {};
     if (editNombre.trim() !== territorio.nombre_territorio) payload.nombre_territorio = editNombre.trim();
     if (editRegion.trim() !== territorio.region) payload.region = editRegion.trim();
-    if (Number(editEstado) !== territorio.id_estado) payload.id_estado = Number(editEstado);
+    const estadoActivoActual = territorio.estado_nombre?.toLowerCase() === 'activo';
+    if (editEstadoActivo !== estadoActivoActual) payload.id_estado = editEstadoActivo ? 4 : 5;
+    if (editAdminActivo !== territorio.administrador_activo) payload.administrador_activo = editAdminActivo;
 
     if (Object.keys(payload).length === 0) {
       setIsEditing(false);
@@ -95,7 +94,8 @@ export default function TerritorioDetallePage({ params }: { params: Promise<{ id
     if (!territorio) return;
     setEditNombre(territorio.nombre_territorio);
     setEditRegion(territorio.region);
-    setEditEstado(String(territorio.id_estado));
+    setEditEstadoActivo(territorio.estado_nombre?.toLowerCase() === 'activo');
+    setEditAdminActivo(territorio.administrador_activo);
     setIsEditing(false);
     setError(null);
   };
@@ -193,13 +193,21 @@ export default function TerritorioDetallePage({ params }: { params: Promise<{ id
             <p className="text-sm text-[#353535]">Administrador</p>
             <p className="font-medium text-[#231F20]">{territorio.administrador_nombre}</p>
           </div>
+          <div>
+            <p className="text-sm text-[#353535]">Estado del líder</p>
+            <span className={`inline-block mt-1 text-white px-3 py-1 rounded-full text-xs font-bold ${
+              territorio.administrador_activo ? 'bg-[#10b981]' : 'bg-[#ef4444]'
+            }`}>
+              {territorio.administrador_activo ? 'Activo' : 'Inactivo'}
+            </span>
+          </div>
         </div>
       </div>
 
       <div className="bg-white rounded-2xl shadow-sm border-2 border-[#E6D3A3] p-6">
         <h2 className="text-xl font-semibold text-[#231F20] mb-4">Datos del Territorio</h2>
 
-        {isEditing ? (
+          {isEditing ? (
           <div className="space-y-4">
             <Input
               label="Nombre del Territorio"
@@ -213,15 +221,52 @@ export default function TerritorioDetallePage({ params }: { params: Promise<{ id
               onChange={(e) => setEditRegion(e.target.value)}
               placeholder="Ej: Zona Rural Palmira"
             />
-            <Select
-              label="Estado"
-              value={editEstado}
-              onChange={(e) => setEditEstado(e.target.value)}
-              options={[
-                { value: '', label: 'Seleccione un estado' },
-                ...ESTADOS_OPCIONES,
-              ]}
-            />
+            <div className="flex items-center gap-3">
+              <label className="text-base font-bold text-[#231F20]">Estado del territorio</label>
+              <button
+                type="button"
+                onClick={() => setEditEstadoActivo(!editEstadoActivo)}
+                className={`relative inline-flex h-7 w-12 items-center rounded-full transition-colors ${
+                  editEstadoActivo ? 'bg-[#10b981]' : 'bg-[#ef4444]'
+                }`}
+              >
+                <span
+                  className={`inline-block h-5 w-5 transform rounded-full bg-white transition-transform ${
+                    editEstadoActivo ? 'translate-x-6' : 'translate-x-1'
+                  }`}
+                />
+              </button>
+              <span className="text-sm text-[#353535]">
+                {editEstadoActivo ? 'Activo' : 'Inactivo'}
+              </span>
+            </div>
+
+            {territorio.administrador_nombre && (
+              <div className="pt-2 border-t border-[#E6D3A3]">
+                <p className="text-sm font-bold text-[#231F20] mb-2">
+                  Administrador: {territorio.administrador_nombre}
+                </p>
+                <div className="flex items-center gap-3">
+                  <label className="text-sm font-medium text-[#353535]">Estado del líder</label>
+                  <button
+                    type="button"
+                    onClick={() => setEditAdminActivo(!editAdminActivo)}
+                    className={`relative inline-flex h-7 w-12 items-center rounded-full transition-colors ${
+                      editAdminActivo ? 'bg-[#10b981]' : 'bg-[#ef4444]'
+                    }`}
+                  >
+                    <span
+                      className={`inline-block h-5 w-5 transform rounded-full bg-white transition-transform ${
+                        editAdminActivo ? 'translate-x-6' : 'translate-x-1'
+                      }`}
+                    />
+                  </button>
+                  <span className="text-sm text-[#353535]">
+                    {editAdminActivo ? 'Activo' : 'Inactivo'}
+                  </span>
+                </div>
+              </div>
+            )}
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
