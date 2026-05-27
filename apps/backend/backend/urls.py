@@ -36,6 +36,8 @@ urlpatterns = [
     path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('api/growth/', GrowthController.as_view(), name='growth'),
 
+     path('api/ecoaventuras/', include('EcoAventuras.urls')),
+
     # Ruta raíz (esto soluciona el 404)
     path('', home, name='home'),
 ]

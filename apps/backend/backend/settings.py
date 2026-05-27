@@ -54,6 +54,7 @@ INSTALLED_APPS = [
     'ConsolidadoEvento',
     'ConsolidadoExperiencia',
     'DetalleEvento',
+    'EcoAventuras',
 ]
 
 MIDDLEWARE = [
