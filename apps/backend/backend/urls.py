@@ -1,41 +1,24 @@
-"""
-URL configuration for backend project.
-
-The `urlpatterns` list routes URLs to views. For more information please see:
-    https://docs.djangoproject.com/en/6.0/topics/http/urls/
-Examples:
-Function views
-    1. Add an import:  from my_app import views
-    2. Add a URL to urlpatterns:  path('', views.home, name='home')
-Class-based views
-    1. Add an import:  from other_app.views import Home
-    2. Add a URL to urlpatterns:  path('', Home.as_view(), name='home')
-Including another URLconf
-    1. Import the include() function: from django.urls import include, path
-    2. Add a URL to urlpatterns:  path('blog/', include('blog.urls'))
-"""
 from django.contrib import admin
-from django.urls import path
-from django.http import JsonResponse
-from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView
 from django.urls import path, include
-from Growth.GrowthController import GrowthController 
+from django.http import JsonResponse
+from django.conf import settings
+from django.conf.urls.static import static
+from Growth.GrowthController import GrowthController
 
-# Vista simple para la raíz
 def home(request):
     return JsonResponse({
         "status": "ok",
-        "message": "Backend Raíz Viva OS está corriendo correctamente 🚀"
+        "message": "Backend Raiz Viva OS esta corriendo correctamente"
     })
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    
-    # Rutas JWT
-    path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
-    path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+    path('api/', include('usuarios.urls')),
+    path('api/', include('Aprobaciones.urls')),
+    path('api/', include('Servicios.urls')),
     path('api/growth/', GrowthController.as_view(), name='growth'),
-
-    # Ruta raíz (esto soluciona el 404)
     path('', home, name='home'),
 ]
+
+if settings.DEBUG:
+    urlpatterns += static(settings.MEDIA_URL, document_root=settings.MEDIA_ROOT)

@@ -1,8 +1,6 @@
 from django.db import models
-from Usuario.UsuarioModel import UsuarioModel
 from Clientes.ClienteModel import ClienteModel
 from Experiencia.ExperienciaModel import ExperienciaModel
-from Territorio.TerritorioModel import TerritorioModel
 
 class ConsolidadoExperienciaModel(models.Model):
     id_consolidado_exp  = models.AutoField(primary_key=True)

@@ -1,6 +1,4 @@
 from django.db import models
-from Usuario.UsuarioModel import UsuarioModel
-from Clientes.ClienteModel import ClienteModel
 from Evento.EventoModel import EventoModel
 
 class DetalleEventoModel(models.Model):
