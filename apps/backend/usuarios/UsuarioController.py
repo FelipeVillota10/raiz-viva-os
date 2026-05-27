@@ -15,6 +15,7 @@ from .serializers import (
     MonedaSerializer,
     AdminTerritorioSerializer,
     AdminLiderSerializer,
+    EstadoSerializer,
 )
 from .permissions import IsAdmin
 from Aprobaciones.AprobacionSerializer import AprobacionesSerializer
@@ -152,7 +153,6 @@ class RegistroClienteController(APIView):
 
         service = UsuarioService()
         cliente = service.register_cliente(serializer.validated_data)
-        service.send_registration_notifications(cliente)
 
         if cliente.es_turista:
             mensaje = 'Registro completado. Ya puedes iniciar sesion con tu correo y contrasena.'
@@ -345,27 +345,30 @@ class AdminTerritoriosController(APIView):
     def post(self, request):
         nombre = request.data.get('nombre_territorio')
         region = request.data.get('region')
-        id_estado = request.data.get('id_estado')
         id_administrador = request.data.get('id_administrador')
 
         if not nombre:
             return Response({'error': 'nombre_territorio es requerido'}, status=400)
         if not region:
             return Response({'error': 'region es requerido'}, status=400)
-        if not id_estado:
-            return Response({'error': 'id_estado es requerido'}, status=400)
         if not id_administrador:
             return Response({'error': 'id_administrador es requerido'}, status=400)
 
         try:
-            estado = EstadoModel.objects.get(id=id_estado)
+            estado = EstadoModel.objects.get(nombre_estado='activo')
         except EstadoModel.DoesNotExist:
-            return Response({'error': 'Estado no encontrado'}, status=400)
+            return Response({'error': 'Estado activo no encontrado en el sistema'}, status=500)
 
         try:
             administrador = ClienteModel.objects.get(id_cliente=id_administrador)
         except ClienteModel.DoesNotExist:
             return Response({'error': 'Administrador no encontrado'}, status=400)
+
+        if not administrador.es_lider:
+            return Response({'error': 'El administrador debe ser un lider'}, status=400)
+
+        if TerritorioModel.objects.filter(administrador=administrador).exists():
+            return Response({'error': 'Este lider ya tiene un territorio asignado'}, status=400)
 
         territorio = TerritorioModel.objects.create(
             nombre_territorio=nombre.strip(),
@@ -383,5 +386,15 @@ class AdminLideresController(APIView):
 
     def get(self, request):
         lideres = ClienteModel.objects.filter(es_lider=True).select_related('usuario')
+        if request.query_params.get('disponibles') == 'true':
+            ids_con_territorio = TerritorioModel.objects.values_list('administrador_id', flat=True)
+            lideres = lideres.exclude(id_cliente__in=ids_con_territorio)
         serializer = AdminLiderSerializer(lideres, many=True)
+        return Response(serializer.data)
+
+
+class EstadosController(APIView):
+    def get(self, request):
+        estados = EstadoModel.objects.all()
+        serializer = EstadoSerializer(estados, many=True)
         return Response(serializer.data)

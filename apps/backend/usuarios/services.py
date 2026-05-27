@@ -117,10 +117,11 @@ class UsuarioService:
             except ServicioModel.DoesNotExist:
                 pass
 
+        self.send_registration_notifications(cliente, territorio)
         return cliente
 
-    def send_registration_notifications(self, cliente):
-        territorio_nombre = cliente.estado.nombre_estado if cliente.estado else None
+    def send_registration_notifications(self, cliente, territorio=None):
+        territorio_nombre = territorio.nombre_territorio if territorio else ''
 
         EmailService.send_solicitud_recibida(
             cliente_email=cliente.usuario.email,
@@ -129,12 +130,8 @@ class UsuarioService:
             es_turista=cliente.es_turista,
         )
 
-        if cliente.estado and not cliente.es_turista:
-            lider = ClienteModel.objects.filter(
-                estado=cliente.estado,
-                es_lider=True
-            ).first()
-
+        if territorio and not cliente.es_turista:
+            lider = territorio.administrador
             if lider:
                 AprobacionModel.objects.create(
                     id_actor=cliente,
@@ -145,7 +142,7 @@ class UsuarioService:
                     lider_email=lider.usuario.email,
                     lider_nombre=lider.nombre,
                     actor_nombre=cliente.nombre,
-                    territorio=territorio_nombre or '',
+                    territorio=territorio_nombre,
                 )
 
     def get_solicitudes_by_lider(self, cliente):

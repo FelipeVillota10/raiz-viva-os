@@ -10,6 +10,7 @@ from .UsuarioController import (
     PerfilServiciosController,
     AdminTerritoriosController,
     AdminLideresController,
+    EstadosController,
 )
 
 urlpatterns = [
@@ -20,6 +21,7 @@ urlpatterns = [
     path('perfil/servicios/<int:servicio_id>/', PerfilServiciosController.as_view(), name='perfil_servicio_detalle'),
     path('tipos-actores/', TiposActoresController.as_view(), name='listar_tipos_actores'),
     path('territorios/', TerritoriosController.as_view(), name='listar_territorios'),
+    path('estados/', EstadosController.as_view(), name='listar_estados'),
     path('monedas/', MonedasController.as_view(), name='listar_monedas'),
     path('registro/cliente/', RegistroClienteController.as_view(), name='registro_cliente'),
     path('clientes/<int:pk>/', ClienteController.as_view(), name='obtener_cliente'),

@@ -6,6 +6,7 @@ from Clientes.ClienteModel import ClienteModel
 from TiposActores.TipoActorModel import TipoActorModel
 from TiposActores.ClienteTiposActoresModel import ClienteTiposActoresModel
 from Territorio.TerritorioModel import TerritorioModel
+from Estados.EstadoModel import EstadoModel
 from Monedas.MonedaModel import MonedaModel
 from Servicios.ServicioModel import ClienteServicioModel
 from Aprobaciones.AprobacionModel import AprobacionModel
@@ -172,6 +173,8 @@ class RegistroClienteSerializer(serializers.Serializer):
         count_true = sum([es_actor, es_lider, es_turista, es_admin])
         if count_true > 1:
             raise ValidationError("Solo un tipo de cliente puede ser verdadero (actor, lider, turista o admin).")
+        if es_actor and not attrs.get('id_territorio'):
+            raise ValidationError("Los actores territoriales deben seleccionar un territorio.")
         return attrs
 
     def create(self, validated_data):
@@ -246,6 +249,12 @@ class AdminTerritorioSerializer(serializers.ModelSerializer):
             'administrador_nombre',
             'administrador_id',
         ]
+
+
+class EstadoSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = EstadoModel
+        fields = ['id', 'nombre_estado']
 
 
 class AdminLiderSerializer(serializers.ModelSerializer):
