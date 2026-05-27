@@ -31,5 +31,8 @@ urlpatterns = [
     path('api/token/', TokenObtainPairView.as_view(), name='token_obtain_pair'),
     path('api/token/refresh/', TokenRefreshView.as_view(), name='token_refresh'),
     path('api/eventos/', EventoController.as_view(), name='eventos'),
+    path('eventos/<int:pk>/', EventoController.as_view(), name='eventos-detail-update-delete'),
     path('', home, name='home'),
-]
+]# En tu urls.py (ejemplo)
+from django.urls import path
+

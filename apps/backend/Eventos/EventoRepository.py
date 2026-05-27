@@ -19,3 +19,4 @@ class EventoRepository:
             setattr(evento, key, value)
         evento.save()
         return evento
+        return evento

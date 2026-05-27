@@ -22,3 +22,17 @@ class EventoController(APIView):
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         except ValueError as e:
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+    def put(self, request, pk):
+        try:
+            # Obtener la imagen si se envía en la actualización
+            imagen = request.FILES.get('imagen', None)
+            # El método update_evento debería manejar la lógica de actualización en el servicio
+            # y el 'pk' es el id del evento a actualizar
+            evento_actualizado = self.service.actualizar_evento(pk, request.data.copy(), imagen)
+            if evento_actualizado:
+                serializer = EventoSerializer(evento_actualizado)
+                return Response(serializer.data)
+            return Response({"error": "Evento no encontrado."}, status=status.HTTP_404_NOT_FOUND)
+        except ValueError as e:
+            return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
