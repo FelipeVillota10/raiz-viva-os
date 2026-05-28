@@ -20,6 +20,7 @@ from .serializers import (
 from .permissions import IsAdmin
 from django.contrib.auth.models import User
 from Aprobaciones.AprobacionSerializer import AprobacionesSerializer
+from Aprobaciones.AprobacionModel import AprobacionModel
 from Clientes.ClienteModel import ClienteModel
 from Servicios.ServicioModel import ServicioModel, ClienteServicioModel
 from Territorio.TerritorioModel import TerritorioModel
@@ -463,8 +464,9 @@ class AdminLideresController(APIView):
                     except TerritorioModel.DoesNotExist:
                         return Response({'error': 'Territorio no encontrado'}, status=400)
 
-                    if nuevo_territorio.administrador and nuevo_territorio.administrador != lider:
-                        return Response({'error': 'Este territorio ya tiene un lider asignado'}, status=400)
+                    old_admin = nuevo_territorio.administrador
+                    if old_admin and old_admin != lider:
+                        AprobacionModel.objects.filter(id_lider=old_admin).update(id_lider=lider)
 
                     nuevo_territorio.administrador = lider
                     nuevo_territorio.save()
