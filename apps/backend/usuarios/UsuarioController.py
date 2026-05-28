@@ -344,7 +344,9 @@ class AdminTerritoriosController(APIView):
             activo = request.data['administrador_activo']
             if isinstance(activo, str):
                 activo = activo.lower() in ('true', '1', 'yes')
-            territorio.administrador.activo = bool(activo)
+            territorio.administrador.estado = EstadoModel.objects.get(
+                nombre_estado='activo' if bool(activo) else 'inactivo'
+            )
             territorio.administrador.save()
 
         territorio.save()
@@ -428,7 +430,9 @@ class AdminLideresController(APIView):
             activo = request.data['activo']
             if isinstance(activo, str):
                 activo = activo.lower() in ('true', '1', 'yes')
-            lider.activo = bool(activo)
+            lider.estado = EstadoModel.objects.get(
+                nombre_estado='activo' if bool(activo) else 'inactivo'
+            )
 
         if 'email' in request.data:
             email = request.data['email']

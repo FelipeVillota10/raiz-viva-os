@@ -44,6 +44,7 @@ class ClienteSerializer(serializers.ModelSerializer):
     observaciones = serializers.SerializerMethodField()
     foto_perfil_url = serializers.SerializerMethodField()
     foto_portada_url = serializers.SerializerMethodField()
+    activo = serializers.SerializerMethodField()
 
     class Meta:
         model = ClienteModel
@@ -115,6 +116,9 @@ class ClienteSerializer(serializers.ModelSerializer):
 
     def get_foto_portada_url(self, obj):
         return self._build_media_url(obj, 'foto_portada')
+
+    def get_activo(self, obj):
+        return obj.estado.nombre_estado == 'activo' if obj.estado else False
 
 
 class RegistroClienteSerializer(serializers.Serializer):
@@ -242,9 +246,13 @@ class AdminTerritorioSerializer(serializers.ModelSerializer):
     estado_nombre = serializers.CharField(source='estado.nombre_estado', read_only=True)
     administrador_nombre = serializers.CharField(source='administrador.nombre', read_only=True)
     administrador_id = serializers.IntegerField(source='administrador.id_cliente', read_only=True)
-    administrador_activo = serializers.BooleanField(source='administrador.activo', read_only=True)
+    administrador_activo = serializers.SerializerMethodField()
     id_estado = serializers.IntegerField(source='estado.id', required=False)
     id_administrador = serializers.IntegerField(write_only=True, required=False)
+
+    def get_administrador_activo(self, obj):
+        admin = obj.administrador
+        return admin.estado.nombre_estado == 'activo' if admin and admin.estado else False
 
     class Meta:
         model = TerritorioModel
@@ -272,6 +280,7 @@ class AdminLiderSerializer(serializers.ModelSerializer):
     foto_perfil_url = serializers.SerializerMethodField()
     territorio_nombre = serializers.SerializerMethodField()
     territorio_id = serializers.SerializerMethodField()
+    activo = serializers.SerializerMethodField()
 
     class Meta:
         model = ClienteModel
@@ -302,3 +311,6 @@ class AdminLiderSerializer(serializers.ModelSerializer):
         from Territorio.TerritorioModel import TerritorioModel
         territorio = TerritorioModel.objects.filter(administrador=obj).first()
         return territorio.id_territorio if territorio else None
+
+    def get_activo(self, obj):
+        return obj.estado.nombre_estado == 'activo' if obj.estado else False
