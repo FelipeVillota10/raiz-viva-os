@@ -4,10 +4,7 @@ Django settings for backend project.
 
 import os
 from pathlib import Path
-from dotenv import load_dotenv
 import dj_database_url
-
-load_dotenv(os.path.join(Path(__file__).resolve().parent.parent, '.env'))
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
@@ -46,6 +43,7 @@ INSTALLED_APPS = [
     'Servicios',
     'Aprobaciones',
     'usuarios',
+    'Comentarios',
 ]
 
 MIDDLEWARE = [
@@ -81,7 +79,7 @@ WSGI_APPLICATION = 'backend.wsgi.application'
 
 DATABASES = {
     'default': dj_database_url.config(
-        default='postgresql://neondb_owner:npg_h6lqt9OTDgyQ@ep-red-feather-amf5zv7i-pooler.c-5.us-east-1.aws.neon.tech/neondb?sslmode=require',
+        default='postgresql://postgres:root@localhost:5432/raiz_viva_dev',
         conn_max_age=600,
         ssl_require=False
     )
