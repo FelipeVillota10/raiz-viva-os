@@ -14,6 +14,7 @@ from .UsuarioController import (
     ActoresLiderController,
     DeshabilitarActorController,
 )
+from .views import CrearLiderAdminView
 
 urlpatterns = [
     path('token/', CustomTokenObtainPairView.as_view(), name='token_obtain_pair'),
@@ -30,6 +31,7 @@ urlpatterns = [
     path('admin/territorios/', AdminTerritoriosController.as_view(), name='admin_territorios'),
     path('admin/territorios/<int:pk>/', AdminTerritoriosController.as_view(), name='admin_territorio_detalle'),
     path('admin/lideres/', AdminLideresController.as_view(), name='admin_lideres'),
+    path('usuarios/admin/registrar-lider/', CrearLiderAdminView.as_view(), name='admin_registrar_lider'),
     path('admin/lideres/<int:pk>/', AdminLideresController.as_view(), name='admin_lider_detalle'),
     path('lider/actores/', ActoresLiderController.as_view(), name='lider_actores'),
     path('lider/actores/<int:actor_id>/toggle-estado/', DeshabilitarActorController.as_view(), name='lider_toggle_actor'),

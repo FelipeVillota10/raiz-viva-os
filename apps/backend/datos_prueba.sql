@@ -51,7 +51,7 @@ INSERT INTO tipos_actores (id, nombre_tipo, descripcion) VALUES
 -- 4. USUARIOS DE LIDERES (auth_user)
 -- =============================================
 INSERT INTO auth_user (id, username, email, first_name, last_name, password, is_superuser, is_staff, is_active, date_joined) VALUES
-(1, 'lider_buitrera', 'lider.buitrera@raizviva.com', 'Maria', 'Lopez', 'pbkdf2_sha256$870000$DhHa8k2jhCrhgnfZxtnYRU$jaQdM+uDhPUnj/qyDmX7YAXZATZ4KuzSdKBA7WMPXoE=', FALSE, TRUE, TRUE, NOW()),
+(1, 'lider_buitrera', 'lider.buitrera@raizviva.com', 'Maria', 'Lopez', 'pbkdf2_sha256$870000$DjABi1jvsauUqSZUHyFDJS$hidZNNYcWxv6KPJ2ug4WobLIFYJLDCX4XftMD1J6jIg=', FALSE, TRUE, TRUE, NOW()),
 (2, 'lider_purace', 'lider.purace@raizviva.com', 'Carlos', 'Gonzalez', 'pbkdf2_sha256$870000$DhHa8k2jhCrhgnfZxtnYRU$jaQdM+uDhPUnj/qyDmX7YAXZATZ4KuzSdKBA7WMPXoE=', FALSE, TRUE, TRUE, NOW());
 
 -- =============================================
