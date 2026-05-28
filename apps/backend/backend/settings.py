@@ -4,10 +4,7 @@ Django settings for backend project.
 
 import os
 from pathlib import Path
-from dotenv import load_dotenv
 import dj_database_url
-
-load_dotenv(os.path.join(Path(__file__).resolve().parent.parent, '.env'))
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
@@ -46,6 +43,7 @@ INSTALLED_APPS = [
     'Servicios',
     'Aprobaciones',
     'usuarios',
+    'Comentarios',
 ]
 
 MIDDLEWARE = [
