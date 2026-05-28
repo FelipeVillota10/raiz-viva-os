@@ -1,10 +1,12 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { Button } from '../../../components/ui/Button';
 import { Input, Select } from '../../../components/ui/Input';
 import { ArrowLeftIcon } from '../../../components/ui/Icons';
+import { AdminLider } from '../../../models/types';
+import { adminService } from '../../../services/api';
 
 const ESTADOS_OPCIONES = [
   { value: '4', label: 'Activo' },
@@ -17,11 +19,53 @@ export default function NuevoTerritorioPage() {
   const [region, setRegion] = useState('');
   const [estado, setEstado] = useState('4');
   const [administrador, setAdministrador] = useState('');
+  const [lideresDisponibles, setLideresDisponibles] = useState<{ value: string; label: string }[]>([]);
+  const [loadingLideres, setLoadingLideres] = useState(true);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  useEffect(() => {
+    const fetchLideres = async () => {
+      try {
+        const lideres = await adminService.getLideresDisponibles();
+        setLideresDisponibles([
+          { value: '', label: 'Seleccione un líder' },
+          ...lideres.map((l: AdminLider) => ({
+            value: String(l.id_cliente),
+            label: `${l.nombre} (${l.usuario_email})`,
+          })),
+        ]);
+      } catch {
+        setError('Error al cargar líderes disponibles');
+      } finally {
+        setLoadingLideres(false);
+      }
+    };
+    fetchLideres();
+  }, []);
+
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Placeholder: backend endpoint no implementado aún
-    alert('Funcionalidad de creación de territorio aún no disponible en el backend.');
+    setError(null);
+
+    if (!administrador) {
+      setError('Debe seleccionar un líder para el territorio');
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      await adminService.crearTerritorio({
+        nombre_territorio: nombre.trim(),
+        region: region.trim(),
+        id_administrador: parseInt(administrador),
+      });
+      router.push('/admin/territorios');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Error al crear territorio');
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -62,16 +106,24 @@ export default function NuevoTerritorioPage() {
             options={ESTADOS_OPCIONES}
           />
 
-          <Input
-            label="Administrador (ID del líder territorial)"
-            type="number"
+          <Select
+            label="Administrador (Líder del territorio)"
             value={administrador}
             onChange={(e) => setAdministrador(e.target.value)}
-            placeholder="Ej: 1"
+            options={loadingLideres
+              ? [{ value: '', label: 'Cargando líderes...' }]
+              : lideresDisponibles
+            }
           />
 
+          {error && (
+            <div className="p-4 bg-[#E53935]/10 border border-[#E53935] rounded-xl text-center">
+              <p className="text-[#E53935] font-medium">{error}</p>
+            </div>
+          )}
+
           <div className="pt-2">
-            <Button type="submit" size="md" variant="primary" className="w-full sm:w-auto">
+            <Button type="submit" size="md" variant="primary" className="w-full sm:w-auto" isLoading={isSubmitting}>
               Crear Territorio
             </Button>
           </div>
