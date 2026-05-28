@@ -11,7 +11,10 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 """
 
 import os
+from dotenv import load_dotenv
 from pathlib import Path
+
+load_dotenv()
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -32,6 +35,7 @@ ALLOWED_HOSTS = ['.vercel.app', 'localhost', '127.0.0.1']
 # Application definition
 
 INSTALLED_APPS = [
+    'corsheaders',
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -51,6 +55,7 @@ INSTALLED_APPS = [
 ]
 
 MIDDLEWARE = [
+    'corsheaders.middleware.CorsMiddleware',  # ← debe ser PRIMERO
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
@@ -119,7 +124,7 @@ TIME_ZONE = 'UTC'
 
 USE_I18N = True
 
-USE_TZ = True
+USE_TZ = False
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
@@ -148,7 +153,8 @@ STORAGES = {
     },
 }
 
-MEDIA_URL = f"https://{os.environ.get('R2_PUBLIC_URL')}/"
+R2_PUBLIC_URL = os.environ.get('R2_PUBLIC_URL', '')
+MEDIA_URL = f"https://{R2_PUBLIC_URL}/" if R2_PUBLIC_URL else '/media/'
 
 
 REST_FRAMEWORK = {
@@ -166,3 +172,8 @@ SIMPLE_JWT = {
     'BLACKLIST_AFTER_ROTATION': True,
     'AUTH_HEADER_TYPES': ('Bearer',),
 }
+
+CORS_ALLOWED_ORIGINS = [
+    "http://172.20.48.1:3000",
+    "http://localhost:3000",
+]

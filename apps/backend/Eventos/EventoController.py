@@ -21,7 +21,13 @@ class EventoController(APIView):
             serializer = EventoSerializer(nuevo_evento)
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         except ValueError as e:
+            print(f"❌ ValueError: {e}")
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+        except Exception as e:
+            print(f"❌ Exception: {type(e).__name__}: {e}")
+            import traceback
+            traceback.print_exc()
+            return Response({"error": str(e)}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
 
     def put(self, request, pk):
         try:
@@ -36,3 +42,5 @@ class EventoController(APIView):
             return Response({"error": "Evento no encontrado."}, status=status.HTTP_404_NOT_FOUND)
         except ValueError as e:
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
+
+    

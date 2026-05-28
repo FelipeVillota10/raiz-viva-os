@@ -8,28 +8,33 @@ class EventoService:
         return self.repository.get_all()
 
     def crear_evento(self, data, imagen=None):
-        # Si es gratuito, forzar costo a 0
-        if data.get('es_gratuito'):
+        # 1. Convertir QueryDict a dict plano
+        if hasattr(data, 'dict'):
+            data = data.dict()
+
+        # 2. Limpiar campos que no pertenecen al modelo
+        for campo in ['imagen', 'ubicacion_nombre', 'ubicacion_direccion']:
+            data.pop(campo, None)
+
+        # 3. Normalizar booleano
+        data['es_gratuito'] = str(data.get('es_gratuito', 'false')).lower() == 'true'
+        if data['es_gratuito']:
             data['costo_evento'] = 0
 
-        # La moneda NO se guarda — es configuración del cliente
-
-        # Campos obligatorios según el mockup
-        campos_obligatorios = ['nombre', 'descripcion', 'fecha_inicio', 'fecha_fin', 'capacidad']
-        for campo in campos_obligatorios:
+        # 4. Validar campos obligatorios
+        for campo in ['nombre', 'descripcion', 'fecha_inicio', 'fecha_fin', 'capacidad']:
             if not data.get(campo):
                 raise ValueError(f"El campo '{campo}' es obligatorio.")
 
-        # Validar capacidad positiva
         if int(data.get('capacidad', 0)) <= 0:
             raise ValueError("La capacidad debe ser mayor a 0.")
 
-        # Adjuntar imagen si viene
+        """# 5. Imagen
         if imagen:
-            data['imagen'] = imagen
+            data['imagen'] = imagen"""
 
-        # Estado inicial siempre Borrador
-        data['id_estado_id'] = self._get_estado_borrador()
+        # 6. Estado inicial: Borrador
+        data['id_estado_id'] = self._get_id_estado('Borrador')
 
         return self.repository.create(data)
 
@@ -38,35 +43,39 @@ class EventoService:
         if not evento:
             return None
 
-        # Si es gratuito, forzar costo a 0
-        if data.get('es_gratuito'):
+        if hasattr(data, 'dict'):
+            data = data.dict()
+
+        for campo in ['imagen', 'ubicacion_nombre', 'ubicacion_direccion', 'id_estado_id']:
+            data.pop(campo, None)
+
+        if 'es_gratuito' in data:
+            data['es_gratuito'] = str(data['es_gratuito']).lower() == 'true'
+
+        if not data.get('es_gratuito', getattr(evento, 'es_gratuito', False)):
+            costo = float(data.get('costo_evento', 0))
+            if costo <= 0:
+                raise ValueError("El costo debe ser mayor a 0 si el evento no es gratuito.")
+        else:
             data['costo_evento'] = 0
-        elif 'es_gratuito' in data and not data.get('es_gratuito'):
-            # Si se cambia de gratuito a no gratuito, asegurarse de que el costo no sea 0
-            if data.get('costo_evento') is None or float(data.get('costo_evento', 0)) <= 0:
-                raise ValueError("El costo del evento debe ser mayor a 0 si no es gratuito.")
 
-        # Validar capacidad positiva si se actualiza
-        if 'capacidad' in data:
-            if int(data.get('capacidad', 0)) <= 0:
-                raise ValueError("La capacidad debe ser mayor a 0.")
+        if 'capacidad' in data and int(data['capacidad']) <= 0:
+            raise ValueError("La capacidad debe ser mayor a 0.")
 
-        # Adjuntar imagen si viene
         if imagen:
             data['imagen'] = imagen
-        elif 'imagen' in data and data['imagen'] is None:
-            # Si se envía imagen=None explícitamente, se borra la imagen existente
-            data['imagen'] = None
-
-        # No se debería permitir cambiar el estado a 'Borrador' directamente desde aquí
-        # si ya tiene otro estado, a menos que sea una lógica de negocio específica.
-        # Por ahora, omitimos la actualización de id_estado_id aquí.
-        if 'id_estado_id' in data:
-            del data['id_estado_id'] # No permitir actualizar el estado directamente desde el payload de actualización
 
         return self.repository.update(evento, data)
 
-    def _get_estado_borrador(self):
+    def inactivar_evento(self, evento_id):
+        evento = self.repository.get_by_id(evento_id)
+        if not evento:
+            return None
+        return self.repository.update(evento, {'id_estado_id': self._get_id_estado('Inactivo')})
+
+    def _get_id_estado(self, nombre):
         from Estados.EstadoModel import EstadoModel
-        estado = EstadoModel.objects.filter(nombre_estado='Borrador').first()
-        return estado.id if estado else None
+        estado = EstadoModel.objects.filter(nombre_estado__iexact=nombre).first()
+        if not estado:
+            raise ValueError(f"Estado '{nombre}' no encontrado en la base de datos.")
+        return estado.pk
