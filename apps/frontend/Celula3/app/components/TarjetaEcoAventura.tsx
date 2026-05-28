@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { EcoAventura } from "../services/ecoaventuras";
 
 const DIFICULTAD_COLOR: Record<string, string> = {
@@ -15,7 +16,10 @@ interface Props {
 
 export function TarjetaEcoAventura({ eco }: Props) {
   return (
-    <article className="bg-white rounded-2xl shadow-md overflow-hidden hover:shadow-lg hover:-translate-y-1 transition-all duration-200">
+    <Link 
+      href={`/ecoaventuras/${eco.id}`}
+      className="block bg-white rounded-2xl shadow-md overflow-hidden hover:shadow-lg hover:-translate-y-1 transition-all duration-200 cursor-pointer text-left"
+    >
       <div className="relative h-48 overflow-hidden">
         <img
           src={eco.imagen_url || PLACEHOLDER}
@@ -52,7 +56,12 @@ export function TarjetaEcoAventura({ eco }: Props) {
           </span>
           <span className="text-xs text-gray-400">por persona</span>
         </div>
+        
+        {/* Un indicador visual para el usuario que incite a dar clic */}
+        <div className="mt-2 text-center text-xs font-semibold text-emerald-700 bg-emerald-50 py-1.5 rounded-xl hover:bg-emerald-100 transition-colors">
+          Ver información detallada →
+        </div>
       </div>
-    </article>
+    </Link>
   );
 }
