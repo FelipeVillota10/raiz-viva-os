@@ -27,17 +27,29 @@ class UsuarioService:
             user_obj = self.repository.get_user_by_username(username)
 
         if not user_obj:
-            return None, 'No active account found with the given credentials'
+            return None, 'No se encontró una cuenta con esas credenciales'
 
         if not user_obj.check_password(password):
-            return None, 'No active account found with the given credentials'
+            return None, 'No se encontró una cuenta con esas credenciales'
 
         if not user_obj.is_active:
-            return None, 'No active account found with the given credentials'
+            return None, 'Tu cuenta ha sido desactivada. Contacta al administrador.'
 
         cliente = self.repository.get_cliente_by_user(user_obj)
         if cliente:
-            if not cliente.es_actor and not cliente.es_turista and not cliente.es_lider:
+            if cliente.es_turista or cliente.es_lider or cliente.es_admin:
+                if not cliente.activo:
+                    return None, 'Tu cuenta ha sido deshabilitada. Contacta al administrador.'
+            elif cliente.es_actor:
+                tiene_aprobacion = AprobacionModel.objects.filter(
+                    id_actor=cliente,
+                    estado_resultado=EstadoAprobacion.APROBADO
+                ).exists()
+                if not tiene_aprobacion:
+                    return None, 'Tu solicitud esta en revision. El lider territorial la revisara pronto.'
+                if not cliente.activo:
+                    return None, 'Tu cuenta ha sido deshabilitada. Contacta al lider territorial.'
+            else:
                 return None, 'Tu solicitud esta en revision. El lider territorial la revisara pronto.'
 
         return cliente, None
@@ -58,6 +70,7 @@ class UsuarioService:
         es_actor = data.get('es_actor', False)
         es_lider = data.get('es_lider', False)
         es_turista = data.get('es_turista', False)
+        es_admin = data.get('es_admin', False)
 
         partes_nombre = nombre_completo.split(' ', 1)
         first_name = partes_nombre[0]
@@ -101,6 +114,7 @@ class UsuarioService:
             es_actor=es_actor,
             es_lider=es_lider,
             es_turista=es_turista,
+            es_admin=es_admin,
         )
 
         for tipo_id in tipos_actores:
@@ -115,10 +129,11 @@ class UsuarioService:
             except ServicioModel.DoesNotExist:
                 pass
 
+        self.send_registration_notifications(cliente, territorio)
         return cliente
 
-    def send_registration_notifications(self, cliente):
-        territorio_nombre = cliente.estado.nombre_estado if cliente.estado else None
+    def send_registration_notifications(self, cliente, territorio=None):
+        territorio_nombre = territorio.nombre_territorio if territorio else ''
 
         EmailService.send_solicitud_recibida(
             cliente_email=cliente.usuario.email,
@@ -127,12 +142,8 @@ class UsuarioService:
             es_turista=cliente.es_turista,
         )
 
-        if cliente.estado and not cliente.es_turista:
-            lider = ClienteModel.objects.filter(
-                estado=cliente.estado,
-                es_lider=True
-            ).first()
-
+        if territorio and not cliente.es_turista:
+            lider = territorio.administrador
             if lider:
                 AprobacionModel.objects.create(
                     id_actor=cliente,
@@ -143,7 +154,7 @@ class UsuarioService:
                     lider_email=lider.usuario.email,
                     lider_nombre=lider.nombre,
                     actor_nombre=cliente.nombre,
-                    territorio=territorio_nombre or '',
+                    territorio=territorio_nombre,
                 )
 
     def get_solicitudes_by_lider(self, cliente):
@@ -194,6 +205,71 @@ class UsuarioService:
             'aprobados': resumen.get('APROBADO', 0),
             'rechazados': resumen.get('RECHAZADO', 0),
         }
+
+    def get_actores_by_lider(self, lider):
+        aprobaciones = AprobacionModel.objects.filter(
+            id_lider=lider,
+            estado_resultado=EstadoAprobacion.APROBADO
+        ).select_related(
+            'id_actor__usuario',
+            'id_actor__estado'
+        ).prefetch_related(
+            'id_actor__tipos_actores__id_tipo'
+        )
+        actores = []
+        for aprobacion in aprobaciones:
+            actor = aprobacion.id_actor
+            tipos = [{'id': ct.id_tipo.id, 'nombre_tipo': ct.id_tipo.nombre_tipo}
+                     for ct in actor.tipos_actores.all()]
+            territorio = TerritorioModel.objects.filter(administrador=lider).first()
+            actores.append({
+                'id_cliente': actor.id_cliente,
+                'nombre': actor.nombre,
+                'telefono': actor.telefono,
+                'email': actor.usuario.email,
+                'territorio_nombre': territorio.nombre_territorio if territorio else None,
+                'tipos_actores': tipos,
+                'activo': actor.activo,
+            })
+        return actores
+
+    def deshabilitar_actor(self, actor_id, lider):
+        try:
+            actor = ClienteModel.objects.get(id_cliente=actor_id, es_actor=True)
+        except ClienteModel.DoesNotExist:
+            return False, 'Actor no encontrado'
+
+        tiene_permiso = AprobacionModel.objects.filter(
+            id_actor=actor,
+            id_lider=lider,
+            estado_resultado=EstadoAprobacion.APROBADO
+        ).exists()
+
+        if not tiene_permiso:
+            return False, 'No tienes permiso para deshabilitar este actor'
+
+        actor.activo = False
+        actor.save()
+        return True, 'Actor deshabilitado exitosamente'
+
+    def habilitar_actor(self, actor_id, lider):
+        try:
+            actor = ClienteModel.objects.get(id_cliente=actor_id, es_actor=True)
+        except ClienteModel.DoesNotExist:
+            return False, 'Actor no encontrado'
+
+        tiene_permiso = AprobacionModel.objects.filter(
+            id_actor=actor,
+            id_lider=lider,
+            estado_resultado=EstadoAprobacion.APROBADO
+        ).exists()
+
+        if not tiene_permiso:
+            return False, 'No tienes permiso para habilitar este actor'
+
+        actor.activo = True
+        actor.save()
+        return True, 'Actor habilitado exitosamente'
 
     def get_cliente(self, pk):
         return ClienteModel.objects.get(pk=pk)

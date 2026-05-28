@@ -8,21 +8,10 @@ class Migration(migrations.Migration):
     initial = True
 
     dependencies = [
+        ('Clientes', '0003_clientemodel_es_admin'),
     ]
 
     operations = [
-        migrations.CreateModel(
-            name='ClienteServicioModel',
-            fields=[
-                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
-                ('precio_acordado', models.DecimalField(blank=True, decimal_places=2, max_digits=12, null=True)),
-                ('fecha_asociacion', models.DateTimeField(auto_now_add=True)),
-            ],
-            options={
-                'db_table': 'cliente_servicios',
-                'managed': False,
-            },
-        ),
         migrations.CreateModel(
             name='ServicioModel',
             fields=[
@@ -34,7 +23,22 @@ class Migration(migrations.Migration):
             ],
             options={
                 'db_table': 'servicios',
-                'managed': False,
+                'managed': True,
+            },
+        ),
+        migrations.CreateModel(
+            name='ClienteServicioModel',
+            fields=[
+                ('id', models.BigAutoField(auto_created=True, primary_key=True, serialize=False, verbose_name='ID')),
+                ('precio_acordado', models.DecimalField(blank=True, decimal_places=2, max_digits=12, null=True)),
+                ('fecha_asociacion', models.DateTimeField(auto_now_add=True)),
+                ('cliente', models.ForeignKey(db_column='id_cliente', on_delete=models.CASCADE, related_name='servicios', to='Clientes.ClienteModel')),
+                ('servicio', models.ForeignKey(db_column='id_servicio', on_delete=models.CASCADE, related_name='clientes', to='Servicios.ServicioModel')),
+            ],
+            options={
+                'db_table': 'cliente_servicios',
+                'managed': True,
+                'unique_together': {('cliente', 'servicio')},
             },
         ),
     ]
