@@ -15,28 +15,31 @@ interface UseCreateEventReturn {
 // reemplazar con llamada real a events.service.ts cuando el backend esté disponible
 
 async function mockCreateEvent(data: WizardFormData): Promise<{ id: string }> {
-  const response = await fetch('http://localhost:8000/api/events/', { 
+  const formData = new FormData();
+
+  formData.append('nombre',       data.name);
+  formData.append('descripcion',  data.description);
+  formData.append('fecha_inicio', `${data.startDate}T${data.startTime}:00`);
+  formData.append('fecha_fin',    `${data.endDate || data.startDate}T${data.endTime || data.startTime}:00`);
+  formData.append('capacidad',    data.capacity);
+  formData.append('es_gratuito',  String(data.pricingType === 'free'));
+  formData.append('costo_evento', data.pricingType === 'paid' ? data.price : '0');
+
+  if (data.image) {
+    formData.append('imagen', data.image);
+  }
+
+  const response = await fetch('http://localhost:8000/api/eventos/', {
     method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify({
-      name:             data.name,
-      description:      data.description,
-      start_date:       data.startDate,
-      start_time:       data.startTime,
-      end_date:         data.endDate || null,
-      end_time:         data.endTime || null,
-      location_name:    data.locationName,
-      location_address: data.locationAddress || null,
-      pricing_type:     data.pricingType,
-      price:            data.pricingType === 'paid' ? parseFloat(data.price) : 0,
-      currency:         data.currency,
-      capacity:         parseInt(data.capacity, 10),
-      category:         data.category,
-      status:           'draft',
-    }),
+    // ⚠️ Sin Content-Type — el browser lo setea solo con el boundary
+    body: formData,
   });
 
-  if (!response.ok) throw new Error('Error al guardar el evento');
+  if (!response.ok) {
+    const error = await response.json().catch(() => ({}));
+    throw new Error(error.error || 'Error al guardar el evento');
+  }
+
   return response.json();
 }
 
