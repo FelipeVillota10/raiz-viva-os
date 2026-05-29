@@ -2,9 +2,9 @@ name: Compuertas de Calidad - Rama Pruebas
 
 on:
   pull_request:
-    branches: [pruebas, produccion, desarrollo]
+    branches: [feature/infra-pipeline-qa]
   push:
-    branches: [pruebas, desarrollo]
+    branches: [feature/infra-pipeline-qa]
 
 jobs:
   qa-backend:
