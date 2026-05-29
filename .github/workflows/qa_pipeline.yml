@@ -1,0 +1,44 @@
+name: Compuertas de Calidad - Rama Pruebas
+
+on:
+  pull_request:
+    branches: [pruebas, produccion, desarrollo]
+  push:
+    branches: [pruebas, desarrollo]
+
+jobs:
+  qa-backend:
+    name: QA Verificaciones (Backend)
+    runs-on: ubuntu-latest
+
+    # Le dice a GitHub que ejecute todos los comandos dentro de la carpeta del backend
+    defaults:
+      run:
+        working-directory: apps/backend
+
+    steps:
+      - name: Descargar Código del Repositorio
+        uses: actions/checkout@v4
+
+      - name: Configurar Python 3.11
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Instalar Dependencias de Raíz Viva
+        run: |
+          python -m pip install --upgrade pip
+          pip install safety bandit
+          pip install -r requirements.txt
+
+      # HU-605: Escaneo de vulnerabilidades en las librerías
+      - name: QA Seguridad - Escaneo de librerías (Safety)
+        run: safety check -r requirements.txt
+
+      # HU-605: Análisis estático de seguridad en el código del backend
+      - name: QA Seguridad - Análisis Estático (Bandit)
+        run: bandit -r . -x ./tests
+
+      # HU-602: Ejecución de las pruebas unitarias de Django
+      - name: QA Funcional - Pruebas Unitarias (Django)
+        run: python manage.py test
