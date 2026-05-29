@@ -1,4 +1,4 @@
-name: Compuertas de Calidad - Rama Pruebas
+name: Compuertas de Calidad - Rama Pipeline de prueba
 
 on:
   pull_request:
