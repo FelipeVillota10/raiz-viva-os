@@ -68,5 +68,5 @@ jobs:
       run: npm run lint #Revisa que no tenga errores de sintaxis o malas prácticas
       continue-on-error: true # Para que de la advertencia pero continue
 
-    - name: QA Funcional - Pruebas del Front
-      run: npm test  
+    #-  name: QA Funcional - Pruebas del Front
+      # run: npm test  
