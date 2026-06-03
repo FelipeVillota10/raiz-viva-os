@@ -67,6 +67,9 @@ jobs:
     - name: QA Estático - Validar Código (ESLint)
       run: npm run lint #Revisa que no tenga errores de sintaxis o malas prácticas
       continue-on-error: true # Para que de la advertencia pero continue
+    - name: Compilar Proyecto para Producción (Build)
+      run: npm run build
 
     #-  name: QA Funcional - Pruebas del Front
       # run: npm test  
+    
