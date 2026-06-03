@@ -32,6 +32,9 @@ jobs:
           pip install safety bandit
           pip install -r requirements.txt
 
+      - name: Validar Sintaxis del Código # Por si hay algun fallo de sintaxis
+        run: python -m compileall .
+
       # Escanea de vulnerabilidades en las librerías
       - name: QA Seguridad - Escaneo de librerías (Safety)
         run: safety check -r requirements.txt
@@ -40,6 +43,7 @@ jobs:
       # Análisis estático de seguridad en el código del backend
       - name: QA Seguridad - Análisis Estático (Bandit)
         run: bandit -r . -x ./tests
+      
 
       # Ejecuta las pruebas unitarias de Django
       - name: QA Funcional - Pruebas Unitarias (Django)
