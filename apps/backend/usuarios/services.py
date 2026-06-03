@@ -3,6 +3,7 @@ from django.db import transaction
 from django.db.models import Count
 from django.utils import timezone
 from Clientes.ClienteModel import ClienteModel
+from Estados.EstadoModel import EstadoModel
 from TiposActores.TipoActorModel import TipoActorModel
 from TiposActores.ClienteTiposActoresModel import ClienteTiposActoresModel
 from Territorio.TerritorioModel import TerritorioModel
@@ -283,7 +284,8 @@ class UsuarioService:
         password = data.get('password')
         telefono = data.get('telefono')
         id_territorio = data.get('id_territorio')
-        activo = data.get('activo', True)
+        activo_val = data.get('activo', True)
+        estado=EstadoModel.objects.get(nombre_estado='activo' if activo_val else 'inactivo')
 
         partes_nombre = nombre_completo.split(' ', 1)
         first_name = partes_nombre[0]
@@ -310,7 +312,7 @@ class UsuarioService:
                 nombre=nombre_completo,
                 telefono=telefono,
                 es_lider=True,
-                activo=activo,
+                estado=estado,
             )
 
             territorio = None

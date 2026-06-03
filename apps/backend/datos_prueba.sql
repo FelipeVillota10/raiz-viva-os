@@ -65,7 +65,7 @@ INSERT INTO clientes (id_cliente, id_usuario, id_estado, id_tipo_moneda, nombre,
 -- 5.5 USUARIO ADMIN (auth_user)
 -- =============================================
 INSERT INTO auth_user (id, username, email, first_name, last_name, password, is_superuser, is_staff, is_active, date_joined) VALUES
-(7, 'admin_raizviva', 'admin@raizviva.com', 'Admin', 'RaizViva', 'pbkdf2_sha256$870000$DhHa8k2jhCrhgnfZxtnYRU$jaQdM+uDhPUnj/qyDmX7YAXZATZ4KuzSdKBA7WMPXoE=', FALSE, TRUE, TRUE, NOW());
+(7, 'admin_raizviva', 'admin@raizviva.com', 'Admin', 'RaizViva', 'pbkdf2_sha256$870000$GiXHco5nBhNM34n8V7KUhD$HXrK+A/vXJjutHPg149DmTwSs4y+D5g/YdZY5zZYolc=', FALSE, TRUE, TRUE, NOW());
 
 -- =============================================
 -- 5.6 CLIENTE ADMIN
