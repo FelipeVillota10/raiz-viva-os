@@ -128,12 +128,13 @@ class RegistroClienteSerializer(serializers.Serializer):
     telefono = serializers.CharField(min_length=7, max_length=20)
     id_territorio = serializers.IntegerField(required=False, allow_null=True)
     id_tipo_moneda = serializers.IntegerField(required=False, allow_null=True)
-    tipos_actores = serializers.ListField(child=serializers.IntegerField(), min_length=1)
+    tipos_actores = serializers.ListField(child=serializers.IntegerField(), required=False, default=[])
     servicios = serializers.ListField(child=serializers.IntegerField(), required=False, default=[])
     es_actor = serializers.BooleanField(default=False)
     es_lider = serializers.BooleanField(default=False)
     es_turista = serializers.BooleanField(default=False)
     es_admin = serializers.BooleanField(default=False)
+    activo = serializers.BooleanField(default=True)
 
     def validate_nombre_completo(self, value):
         if any(char.isdigit() for char in value):
@@ -160,7 +161,7 @@ class RegistroClienteSerializer(serializers.Serializer):
 
     def validate_tipos_actores(self, value):
         if not value:
-            raise ValidationError("Debe seleccionar al menos un rol.")
+            return value
         turista_selected = TipoActorModel.objects.filter(id__in=value, nombre_tipo='turista').exists()
         otros_roles_selected = TipoActorModel.objects.filter(id__in=value).exclude(nombre_tipo='turista').exists()
         if turista_selected and otros_roles_selected:
@@ -187,10 +188,12 @@ class RegistroClienteSerializer(serializers.Serializer):
             raise ValidationError("Solo un tipo de cliente puede ser verdadero (actor, lider, turista o admin).")
         if es_actor and not attrs.get('id_territorio'):
             raise ValidationError("Los actores territoriales deben seleccionar un territorio.")
+        if not es_lider and not attrs.get('tipos_actores'):
+            raise ValidationError("Debe seleccionar al menos un rol.")
         return attrs
 
     def create(self, validated_data):
-        tipos_ids = validated_data.pop('tipos_actores')
+        tipos_ids = validated_data.pop('tipos_actores', [])
         nombre_completo = validated_data.pop('nombre_completo')
         partes_nombre = nombre_completo.split(' ', 1)
         first_name = partes_nombre[0]
@@ -233,6 +236,8 @@ class RegistroClienteSerializer(serializers.Serializer):
             es_actor=validated_data.get('es_actor', False),
             es_lider=validated_data.get('es_lider', False),
             es_turista=validated_data.get('es_turista', False),
+            es_admin=validated_data.get('es_admin', False),
+            activo=validated_data.get('activo', True),
         )
 
         for tipo_id in tipos_ids:

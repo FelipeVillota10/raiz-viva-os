@@ -277,6 +277,55 @@ class UsuarioService:
         actor.save()
         return True, 'Actor habilitado exitosamente'
 
+    def crear_lider_admin(self, data):
+        nombre_completo = data.get('nombre_completo')
+        email = data.get('email')
+        password = data.get('password')
+        telefono = data.get('telefono')
+        id_territorio = data.get('id_territorio')
+        activo = data.get('activo', True)
+
+        partes_nombre = nombre_completo.split(' ', 1)
+        first_name = partes_nombre[0]
+        last_name = partes_nombre[1] if len(partes_nombre) > 1 else ''
+
+        username = email.split('@')[0]
+        counter = 1
+        base_username = username
+        while self.repository.user_exists_by_username(username):
+            username = f"{base_username}{counter}"
+            counter += 1
+
+        with transaction.atomic():
+            user = self.repository.create_user(
+                username=username,
+                email=email,
+                password=password,
+                first_name=first_name,
+                last_name=last_name
+            )
+
+            cliente = ClienteModel.objects.create(
+                usuario=user,
+                nombre=nombre_completo,
+                telefono=telefono,
+                es_lider=True,
+                activo=activo,
+            )
+
+            territorio = None
+            if id_territorio:
+                try:
+                    territorio = TerritorioModel.objects.get(id_territorio=id_territorio)
+                    if territorio.administrador_id:
+                        raise ValueError('Este territorio ya tiene un líder asignado.')
+                    territorio.administrador = cliente
+                    territorio.save()
+                except TerritorioModel.DoesNotExist:
+                    raise ValueError('Territorio no encontrado.')
+
+        return cliente
+
     def get_cliente(self, pk):
         return ClienteModel.objects.get(pk=pk)
 

@@ -484,6 +484,36 @@ class AdminLideresController(APIView):
         return Response(serializer.data)
 
 
+class AdminCrearLiderController(APIView):
+    permission_classes = [IsAdmin]
+    parser_classes = [JSONParser, MultiPartParser, FormParser]
+
+    def post(self, request):
+        data = request.data.copy()
+
+        data['es_actor'] = False
+        data['es_lider'] = True
+        data['es_turista'] = False
+        data['es_admin'] = False
+        data['tipos_actores'] = []
+
+        serializer = RegistroClienteSerializer(data=data)
+        if not serializer.is_valid():
+            return Response({'errores': serializer.errors}, status=400)
+
+        service = UsuarioService()
+        try:
+            cliente = service.crear_lider_admin(serializer.validated_data)
+        except ValueError as e:
+            return Response({'error': str(e)}, status=400)
+
+        lider_data = AdminLiderSerializer(cliente, context={'request': request}).data
+        return Response({
+            'mensaje': 'Líder territorial registrado correctamente.',
+            'lider': lider_data,
+        }, status=201)
+
+
 class EstadosController(APIView):
     def get(self, request):
         estados = EstadoModel.objects.all()
