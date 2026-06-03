@@ -19,6 +19,7 @@ class ClienteSerializer(serializers.ModelSerializer):
     observaciones = serializers.SerializerMethodField()
     foto_perfil_url = serializers.SerializerMethodField()
     foto_portada_url = serializers.SerializerMethodField()
+    activo = serializers.SerializerMethodField()
 
     class Meta:
         model = ClienteModel
@@ -64,3 +65,6 @@ class ClienteSerializer(serializers.ModelSerializer):
                 return request.build_absolute_uri(obj.foto_portada.url)
             return obj.foto_portada.url
         return None
+
+    def get_activo(self, obj):
+        return obj.estado.nombre_estado == 'activo' if obj.estado else False
