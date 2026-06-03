@@ -8,6 +8,11 @@ from .UsuarioController import (
     RegistroClienteController,
     ClienteController,
     PerfilServiciosController,
+    AdminTerritoriosController,
+    AdminLideresController,
+    EstadosController,
+    ActoresLiderController,
+    DeshabilitarActorController,
 )
 
 urlpatterns = [
@@ -18,7 +23,14 @@ urlpatterns = [
     path('perfil/servicios/<int:servicio_id>/', PerfilServiciosController.as_view(), name='perfil_servicio_detalle'),
     path('tipos-actores/', TiposActoresController.as_view(), name='listar_tipos_actores'),
     path('territorios/', TerritoriosController.as_view(), name='listar_territorios'),
+    path('estados/', EstadosController.as_view(), name='listar_estados'),
     path('monedas/', MonedasController.as_view(), name='listar_monedas'),
     path('registro/cliente/', RegistroClienteController.as_view(), name='registro_cliente'),
     path('clientes/<int:pk>/', ClienteController.as_view(), name='obtener_cliente'),
+    path('admin/territorios/', AdminTerritoriosController.as_view(), name='admin_territorios'),
+    path('admin/territorios/<int:pk>/', AdminTerritoriosController.as_view(), name='admin_territorio_detalle'),
+    path('admin/lideres/', AdminLideresController.as_view(), name='admin_lideres'),
+    path('admin/lideres/<int:pk>/', AdminLideresController.as_view(), name='admin_lider_detalle'),
+    path('lider/actores/', ActoresLiderController.as_view(), name='lider_actores'),
+    path('lider/actores/<int:actor_id>/toggle-estado/', DeshabilitarActorController.as_view(), name='lider_toggle_actor'),
 ]

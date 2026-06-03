@@ -6,7 +6,7 @@ import Image from 'next/image';
 import { Footer } from '../components/Footer';
 import { Button } from '../components/ui/Button';
 import { Input, Select, Textarea } from '../components/ui/Input';
-import { perfilService } from '../services/api';
+import { perfilService, getToken } from '../services/api';
 import { PerfilActor, ServicioPerfil, Servicio } from '../models/types';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
@@ -38,7 +38,7 @@ export default function MiPerfilPage() {
   const portadaInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
-    const token = localStorage.getItem('access_token');
+    const token = getToken();
     if (!token) {
       router.push('/login/inicio');
       return;

@@ -25,6 +25,7 @@ export interface PerfilActor {
   es_lider: boolean;
   es_turista: boolean;
   territorio_nombre: string | null;
+  territorio_id: number | null;
   moneda_nombre: string | null;
   tipos_actores: { id: number; nombre_tipo: string }[];
   servicio: string;
@@ -108,4 +109,43 @@ export interface Solicitud {
     id: number;
     nombre: string;
   };
+}
+
+export interface ActorTerritorial {
+  id_cliente: number;
+  nombre: string;
+  telefono: string;
+  email: string;
+  territorio_nombre: string | null;
+  tipos_actores: { id: number; nombre_tipo: string }[];
+  activo: boolean;
+}
+
+export interface AdminLider {
+  id_cliente: number;
+  nombre: string;
+  telefono: string;
+  usuario_email: string;
+  activo: boolean;
+  foto_perfil_url: string | null;
+  territorio_nombre: string | null;
+  territorio_id: number | null;
+}
+
+export interface AdminTerritorio {
+  id_territorio: number;
+  nombre_territorio: string;
+  region: string;
+  estado_nombre: string;
+  id_estado: number;
+  administrador_nombre: string;
+  administrador_id: number;
+  administrador_activo: boolean;
+}
+
+export interface TerritorioUpdatePayload {
+  nombre_territorio?: string;
+  region?: string;
+  id_estado?: number;
+  administrador_activo?: boolean;
 }

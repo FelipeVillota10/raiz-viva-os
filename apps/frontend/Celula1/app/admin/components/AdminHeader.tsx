@@ -3,7 +3,7 @@
 import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { clearAuth } from '../services/api';
+import { clearAuth } from '../../services/api';
 
 function NavLink({ href, active, children }: { href: string; active: boolean; children: React.ReactNode }) {
   return (
@@ -20,13 +20,13 @@ function NavLink({ href, active, children }: { href: string; active: boolean; ch
   );
 }
 
-export function LiderHeader() {
+export function AdminHeader() {
   const pathname = usePathname();
-  const isLoginPage = pathname === '/lider/login';
+  const isLoginPage = pathname === '/admin/login';
 
   const handleLogout = () => {
     clearAuth();
-    window.location.href = '/lider/login';
+    window.location.href = '/admin/login';
   };
 
   return (
@@ -40,20 +40,26 @@ export function LiderHeader() {
           className="w-64 h-64 object-contain mt-2"
         />
         {isLoginPage ? (
-          <span className="font-medium text-base hidden sm:inline self-center">Inicio de Sesión - Líder Territorial</span>
+          <span className="font-medium text-base hidden sm:inline self-center">Inicio de Sesión - Administrador</span>
         ) : (
-          <span className="font-medium text-base hidden sm:inline self-center">Panel Líder Territorial</span>
+          <span className="font-medium text-base hidden sm:inline self-center">Panel Administrador</span>
         )}
       </div>
 
       {!isLoginPage && (
         <div className="flex items-center gap-2">
-          <NavLink href="/lider/aprobaciones" active={pathname.startsWith('/lider/aprobaciones')}>
-            Solicitudes
+          <NavLink href="/admin/territorios" active={pathname.startsWith('/admin/territorios')}>
+            Territorios
           </NavLink>
-          <NavLink href="/lider/actores" active={pathname.startsWith('/lider/actores')}>
-            Actores
+          <NavLink href="/admin/lideres" active={pathname.startsWith('/admin/lideres')}>
+            Líderes
           </NavLink>
+          <Link
+            href="/admin/lideres/nuevo"
+            className="px-3 py-1.5 rounded-full text-sm font-medium transition bg-[#8c9a80] text-white hover:bg-[#748171]"
+          >
+            + Nuevo Líder
+          </Link>
           <button
             onClick={handleLogout}
             className="bg-white/20 hover:bg-white/30 text-white px-4 py-2 rounded-full text-sm font-medium transition flex items-center gap-2 ml-2"

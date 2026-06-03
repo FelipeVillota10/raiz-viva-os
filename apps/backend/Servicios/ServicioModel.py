@@ -9,7 +9,7 @@ class ServicioModel(models.Model):
     unidad = models.CharField(max_length=50, null=True, blank=True)
 
     class Meta:
-        managed = False
+        managed = True
         db_table = 'servicios'
 
     def __str__(self):
@@ -33,7 +33,7 @@ class ClienteServicioModel(models.Model):
     fecha_asociacion = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        managed = False
+        managed = True
         db_table = 'cliente_servicios'
         unique_together = ('cliente', 'servicio')
 
