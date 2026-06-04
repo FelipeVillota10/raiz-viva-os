@@ -1,7 +1,11 @@
 -- =============================================
 -- RAIZ VIVA - Script de Datos de Prueba
 -- =============================================
--- Para ejecutar: psql -U postgres -h localhost -p 5432 -d raizviva_db -f datos_prueba.sql
+-- Para ejecutar LOCAL (NO contra Neon pooler):
+--   psql -U postgres -h localhost -p 5432 -d raizviva_db -f datos_prueba.sql
+--
+-- Para Neon (usa el management command en su lugar):
+--   python manage.py seed_test_data
 -- =============================================
 
 -- =============================================

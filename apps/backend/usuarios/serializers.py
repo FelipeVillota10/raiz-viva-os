@@ -227,17 +227,21 @@ class RegistroClienteSerializer(serializers.Serializer):
             except MonedaModel.DoesNotExist:
                 pass
 
+        if validated_data.get('es_actor', False):
+            estado_obj = EstadoModel.objects.get(nombre_estado='en_revision')
+        else:
+            estado_obj = EstadoModel.objects.get(nombre_estado='activo')
+
         cliente = ClienteModel.objects.create(
             usuario=user,
             nombre=nombre_completo,
             telefono=validated_data.get('telefono', ''),
-            estado=territorio.estado if territorio else None,
+            estado=territorio.estado if territorio else estado_obj,
             tipo_moneda=tipo_moneda,
             es_actor=validated_data.get('es_actor', False),
             es_lider=validated_data.get('es_lider', False),
             es_turista=validated_data.get('es_turista', False),
             es_admin=validated_data.get('es_admin', False),
-            activo=validated_data.get('activo', True),
         )
 
         for tipo_id in tipos_ids:
