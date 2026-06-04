@@ -134,11 +134,11 @@ INSERT INTO auth_user (id, username, email, first_name, last_name, password, is_
 -- =============================================
 -- 8. CLIENTES ACTORES TERRITORIALES
 -- =============================================
-INSERT INTO clientes (id_cliente, id_usuario, id_estado, id_tipo_moneda, nombre, telefono, reputacion, es_actor, es_lider, es_turista, es_admin) VALUES
-(3, 3, 1, 3, 'Juan Martinez', '3012345678', NULL, TRUE, FALSE, FALSE, FALSE),
-(4, 4, 1, 1, 'Ana Rodriguez', '3098765432', NULL, TRUE, FALSE, FALSE, FALSE),
-(5, 5, 4, 3, 'Pedro Sanchez', '3101234567', 75.50, TRUE, FALSE, FALSE, FALSE),
-(6, 6, 4, 1, 'Sofia Garcia', '3201234567', NULL, FALSE, FALSE, TRUE, FALSE);
+INSERT INTO clientes (id_cliente, id_usuario, id_estado, id_tipo_moneda, nombre, telefono, reputacion, es_actor, es_lider, es_turista, es_admin, descripcion, direccion) VALUES
+(3, 3, 1, 3, 'Juan Martinez', '3012345678', NULL, TRUE, FALSE, FALSE, FALSE, 'Productor de café en la zona rural de Palmira', 'Carrera 7E #32A-49, Palmira, Valle del Cauca'),
+(4, 4, 1, 1, 'Ana Rodriguez', '3098765432', NULL, TRUE, FALSE, FALSE, FALSE, 'Guía de rutas ecológicas e intérprete de saberes', 'Calle 10 #15-22, Palmira, Valle del Cauca'),
+(5, 5, 4, 3, 'Pedro Sanchez', '3101234567', 75.50, TRUE, FALSE, FALSE, FALSE, 'Anfitrión de experiencias gastronómicas locales', 'Vereda La Buitrera, Palmira, Valle del Cauca'),
+(6, 6, 4, 1, 'Sofia Garcia', '3201234567', NULL, FALSE, FALSE, TRUE, FALSE, NULL, NULL);
 
 -- =============================================
 -- 9. RELACION CLIENTES-TIPOS ACTORES (ManyToMany)
