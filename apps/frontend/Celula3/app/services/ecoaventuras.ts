@@ -49,7 +49,7 @@ export interface Filtros {
   page?: number;
 }
 
-const BASE = "http://localhost:8080/api/ecoaventuras";
+const BASE = "http://localhost:8000/api/ecoaventuras";
 
 function buildQuery(filtros: Filtros): string {
   const params = new URLSearchParams();

@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { getEcoAventura, EcoAventura } from "../../services/ecoaventuras";
+import BotonAgregarPaquete from "../../components/BotonAgregarPaquete";
 
 export default function DetalleEcoAventuraPage() {
   const { id } = useParams();
@@ -145,9 +146,13 @@ export default function DetalleEcoAventuraPage() {
               </p>
             </div>
             
-            <button className="w-full mt-6 bg-emerald-500 text-white font-bold py-3 px-4 rounded-xl shadow-lg hover:bg-emerald-400 transition-colors uppercase tracking-wide text-sm">
-              Incluir en mi Paquete
-            </button>
+            <div className="mt-6">
+              <BotonAgregarPaquete
+                ecoaventuraId={Number(id)}
+                precio={parseFloat(aventura.precio)}
+                capacidadMaxima={aventura.capacidad_maxima ?? 1}
+              />
+            </div>
           </div>
 
           {/* Restricciones y Recomendaciones */}

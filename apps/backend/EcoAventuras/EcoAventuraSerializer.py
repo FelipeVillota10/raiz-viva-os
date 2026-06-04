@@ -19,6 +19,7 @@ class EcoAventuraListSerializer(serializers.ModelSerializer):
             'id', 'nombre', 'imagen_url', 'precio',
             'ubicacion', 'dificultad', 'dificultad_display',
             'duracion', 'duracion_display',
+            'capacidad_maxima',
         ]
 
     def get_duracion_display(self, obj):
