@@ -36,9 +36,10 @@ export $(cat apps/backend/.env | xargs) && python manage.py runserver
 ```
 
 ### Database
-- **Local**: PostgreSQL on port 5433 (check with `pg_lsclusters`)
+- **Local**: PostgreSQL 17 on port 5432 (servicio `postgresql-x64-17`)
 - **Production**: Neon PostgreSQL (configured via DATABASE_URL)
-- **Local connection**: `postgresql://postgres:password@localhost:5433/raizviva`
+- **Local connection**: `postgresql://postgres:<password>@localhost:5432/raizviva_db`
+- **psql path**: `C:\Program Files\PostgreSQL\17\bin\psql.exe` (no está en PATH)
 
 ### Create Migrations
 ```bash

@@ -36,7 +36,6 @@ class ClienteModel(models.Model):
     descripcion   = models.CharField(max_length=250, null=True, blank=True)
     foto_perfil   = models.ImageField(upload_to='perfiles/', null=True, blank=True)
     foto_portada  = models.ImageField(upload_to='portadas/', null=True, blank=True)
-    activo        = models.BooleanField(default=True)
     direccion = models.CharField(max_length=255, null=True, blank=True)
  
     class Meta:

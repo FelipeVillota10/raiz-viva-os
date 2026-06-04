@@ -4,20 +4,24 @@ import { useEffect, useState } from "react";
 import { GoogleMap, Marker, InfoWindow, useJsApiLoader } from "@react-google-maps/api";
 import { Header } from "../components/Header";
 import { Footer } from "../components/Footer";
+import { API_URL } from "../services/api";
 
 type Cliente = {
-  id: number;
-  full_name: string;
-  direccion: string;
-  productor: boolean;
-  caminante: boolean;
-  custodio: boolean;
-  facilitador: boolean;
-  anfitrion: boolean;
-  profile_photo: string | null;
-  cover_photo: string | null;
-  aprobado: boolean;
-  observaciones: string | null;
+  id_cliente: number;
+  nombre: string;
+  usuario_nombre: string;
+  telefono: string | null;
+  es_actor: boolean;
+  es_lider: boolean;
+  es_turista: boolean;
+  es_admin: boolean;
+  territorio_nombre: string | null;
+  tipos_actores: { id: number; nombre_tipo: string }[];
+  foto_perfil_url: string | null;
+  foto_portada_url: string | null;
+  descripcion: string | null;
+  activo: boolean;
+  direccion: string | null;
   lat?: number;
   lng?: number;
 };
@@ -28,9 +32,35 @@ const containerStyle = {
 };
 
 const center = {
-  lat: 3.5386, // Coordenadas aproximadas de Palmira
+  lat: 3.5386,
   lng: -76.3036,
 };
+
+async function getCoordinates(address: string): Promise<{ lat: number; lng: number } | null> {
+  const key = process.env.NEXT_PUBLIC_GEOCODING_KEY || "";
+  if (!key) {
+    console.error("NEXT_PUBLIC_GEOCODING_KEY no está configurada");
+    return null;
+  }
+  try {
+    const res = await fetch(
+      `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(address)}&key=${key}`
+    );
+    if (!res.ok) {
+      console.warn(`Geocoding HTTP ${res.status} para "${address}"`);
+      return null;
+    }
+    const data = await res.json();
+    if (data.status === "OK" && data.results.length > 0) {
+      return data.results[0].geometry.location;
+    }
+    console.warn(`Geocoding status=${data.status} para "${address}": ${data.error_message || ""}`);
+    return null;
+  } catch (err) {
+    console.error("Error en geocoding:", err);
+    return null;
+  }
+}
 
 export default function MapaEconomico() {
   const { isLoaded } = useJsApiLoader({
@@ -39,38 +69,35 @@ export default function MapaEconomico() {
 
   const [clientes, setClientes] = useState<Cliente[]>([]);
   const [selected, setSelected] = useState<Cliente | null>(null);
-
-  // 🔹 Función para convertir dirección en coordenadas
-  async function getCoordinates(address: string) {
-    const res = await fetch(
-      `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(address)}&key=${process.env.NEXT_PUBLIC_GOOGLE_MAPS_KEY}`
-    );
-    const data = await res.json();
-    if (data.results.length > 0) {
-      return data.results[0].geometry.location; // { lat, lng }
-    }
-    return null;
-  }
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     async function loadClients() {
-      const res = await fetch("http://localhost:8000/api/clientes/");
-      const data: Cliente[] = await res.json();
+      try {
+        const res = await fetch(`${API_URL}/api/clientes/`);
+        const data: Cliente[] = await res.json();
 
-      // 🔹 Geocodificar cada dirección
-      const clientsWithCoords = await Promise.all(
-        data.map(async (cliente) => {
-          if (cliente.direccion) {
-            const coords = await getCoordinates(cliente.direccion);
-            if (coords) {
-              return { ...cliente, lat: coords.lat, lng: coords.lng };
-            }
-          }
-          return cliente;
-        })
-      );
+        const actores = data.filter(
+          (c) => c.es_actor && c.direccion && c.direccion.trim().length > 0
+        );
 
-      setClientes(clientsWithCoords);
+        const results = await Promise.allSettled(
+          actores.map(async (c) => {
+            const coords = await getCoordinates(c.direccion!);
+            return coords ? { ...c, lat: coords.lat, lng: coords.lng } : c;
+          })
+        );
+
+        const geocoded = results
+          .filter((r) => r.status === "fulfilled")
+          .map((r) => (r as PromiseFulfilledResult<Cliente>).value);
+
+        setClientes(geocoded);
+      } catch (err) {
+        console.error("Error cargando clientes:", err);
+      } finally {
+        setLoading(false);
+      }
     }
 
     loadClients();
@@ -80,51 +107,52 @@ export default function MapaEconomico() {
 
   return (
     <div className="flex flex-col min-h-screen">
-      {/* 🔹 Header principal con botón Volver automático en /mapa */}
       <Header />
 
       <main className="flex-grow">
-        <GoogleMap mapContainerStyle={containerStyle} center={center} zoom={12}>
-          {clientes.map((cliente) =>
-            cliente.lat && cliente.lng ? (
-              <Marker
-                key={cliente.id}
-                position={{ lat: cliente.lat, lng: cliente.lng }}
-                onClick={() => setSelected(cliente)}
-              />
-            ) : null
-          )}
+        {loading ? (
+          <p style={{ padding: "1rem" }}>Cargando actores territoriales...</p>
+        ) : clientes.length === 0 ? (
+          <p style={{ padding: "1rem" }}>
+            No hay actores territoriales con dirección para mostrar.
+          </p>
+        ) : (
+          <GoogleMap mapContainerStyle={containerStyle} center={center} zoom={12}>
+            {clientes.map((c) =>
+              c.lat && c.lng ? (
+                <Marker
+                  key={c.id_cliente}
+                  position={{ lat: c.lat, lng: c.lng }}
+                  onClick={() => setSelected(c)}
+                />
+              ) : null
+            )}
 
-          {selected && (
-            <InfoWindow
-              position={{ lat: selected.lat!, lng: selected.lng! }}
-              onCloseClick={() => setSelected(null)}
-            >
-              <div style={{ maxWidth: "200px" }}>
-                <h3>{selected.full_name}</h3>
-                <p><b>Dirección:</b> {selected.direccion}</p>
-                <p><b>Roles:</b></p>
-                <ul>
-                  {selected.productor && <li>Productor</li>}
-                  {selected.caminante && <li>Caminante</li>}
-                  {selected.custodio && <li>Custodio</li>}
-                  {selected.facilitador && <li>Facilitador</li>}
-                  {selected.anfitrion && <li>Anfitrión</li>}
-                </ul>
-                {selected.profile_photo && (
-                  <img src={selected.profile_photo} alt="Perfil" width="80" />
-                )}
-              </div>
-            </InfoWindow>
-          )}
-        </GoogleMap>
+            {selected && selected.lat && selected.lng && (
+              <InfoWindow
+                position={{ lat: selected.lat, lng: selected.lng }}
+                onCloseClick={() => setSelected(null)}
+              >
+                <div style={{ maxWidth: "220px" }}>
+                  <h3>{selected.nombre}</h3>
+                  <p><b>Email:</b> {selected.usuario_nombre}</p>
+                  <p><b>Dirección:</b> {selected.direccion}</p>
+                  <p>
+                    <b>Roles:</b>{" "}
+                    {selected.tipos_actores.map((t) => t.nombre_tipo).join(", ") ||
+                      "Sin rol"}
+                  </p>
+                  {selected.foto_perfil_url && (
+                    <img src={selected.foto_perfil_url} alt="Perfil" width="80" />
+                  )}
+                </div>
+              </InfoWindow>
+            )}
+          </GoogleMap>
+        )}
       </main>
 
       <Footer />
     </div>
   );
 }
-
-
-
-
