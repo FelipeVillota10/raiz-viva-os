@@ -25,9 +25,9 @@ async function mockCreateEvent(data: WizardFormData): Promise<{ id: string }> {
   formData.append('es_gratuito',  String(data.pricingType === 'free'));
   formData.append('costo_evento', data.pricingType === 'paid' ? data.price : '0');
 
-  if (data.image) {
-    formData.append('imagen', data.image);
-  }
+  if (data.imageFile) {
+  formData.append('imagen', data.imageFile);
+}
 
   const response = await fetch('http://localhost:8000/api/eventos/', {
     method: 'POST',
