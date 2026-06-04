@@ -28,7 +28,7 @@ class ClienteSerializer(serializers.ModelSerializer):
             'usuario_nombre', 'reputacion', 'es_actor', 'es_lider', 'es_turista',
             'territorio_nombre', 'moneda_nombre', 'tipos_actores', 'servicio',
             'descripcion', 'foto_perfil', 'foto_portada', 'foto_perfil_url', 'foto_portada_url',
-            'activo', 'estado_aprobacion', 'observaciones'
+            'activo', 'estado_aprobacion', 'observaciones', 'direccion'
         ]
 
     def get_usuario_nombre(self, obj):

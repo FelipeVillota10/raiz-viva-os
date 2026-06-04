@@ -3,11 +3,12 @@
 import Link from 'next/link';
 import { useAuth } from '../hooks/useAuth';
 import Image from 'next/image';
-import { useRouter } from 'next/navigation';
+import { useRouter, usePathname } from 'next/navigation';
 
 export function Header() {
   const { isAuthenticated, isLider, user, logout } = useAuth();
   const router = useRouter();
+  const pathname = usePathname();
 
   return (
     <header className="flex justify-between items-center px-4 py-2 h-16 bg-[#3b5630] text-white">
@@ -22,6 +23,14 @@ export function Header() {
       </div>
 
       <div className="flex items-center gap-4">
+        {pathname === '/mapa' && (
+          <Link href="/">
+            <button className="bg-yellow-500 hover:bg-yellow-400 text-black px-4 py-2 rounded-full text-sm font-medium transition">
+              Volver
+            </button>
+          </Link>
+        )}
+
         {isLider ? (
           <>
             <span className="text-sm text-white">
@@ -56,6 +65,11 @@ export function Header() {
           </>
         ) : (
           <>
+            <Link href="/mapa">
+              <button className="bg-white/20 hover:bg-white/30 text-white px-4 py-2 rounded-full text-sm font-medium transition">
+                Mapa
+              </button>
+            </Link>
             <Link href="/login/inicio">
               <button className="bg-white/20 hover:bg-white/30 text-white px-4 py-2 rounded-full text-sm font-medium transition">
                 Iniciar Sesión
@@ -72,3 +86,4 @@ export function Header() {
     </header>
   );
 }
+
