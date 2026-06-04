@@ -3,6 +3,7 @@ from django.db.models import Count
 from .AprobacionModel import AprobacionModel, EstadoAprobacion
 from .AprobacionRepository import AprobacionRepository
 from Clientes.ClienteModel import ClienteModel
+from Estados.EstadoModel import EstadoModel
 from usuarios.EmailService import EmailService
 
 
@@ -28,7 +29,7 @@ class AprobacionService:
 
         if estado == EstadoAprobacion.APROBADO:
             aprobacion.id_actor.es_actor = True
-            aprobacion.id_actor.activo = True
+            aprobacion.id_actor.estado = EstadoModel.objects.get(nombre_estado='activo')
             aprobacion.id_actor.save()
             EmailService.send_solicitud_aprobada(
                 cliente_email=aprobacion.id_actor.usuario.email,
@@ -36,6 +37,8 @@ class AprobacionService:
             )
             aprobacion.fecha_respuesta = timezone.now()
         elif estado == EstadoAprobacion.RECHAZADO:
+            aprobacion.id_actor.estado = EstadoModel.objects.get(nombre_estado='rechazado')
+            aprobacion.id_actor.save()
             EmailService.send_solicitud_rechazada(
                 cliente_email=aprobacion.id_actor.usuario.email,
                 cliente_nombre=aprobacion.id_actor.nombre,

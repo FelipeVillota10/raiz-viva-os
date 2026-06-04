@@ -1,3 +1,4 @@
+
 from django.contrib import admin
 from django.urls import path, include
 from django.http import JsonResponse
@@ -18,6 +19,7 @@ urlpatterns = [
     path('api/', include('Servicios.urls')),
     path('api/growth/', GrowthController.as_view(), name='growth'),
     path('', home, name='home'),
+    path('api/', include('Clientes.urls')),
 ]
 
 if settings.DEBUG:

@@ -44,6 +44,7 @@ class ClienteSerializer(serializers.ModelSerializer):
     observaciones = serializers.SerializerMethodField()
     foto_perfil_url = serializers.SerializerMethodField()
     foto_portada_url = serializers.SerializerMethodField()
+    activo = serializers.SerializerMethodField()
 
     class Meta:
         model = ClienteModel
@@ -116,6 +117,9 @@ class ClienteSerializer(serializers.ModelSerializer):
     def get_foto_portada_url(self, obj):
         return self._build_media_url(obj, 'foto_portada')
 
+    def get_activo(self, obj):
+        return obj.estado.nombre_estado == 'activo' if obj.estado else False
+
 
 class RegistroClienteSerializer(serializers.Serializer):
     nombre_completo = serializers.CharField(min_length=5, max_length=100)
@@ -124,12 +128,13 @@ class RegistroClienteSerializer(serializers.Serializer):
     telefono = serializers.CharField(min_length=7, max_length=20)
     id_territorio = serializers.IntegerField(required=False, allow_null=True)
     id_tipo_moneda = serializers.IntegerField(required=False, allow_null=True)
-    tipos_actores = serializers.ListField(child=serializers.IntegerField(), min_length=1)
+    tipos_actores = serializers.ListField(child=serializers.IntegerField(), required=False, default=[])
     servicios = serializers.ListField(child=serializers.IntegerField(), required=False, default=[])
     es_actor = serializers.BooleanField(default=False)
     es_lider = serializers.BooleanField(default=False)
     es_turista = serializers.BooleanField(default=False)
     es_admin = serializers.BooleanField(default=False)
+    activo = serializers.BooleanField(default=True)
 
     def validate_nombre_completo(self, value):
         if any(char.isdigit() for char in value):
@@ -156,7 +161,7 @@ class RegistroClienteSerializer(serializers.Serializer):
 
     def validate_tipos_actores(self, value):
         if not value:
-            raise ValidationError("Debe seleccionar al menos un rol.")
+            return value
         turista_selected = TipoActorModel.objects.filter(id__in=value, nombre_tipo='turista').exists()
         otros_roles_selected = TipoActorModel.objects.filter(id__in=value).exclude(nombre_tipo='turista').exists()
         if turista_selected and otros_roles_selected:
@@ -183,10 +188,12 @@ class RegistroClienteSerializer(serializers.Serializer):
             raise ValidationError("Solo un tipo de cliente puede ser verdadero (actor, lider, turista o admin).")
         if es_actor and not attrs.get('id_territorio'):
             raise ValidationError("Los actores territoriales deben seleccionar un territorio.")
+        if not es_lider and not attrs.get('tipos_actores'):
+            raise ValidationError("Debe seleccionar al menos un rol.")
         return attrs
 
     def create(self, validated_data):
-        tipos_ids = validated_data.pop('tipos_actores')
+        tipos_ids = validated_data.pop('tipos_actores', [])
         nombre_completo = validated_data.pop('nombre_completo')
         partes_nombre = nombre_completo.split(' ', 1)
         first_name = partes_nombre[0]
@@ -220,15 +227,21 @@ class RegistroClienteSerializer(serializers.Serializer):
             except MonedaModel.DoesNotExist:
                 pass
 
+        if validated_data.get('es_actor', False):
+            estado_obj = EstadoModel.objects.get(nombre_estado='en_revision')
+        else:
+            estado_obj = EstadoModel.objects.get(nombre_estado='activo')
+
         cliente = ClienteModel.objects.create(
             usuario=user,
             nombre=nombre_completo,
             telefono=validated_data.get('telefono', ''),
-            estado=territorio.estado if territorio else None,
+            estado=territorio.estado if territorio else estado_obj,
             tipo_moneda=tipo_moneda,
             es_actor=validated_data.get('es_actor', False),
             es_lider=validated_data.get('es_lider', False),
             es_turista=validated_data.get('es_turista', False),
+            es_admin=validated_data.get('es_admin', False),
         )
 
         for tipo_id in tipos_ids:
@@ -242,9 +255,13 @@ class AdminTerritorioSerializer(serializers.ModelSerializer):
     estado_nombre = serializers.CharField(source='estado.nombre_estado', read_only=True)
     administrador_nombre = serializers.CharField(source='administrador.nombre', read_only=True)
     administrador_id = serializers.IntegerField(source='administrador.id_cliente', read_only=True)
-    administrador_activo = serializers.BooleanField(source='administrador.activo', read_only=True)
+    administrador_activo = serializers.SerializerMethodField()
     id_estado = serializers.IntegerField(source='estado.id', required=False)
     id_administrador = serializers.IntegerField(write_only=True, required=False)
+
+    def get_administrador_activo(self, obj):
+        admin = obj.administrador
+        return admin.estado.nombre_estado == 'activo' if admin and admin.estado else False
 
     class Meta:
         model = TerritorioModel
@@ -272,6 +289,7 @@ class AdminLiderSerializer(serializers.ModelSerializer):
     foto_perfil_url = serializers.SerializerMethodField()
     territorio_nombre = serializers.SerializerMethodField()
     territorio_id = serializers.SerializerMethodField()
+    activo = serializers.SerializerMethodField()
 
     class Meta:
         model = ClienteModel
@@ -302,3 +320,6 @@ class AdminLiderSerializer(serializers.ModelSerializer):
         from Territorio.TerritorioModel import TerritorioModel
         territorio = TerritorioModel.objects.filter(administrador=obj).first()
         return territorio.id_territorio if territorio else None
+
+    def get_activo(self, obj):
+        return obj.estado.nombre_estado == 'activo' if obj.estado else False
