@@ -61,7 +61,7 @@ export function CreateEventWizard() {
  
       // Redirigir a la lista de eventos después de 1.8 s
       setTimeout(() => {
-        router.push('/actor/events/create');
+      router.push('/actor/events');
       }, 1800);
     }
   }
