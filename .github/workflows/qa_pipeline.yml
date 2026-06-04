@@ -12,7 +12,7 @@ jobs:
     runs-on: ubuntu-latest
     
 
-    #GitHub ejecuta todos los comandos dentro de la carpeta del backend
+    #GitHub ejecuta todos los comandos dentro de la carpeta del backend.
     defaults:
       run:
         working-directory: apps/backend
