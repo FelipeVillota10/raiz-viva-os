@@ -16,6 +16,7 @@ export interface ComentarioPayload {
   descripcion: string;
   categoria: Categoria;
   prioridad: number;
+  visible_para?: string;
   estado?: Estado;
 }
 
@@ -23,6 +24,7 @@ export interface ComentarioPatch {
   estado?: Estado;
   prioridad?: number;
   categoria?: Categoria;
+  visible_para?: string;
 }
 
 export interface FiltrosParams {
@@ -72,3 +74,25 @@ export const patchComentario = async (id: number, payload: ComentarioPatch): Pro
 export const deleteComentario = async (id: number): Promise<void> => {
   return request<void>(`/${id}/`, { method: "DELETE" });
 };
+export interface Tendencias {
+  total_comentarios: number;
+
+  por_categoria: {
+    categoria: string;
+    total: number;
+  }[];
+
+  por_estado: {
+    estado: string;
+    total: number;
+  }[];
+
+  prioridades_altas: number;
+}
+
+export const getTendencias =
+  async (): Promise<Tendencias> => {
+    return request<Tendencias>(
+      "/tendencias/"
+    );
+  };

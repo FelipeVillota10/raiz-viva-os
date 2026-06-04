@@ -13,13 +13,14 @@ interface ComentarioModalProps {
   onClose: () => void;
 
   onSave: (
-    id: number,
-    payload: {
-      estado?: Estado;
-      prioridad?: number;
-      categoria?: Categoria;
-    }
-  ) => Promise<void>;
+  id: number,
+  payload: {
+    estado?: Estado;
+    prioridad?: number;
+    categoria?: Categoria;
+    visible_para?: string;
+  }
+) => Promise<void>;
 
   loading: boolean;
 }
@@ -67,12 +68,18 @@ export function ComentarioModal({
 
   const [categoria, setCategoria] =
     useState<Categoria>("sugerencia");
+  
+  const [visiblePara, setVisiblePara] =
+  useState("admin_growth");
 
   useEffect(() => {
     if (comentario) {
       setEstado(comentario.estado);
       setPrioridad(comentario.prioridad);
       setCategoria(comentario.categoria);
+      setVisiblePara(
+      comentario.visible_para || "admin_growth"
+      );
     }
   }, [comentario]);
 
@@ -280,6 +287,43 @@ export function ComentarioModal({
               ))}
             </select>
           </div>
+          {/* VISIBILIDAD */}
+
+          <div
+            style={{
+              display: "flex",
+              flexDirection: "column",
+              gap: "6px",
+            }}
+          >
+            <label
+              style={{
+                fontSize: "11px",
+                fontWeight: 700,
+                color: "#7a8c7b",
+                textTransform: "uppercase",
+                letterSpacing: "0.06em",
+              }}
+            >
+              Visible para
+            </label>
+
+            <select
+              value={visiblePara}
+              onChange={(e) =>
+                setVisiblePara(e.target.value)
+              }
+              style={selectStyle}
+            >
+              <option value="admin_growth">
+                Administrador y Growth
+              </option>
+
+              <option value="todos">
+                Todos los usuarios
+              </option>
+            </select>
+          </div>
 
           {/* PRIORIDAD */}
 
@@ -379,6 +423,7 @@ export function ComentarioModal({
                 estado,
                 prioridad,
                 categoria,
+                visible_para: visiblePara,
               })
             }
             disabled={loading}

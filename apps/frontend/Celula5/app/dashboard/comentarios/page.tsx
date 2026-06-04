@@ -16,6 +16,7 @@ import { ComentarioForm } from "../components/comentarios/ComentarioForm";
 import { ComentarioList } from "../components/comentarios/ComentarioList";
 import { FiltrosComentarios } from "../components/comentarios/FiltrosComentarios";
 import { ComentarioModal } from "../components/comentarios/ComentarioModal";
+import {getTendencias,Tendencias,} from "../lib/comentariosApi";
 
 // ─────────────────────────────────────────────────────────────
 // Toasts
@@ -62,10 +63,24 @@ export default function ComentariosPage() {
   const [editTarget, setEditTarget] = useState<Comentario | null>(null);
   const [deletingId, setDeletingId] = useState<number | null>(null);
   const [showForm, setShowForm] = useState(false);
-
+  const [tendencias, setTendencias] = useState<Tendencias | null>(null);
+  console.log("TENDENCIAS:", tendencias);
   const { toasts, add: addToast } = useToasts();
 
   // ───────────────── Fetch ─────────────────
+  const fetchTendencias = useCallback(
+    async () => {
+      try {
+        const data =
+          await getTendencias();
+
+        setTendencias(data);
+      } catch (err) {
+        console.error(err);
+      }
+    },
+    []
+  );
 
   const fetchComentarios = useCallback(async () => {
     setLoadingList(true);
@@ -85,49 +100,52 @@ export default function ComentariosPage() {
 
   useEffect(() => {
     fetchComentarios();
-  }, [fetchComentarios]);
+    fetchTendencias();
+  }, [fetchComentarios,
+      fetchTendencias,]);
 
   // ───────────────── Handlers ─────────────────
 
   const handleCreate = async (payload: ComentarioPayload) => {
-    setLoadingForm(true);
+  setLoadingForm(true);
 
-    try {
-      await createComentario(payload);
+  try {
+    await createComentario(payload);
 
-      addToast("Comentario creado correctamente", "success");
+    addToast("Comentario creado correctamente", "success");
 
-      setShowForm(false);
+    setShowForm(false);
 
-      fetchComentarios();
-    } catch {
-      addToast("Error al crear el comentario", "error");
-    } finally {
-      setLoadingForm(false);
-    }
-  };
+    await fetchComentarios();
+    await fetchTendencias();
+  } catch {
+    addToast("Error al crear el comentario", "error");
+  } finally {
+    setLoadingForm(false);
+  }
+};
 
   const handlePatch = async (
-    id: number,
-    payload: ComentarioPatch
-  ) => {
-    setLoadingModal(true);
+  id: number,
+  payload: ComentarioPatch
+) => {
+  setLoadingModal(true);
 
-    try {
-      await patchComentario(id, payload);
+  try {
+    await patchComentario(id, payload);
 
-      addToast("Comentario actualizado", "success");
+    addToast("Comentario actualizado", "success");
 
-      setEditTarget(null);
+    setEditTarget(null);
 
-      fetchComentarios();
-    } catch {
-      addToast("Error al actualizar el comentario", "error");
-    } finally {
-      setLoadingModal(false);
-    }
-  };
-
+    await fetchComentarios();
+    await fetchTendencias();
+  } catch {
+    addToast("Error al actualizar el comentario", "error");
+  } finally {
+    setLoadingModal(false);
+  }
+};
   const handleDelete = async (id: number) => {
     setDeletingId(id);
 
@@ -136,7 +154,8 @@ export default function ComentariosPage() {
 
       addToast("Comentario eliminado", "success");
 
-      setComentarios((prev) => prev.filter((c) => c.id !== id));
+      await fetchComentarios();
+      await fetchTendencias();
     } catch {
       addToast("Error al eliminar el comentario", "error");
     } finally {
@@ -151,11 +170,11 @@ export default function ComentariosPage() {
     label: string;
     color: string;
   }[] = [
-    { key: "pendiente", label: "Pendiente", color: "#d97706" },
-    { key: "revision", label: "En revisión", color: "#2563eb" },
-    { key: "resuelto", label: "Resuelto", color: "#059669" },
-    { key: "rechazado", label: "Rechazado", color: "#dc2626" },
-  ];
+      { key: "pendiente", label: "Pendiente", color: "#d97706" },
+      { key: "revision", label: "En revisión", color: "#2563eb" },
+      { key: "resuelto", label: "Resuelto", color: "#059669" },
+      { key: "rechazado", label: "Rechazado", color: "#dc2626" },
+    ];
 
   const counts = comentarios.reduce<Record<string, number>>((acc, c) => {
     acc[c.estado] = (acc[c.estado] ?? 0) + 1;
@@ -168,6 +187,7 @@ export default function ComentariosPage() {
     month: "long",
     day: "numeric",
   });
+  
 
   // ───────────────── Render ─────────────────
 
@@ -204,40 +224,40 @@ export default function ComentariosPage() {
             gap: "12px",
           }}
         >
-         <div
-  style={{
-    width: "180px",
-    height: "180px",
-    overflow: "hidden",
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    flexShrink: 0,
-  }}
->
-  <img
-    src="/logo.png"
-    alt="Raíz Viva"
-    style={{
-      width: "100%",
-      height: "100%",
-      objectFit: "contain",
-    }}
-  />
-</div>
+          <div
+            style={{
+              width: "180px",
+              height: "180px",
+              overflow: "hidden",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              flexShrink: 0,
+            }}
+          >
+            <img
+              src="/logo.png"
+              alt="Raíz Viva"
+              style={{
+                width: "100%",
+                height: "100%",
+                objectFit: "contain",
+              }}
+            />
+          </div>
 
           <div>
             <p
-  style={{
-    fontSize: "18px",
-    fontWeight: 700,
-    margin: 0,
-    lineHeight: 1.1,
-    color: "#ffffff",
-  }}
->
-  Raíz Viva
-</p>
+              style={{
+                fontSize: "18px",
+                fontWeight: 700,
+                margin: 0,
+                lineHeight: 1.1,
+                color: "#ffffff",
+              }}
+            >
+              Raíz Viva
+            </p>
 
             <p
               style={{
@@ -432,6 +452,160 @@ export default function ComentariosPage() {
             ))}
           </div>
         )}
+        {tendencias && (
+  <div
+    style={{
+      background: "#ffffff",
+      borderRadius: "14px",
+      padding: "20px 24px",
+      border: "1.5px solid #e8e0cc",
+      boxShadow:
+        "0 2px 12px rgba(59,86,48,0.08)",
+    }}
+  >
+    <h2
+      style={{
+        fontSize: "14px",
+        fontWeight: 600,
+        color: "#557149",
+        margin: "0 0 16px",
+      }}
+    >
+      Tendencias de Feedback
+    </h2>
+
+    <div
+      style={{
+        display: "grid",
+        gridTemplateColumns:
+          "repeat(auto-fit,minmax(180px,1fr))",
+        gap: "16px",
+      }}
+    >
+      <div>
+        <p
+          style={{
+            fontSize: "11px",
+            color: "#8c9a80",
+            textTransform: "uppercase",
+            fontWeight: 600,
+          }}
+        >
+          Total comentarios
+        </p>
+
+        <p
+          style={{
+            fontSize: "28px",
+            fontWeight: 700,
+            color: "#3b5630",
+            margin: "6px 0 0",
+          }}
+        >
+          {tendencias.total_comentarios}
+        </p>
+      </div>
+
+      <div>
+        <p
+          style={{
+            fontSize: "11px",
+            color: "#8c9a80",
+            textTransform: "uppercase",
+            fontWeight: 600,
+          }}
+        >
+          Prioridad alta
+        </p>
+
+        <p
+          style={{
+            fontSize: "28px",
+            fontWeight: 700,
+            color: "#ef4444",
+            margin: "6px 0 0",
+          }}
+        >
+          {tendencias.prioridades_altas}
+        </p>
+      </div>
+    </div>
+
+    <div
+      style={{
+        marginTop: "24px",
+        display: "grid",
+        gridTemplateColumns:
+          "repeat(auto-fit,minmax(280px,1fr))",
+        gap: "20px",
+      }}
+    >
+      <div>
+        <h3
+          style={{
+            fontSize: "13px",
+            color: "#557149",
+            marginBottom: "12px",
+          }}
+        >
+          Categorías más reportadas
+        </h3>
+
+        {tendencias.por_categoria.map(
+          (item) => (
+            <div
+              key={item.categoria}
+              style={{
+                display: "flex",
+                justifyContent:
+                  "space-between",
+                marginBottom: "8px",
+              }}
+            >
+              <span>{item.categoria}</span>
+
+              <strong>
+                {item.total}
+              </strong>
+            </div>
+          )
+        )}
+      </div>
+
+      <div>
+        <h3
+          style={{
+            fontSize: "13px",
+            color: "#557149",
+            marginBottom: "12px",
+          }}
+        >
+          Estados actuales
+        </h3>
+
+        {tendencias.por_estado.map(
+          (item) => (
+            <div
+              key={item.estado}
+              style={{
+                display: "flex",
+                justifyContent:
+                  "space-between",
+                marginBottom: "8px",
+              }}
+            >
+              <span>{item.estado}</span>
+
+              <strong>
+                {item.total}
+              </strong>
+            </div>
+          )
+        )}
+      </div>
+    </div>
+  </div>
+)}
 
         {/* FORM */}
 
@@ -482,9 +656,8 @@ export default function ComentariosPage() {
           >
             {comentarios.length === 0
               ? "Sin resultados"
-              : `${comentarios.length} comentario${
-                  comentarios.length !== 1 ? "s" : ""
-                }`}
+              : `${comentarios.length} comentario${comentarios.length !== 1 ? "s" : ""
+              }`}
           </p>
         )}
 
