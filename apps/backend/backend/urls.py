@@ -1,3 +1,4 @@
+
 from django.contrib import admin
 from django.urls import path, include
 from django.http import JsonResponse
@@ -19,9 +20,11 @@ urlpatterns = [
     path('api/growth/', GrowthController.as_view(), name='growth'),
 
      path('api/ecoaventuras/', include('EcoAventuras.urls')),
+     path('api/', include('Paquete.urls')),
 
     # Ruta raíz (esto soluciona el 404)
     path('', home, name='home'),
+    path('api/', include('Clientes.urls')),
 ]
 
 if settings.DEBUG:

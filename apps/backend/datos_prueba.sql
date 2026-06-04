@@ -1,7 +1,11 @@
 -- =============================================
 -- RAIZ VIVA - Script de Datos de Prueba
 -- =============================================
--- Para ejecutar: psql -U postgres -h localhost -p 5432 -d raizviva_db -f datos_prueba.sql
+-- Para ejecutar LOCAL (NO contra Neon pooler):
+--   psql -U postgres -h localhost -p 5432 -d raizviva_db -f datos_prueba.sql
+--
+-- Para Neon (usa el management command en su lugar):
+--   python manage.py seed_test_data
 -- =============================================
 
 -- =============================================
@@ -51,27 +55,27 @@ INSERT INTO tipos_actores (id, nombre_tipo, descripcion) VALUES
 -- 4. USUARIOS DE LIDERES (auth_user)
 -- =============================================
 INSERT INTO auth_user (id, username, email, first_name, last_name, password, is_superuser, is_staff, is_active, date_joined) VALUES
-(1, 'lider_buitrera', 'lider.buitrera@raizviva.com', 'Maria', 'Lopez', 'pbkdf2_sha256$870000$DhHa8k2jhCrhgnfZxtnYRU$jaQdM+uDhPUnj/qyDmX7YAXZATZ4KuzSdKBA7WMPXoE=', FALSE, TRUE, TRUE, NOW()),
+(1, 'lider_buitrera', 'lider.buitrera@raizviva.com', 'Maria', 'Lopez', 'pbkdf2_sha256$870000$DjABi1jvsauUqSZUHyFDJS$hidZNNYcWxv6KPJ2ug4WobLIFYJLDCX4XftMD1J6jIg=', FALSE, TRUE, TRUE, NOW()),
 (2, 'lider_purace', 'lider.purace@raizviva.com', 'Carlos', 'Gonzalez', 'pbkdf2_sha256$870000$DhHa8k2jhCrhgnfZxtnYRU$jaQdM+uDhPUnj/qyDmX7YAXZATZ4KuzSdKBA7WMPXoE=', FALSE, TRUE, TRUE, NOW());
 
 -- =============================================
 -- 5. CLIENTES LIDERES
 -- =============================================
-INSERT INTO clientes (id_cliente, id_usuario, id_estado, id_tipo_moneda, nombre, telefono, reputacion, es_actor, es_lider, es_turista, es_admin, activo) VALUES
-(1, 1, 4, 1, 'Maria Lopez', '3001234567', 95.00, FALSE, TRUE, FALSE, FALSE, TRUE),
-(2, 2, 4, 2, 'Carlos Gonzalez', '3007654321', 90.00, FALSE, TRUE, FALSE, FALSE, TRUE);
+INSERT INTO clientes (id_cliente, id_usuario, id_estado, id_tipo_moneda, nombre, telefono, reputacion, es_actor, es_lider, es_turista, es_admin) VALUES
+(1, 1, 4, 1, 'Maria Lopez', '3001234567', 95.00, FALSE, TRUE, FALSE, FALSE),
+(2, 2, 4, 2, 'Carlos Gonzalez', '3007654321', 90.00, FALSE, TRUE, FALSE, FALSE);
 
 -- =============================================
 -- 5.5 USUARIO ADMIN (auth_user)
 -- =============================================
 INSERT INTO auth_user (id, username, email, first_name, last_name, password, is_superuser, is_staff, is_active, date_joined) VALUES
-(7, 'admin_raizviva', 'admin@raizviva.com', 'Admin', 'RaizViva', 'pbkdf2_sha256$870000$DhHa8k2jhCrhgnfZxtnYRU$jaQdM+uDhPUnj/qyDmX7YAXZATZ4KuzSdKBA7WMPXoE=', FALSE, TRUE, TRUE, NOW());
+(7, 'admin_raizviva', 'admin@raizviva.com', 'Admin', 'RaizViva', 'pbkdf2_sha256$870000$GiXHco5nBhNM34n8V7KUhD$HXrK+A/vXJjutHPg149DmTwSs4y+D5g/YdZY5zZYolc=', FALSE, TRUE, TRUE, NOW());
 
 -- =============================================
 -- 5.6 CLIENTE ADMIN
 -- =============================================
-INSERT INTO clientes (id_cliente, id_usuario, id_estado, id_tipo_moneda, nombre, telefono, reputacion, es_actor, es_lider, es_turista, es_admin, activo) VALUES
-(7, 7, 4, 1, 'Admin RaizViva', '3000000000', NULL, FALSE, FALSE, FALSE, TRUE, TRUE);
+INSERT INTO clientes (id_cliente, id_usuario, id_estado, id_tipo_moneda, nombre, telefono, reputacion, es_actor, es_lider, es_turista, es_admin) VALUES
+(7, 7, 4, 1, 'Admin RaizViva', '3000000000', NULL, FALSE, FALSE, FALSE, TRUE);
 
 -- =============================================
 -- 5.7 MAS USUARIOS LIDERES (auth_user)
@@ -85,11 +89,11 @@ INSERT INTO auth_user (id, username, email, first_name, last_name, password, is_
 -- =============================================
 -- 5.8 MAS CLIENTES LIDERES
 -- =============================================
-INSERT INTO clientes (id_cliente, id_usuario, id_estado, id_tipo_moneda, nombre, telefono, reputacion, es_actor, es_lider, es_turista, es_admin, activo) VALUES
-(8, 8, 4, 1, 'Silvia Ramirez', '3002222222', NULL, FALSE, TRUE, FALSE, FALSE, TRUE),
-(9, 9, 4, 1, 'Andres Torres', '3003333333', NULL, FALSE, TRUE, FALSE, FALSE, TRUE),
-(10, 10, 4, 1, 'Diana Vargas', '3004444444', NULL, FALSE, TRUE, FALSE, FALSE, TRUE),
-(11, 11, 4, 1, 'Felipe Mora', '3005555555', NULL, FALSE, TRUE, FALSE, FALSE, TRUE);
+INSERT INTO clientes (id_cliente, id_usuario, id_estado, id_tipo_moneda, nombre, telefono, reputacion, es_actor, es_lider, es_turista, es_admin) VALUES
+(8, 8, 4, 1, 'Silvia Ramirez', '3002222222', NULL, FALSE, TRUE, FALSE, FALSE),
+(9, 9, 4, 1, 'Andres Torres', '3003333333', NULL, FALSE, TRUE, FALSE, FALSE),
+(10, 10, 4, 1, 'Diana Vargas', '3004444444', NULL, FALSE, TRUE, FALSE, FALSE),
+(11, 11, 4, 1, 'Felipe Mora', '3005555555', NULL, FALSE, TRUE, FALSE, FALSE);
 
 -- =============================================
 -- 5.9 LIDERES SIN TERRITORIO — auth_user
@@ -103,9 +107,9 @@ INSERT INTO auth_user (id, username, email, first_name, last_name, password, is_
 -- =============================================
 -- 5.10 LIDERES SIN TERRITORIO — clientes
 -- =============================================
-INSERT INTO clientes (id_cliente, id_usuario, id_estado, id_tipo_moneda, nombre, telefono, reputacion, es_actor, es_lider, es_turista, es_admin, activo) VALUES
-(12, 12, 4, 1, 'Claudia Mejia',  '3006666666', NULL, FALSE, TRUE, FALSE, FALSE, TRUE),
-(13, 13, 4, 1, 'Ricardo Perez',  '3007777777', NULL, FALSE, TRUE, FALSE, FALSE, TRUE);
+INSERT INTO clientes (id_cliente, id_usuario, id_estado, id_tipo_moneda, nombre, telefono, reputacion, es_actor, es_lider, es_turista, es_admin) VALUES
+(12, 12, 4, 1, 'Claudia Mejia',  '3006666666', NULL, FALSE, TRUE, FALSE, FALSE),
+(13, 13, 4, 1, 'Ricardo Perez',  '3007777777', NULL, FALSE, TRUE, FALSE, FALSE);
 
 -- =============================================
 -- 6. TERRITORIOS (cada lider administra exactamente un territorio)
@@ -130,11 +134,11 @@ INSERT INTO auth_user (id, username, email, first_name, last_name, password, is_
 -- =============================================
 -- 8. CLIENTES ACTORES TERRITORIALES
 -- =============================================
-INSERT INTO clientes (id_cliente, id_usuario, id_estado, id_tipo_moneda, nombre, telefono, reputacion, es_actor, es_lider, es_turista, es_admin, activo) VALUES
-(3, 3, 4, 3, 'Juan Martinez', '3012345678', NULL, TRUE, FALSE, FALSE, FALSE, TRUE),
-(4, 4, 4, 1, 'Ana Rodriguez', '3098765432', NULL, TRUE, FALSE, FALSE, FALSE, TRUE),
-(5, 5, 4, 3, 'Pedro Sanchez', '3101234567', 75.50, TRUE, FALSE, FALSE, FALSE, TRUE),
-(6, 6, 4, 1, 'Sofia Garcia', '3201234567', NULL, FALSE, FALSE, TRUE, FALSE, TRUE);
+INSERT INTO clientes (id_cliente, id_usuario, id_estado, id_tipo_moneda, nombre, telefono, reputacion, es_actor, es_lider, es_turista, es_admin, descripcion, direccion) VALUES
+(3, 3, 1, 3, 'Juan Martinez', '3012345678', NULL, TRUE, FALSE, FALSE, FALSE, 'Productor de café en la zona rural de Palmira', 'Carrera 7E #32A-49, Palmira, Valle del Cauca'),
+(4, 4, 1, 1, 'Ana Rodriguez', '3098765432', NULL, TRUE, FALSE, FALSE, FALSE, 'Guía de rutas ecológicas e intérprete de saberes', 'Calle 10 #15-22, Palmira, Valle del Cauca'),
+(5, 5, 4, 3, 'Pedro Sanchez', '3101234567', 75.50, TRUE, FALSE, FALSE, FALSE, 'Anfitrión de experiencias gastronómicas locales', 'Vereda La Buitrera, Palmira, Valle del Cauca'),
+(6, 6, 4, 1, 'Sofia Garcia', '3201234567', NULL, FALSE, FALSE, TRUE, FALSE, NULL, NULL);
 
 -- =============================================
 -- 9. RELACION CLIENTES-TIPOS ACTORES (ManyToMany)

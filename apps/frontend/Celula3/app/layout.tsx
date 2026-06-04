@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Poppins } from "next/font/google";
 import "./globals.css";
+import { PaqueteProvider } from "./components/PaqueteContext";
+import PaqueteCarrito from "./components/PaqueteCarrito";
 
 const poppins = Poppins({
   subsets: ["latin"],
@@ -17,7 +19,12 @@ export default function RootLayout({
 }: Readonly<{ children: React.ReactNode }>) {
   return (
     <html lang="es">
-      <body className={poppins.className}>{children}</body>
+      <body className={poppins.className}>
+        <PaqueteProvider>      
+          {children}
+          <PaqueteCarrito />
+        </PaqueteProvider>
+      </body>
     </html>
   );
 }

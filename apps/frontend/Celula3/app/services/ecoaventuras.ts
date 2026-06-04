@@ -26,6 +26,9 @@ export interface Itinerario {
   recomendaciones: string;
   contactos: string;
   notas_especiales: string;
+  // Nuevos campos integrados para HU13.3:
+  sugerencias?: string;
+  desglose_costos?: string;
 }
 
 export interface PaginatedResponse {
@@ -88,9 +91,13 @@ export async function crearEcoAventura(data: Partial<EcoAventura>): Promise<EcoA
   return res.json();
 }
 
+/**
+ * Permite editar una eco-aventura de forma parcial (PATCH) o total.
+ * Ideal para actualizar cupos, disponibilidad o campos específicos.
+ */
 export async function editarEcoAventura(id: number, data: Partial<EcoAventura>): Promise<EcoAventura> {
   const res = await fetch(`${BASE}/${id}/`, {
-    method: "PUT",
+    method: "PATCH",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(data),
   });
