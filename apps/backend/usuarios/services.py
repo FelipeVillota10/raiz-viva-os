@@ -3,9 +3,11 @@ from django.db import transaction
 from django.db.models import Count
 from django.utils import timezone
 from Clientes.ClienteModel import ClienteModel
+from Estados.EstadoModel import EstadoModel
 from TiposActores.TipoActorModel import TipoActorModel
 from TiposActores.ClienteTiposActoresModel import ClienteTiposActoresModel
 from Territorio.TerritorioModel import TerritorioModel
+from Estados.EstadoModel import EstadoModel
 from Monedas.MonedaModel import MonedaModel
 from Servicios.ServicioModel import ServicioModel
 from Aprobaciones.AprobacionModel import AprobacionModel, EstadoAprobacion
@@ -38,7 +40,7 @@ class UsuarioService:
         cliente = self.repository.get_cliente_by_user(user_obj)
         if cliente:
             if cliente.es_turista or cliente.es_lider or cliente.es_admin:
-                if not cliente.activo:
+                if not cliente.estado or cliente.estado.nombre_estado == 'inactivo':
                     return None, 'Tu cuenta ha sido deshabilitada. Contacta al administrador.'
             elif cliente.es_actor:
                 tiene_aprobacion = AprobacionModel.objects.filter(
@@ -47,7 +49,7 @@ class UsuarioService:
                 ).exists()
                 if not tiene_aprobacion:
                     return None, 'Tu solicitud esta en revision. El lider territorial la revisara pronto.'
-                if not cliente.activo:
+                if not cliente.estado or cliente.estado.nombre_estado == 'inactivo':
                     return None, 'Tu cuenta ha sido deshabilitada. Contacta al lider territorial.'
             else:
                 return None, 'Tu solicitud esta en revision. El lider territorial la revisara pronto.'
@@ -105,11 +107,16 @@ class UsuarioService:
             except MonedaModel.DoesNotExist:
                 pass
 
+        if es_actor:
+            estado = EstadoModel.objects.get(nombre_estado='en_revision')
+        else:
+            estado = EstadoModel.objects.get(nombre_estado='activo')
+
         cliente = ClienteModel.objects.create(
             usuario=user,
             nombre=nombre_completo,
             telefono=telefono,
-            estado=territorio.estado if territorio else None,
+            estado=estado,
             tipo_moneda=tipo_moneda,
             es_actor=es_actor,
             es_lider=es_lider,
@@ -229,7 +236,7 @@ class UsuarioService:
                 'email': actor.usuario.email,
                 'territorio_nombre': territorio.nombre_territorio if territorio else None,
                 'tipos_actores': tipos,
-                'activo': actor.activo,
+                'activo': actor.estado.nombre_estado == 'activo' if actor.estado else False,
             })
         return actores
 
@@ -248,7 +255,7 @@ class UsuarioService:
         if not tiene_permiso:
             return False, 'No tienes permiso para deshabilitar este actor'
 
-        actor.activo = False
+        actor.estado = EstadoModel.objects.get(nombre_estado='inactivo')
         actor.save()
         return True, 'Actor deshabilitado exitosamente'
 
@@ -267,9 +274,59 @@ class UsuarioService:
         if not tiene_permiso:
             return False, 'No tienes permiso para habilitar este actor'
 
-        actor.activo = True
+        actor.estado = EstadoModel.objects.get(nombre_estado='activo')
         actor.save()
         return True, 'Actor habilitado exitosamente'
+
+    def crear_lider_admin(self, data):
+        nombre_completo = data.get('nombre_completo')
+        email = data.get('email')
+        password = data.get('password')
+        telefono = data.get('telefono')
+        id_territorio = data.get('id_territorio')
+        activo_val = data.get('activo', True)
+        estado=EstadoModel.objects.get(nombre_estado='activo' if activo_val else 'inactivo')
+
+        partes_nombre = nombre_completo.split(' ', 1)
+        first_name = partes_nombre[0]
+        last_name = partes_nombre[1] if len(partes_nombre) > 1 else ''
+
+        username = email.split('@')[0]
+        counter = 1
+        base_username = username
+        while self.repository.user_exists_by_username(username):
+            username = f"{base_username}{counter}"
+            counter += 1
+
+        with transaction.atomic():
+            user = self.repository.create_user(
+                username=username,
+                email=email,
+                password=password,
+                first_name=first_name,
+                last_name=last_name
+            )
+
+            cliente = ClienteModel.objects.create(
+                usuario=user,
+                nombre=nombre_completo,
+                telefono=telefono,
+                es_lider=True,
+                estado=estado,
+            )
+
+            territorio = None
+            if id_territorio:
+                try:
+                    territorio = TerritorioModel.objects.get(id_territorio=id_territorio)
+                    if territorio.administrador_id:
+                        raise ValueError('Este territorio ya tiene un líder asignado.')
+                    territorio.administrador = cliente
+                    territorio.save()
+                except TerritorioModel.DoesNotExist:
+                    raise ValueError('Territorio no encontrado.')
+
+        return cliente
 
     def get_cliente(self, pk):
         return ClienteModel.objects.get(pk=pk)

@@ -1,3 +1,4 @@
+
 from django.contrib import admin
 from django.urls import path, include
 from django.http import JsonResponse
@@ -23,6 +24,7 @@ urlpatterns = [
 
     # Ruta raíz (esto soluciona el 404)
     path('', home, name='home'),
+    path('api/', include('Clientes.urls')),
 ]
 
 if settings.DEBUG:

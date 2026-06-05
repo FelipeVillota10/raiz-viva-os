@@ -20,6 +20,7 @@ from .serializers import (
 from .permissions import IsAdmin
 from django.contrib.auth.models import User
 from Aprobaciones.AprobacionSerializer import AprobacionesSerializer
+from Aprobaciones.AprobacionModel import AprobacionModel
 from Clientes.ClienteModel import ClienteModel
 from Servicios.ServicioModel import ServicioModel, ClienteServicioModel
 from Territorio.TerritorioModel import TerritorioModel
@@ -343,7 +344,9 @@ class AdminTerritoriosController(APIView):
             activo = request.data['administrador_activo']
             if isinstance(activo, str):
                 activo = activo.lower() in ('true', '1', 'yes')
-            territorio.administrador.activo = bool(activo)
+            territorio.administrador.estado = EstadoModel.objects.get(
+                nombre_estado='activo' if bool(activo) else 'inactivo'
+            )
             territorio.administrador.save()
 
         territorio.save()
@@ -427,7 +430,9 @@ class AdminLideresController(APIView):
             activo = request.data['activo']
             if isinstance(activo, str):
                 activo = activo.lower() in ('true', '1', 'yes')
-            lider.activo = bool(activo)
+            lider.estado = EstadoModel.objects.get(
+                nombre_estado='activo' if bool(activo) else 'inactivo'
+            )
 
         if 'email' in request.data:
             email = request.data['email']
@@ -463,8 +468,9 @@ class AdminLideresController(APIView):
                     except TerritorioModel.DoesNotExist:
                         return Response({'error': 'Territorio no encontrado'}, status=400)
 
-                    if nuevo_territorio.administrador and nuevo_territorio.administrador != lider:
-                        return Response({'error': 'Este territorio ya tiene un lider asignado'}, status=400)
+                    old_admin = nuevo_territorio.administrador
+                    if old_admin and old_admin != lider:
+                        AprobacionModel.objects.filter(id_lider=old_admin).update(id_lider=lider)
 
                     nuevo_territorio.administrador = lider
                     nuevo_territorio.save()
@@ -476,6 +482,36 @@ class AdminLideresController(APIView):
         lider.save()
         serializer = ClienteSerializer(lider, context={'request': request})
         return Response(serializer.data)
+
+
+class AdminCrearLiderController(APIView):
+    permission_classes = [IsAdmin]
+    parser_classes = [JSONParser, MultiPartParser, FormParser]
+
+    def post(self, request):
+        data = request.data.copy()
+
+        data['es_actor'] = False
+        data['es_lider'] = True
+        data['es_turista'] = False
+        data['es_admin'] = False
+        data['tipos_actores'] = []
+
+        serializer = RegistroClienteSerializer(data=data)
+        if not serializer.is_valid():
+            return Response({'errores': serializer.errors}, status=400)
+
+        service = UsuarioService()
+        try:
+            cliente = service.crear_lider_admin(serializer.validated_data)
+        except ValueError as e:
+            return Response({'error': str(e)}, status=400)
+
+        lider_data = AdminLiderSerializer(cliente, context={'request': request}).data
+        return Response({
+            'mensaje': 'Líder territorial registrado correctamente.',
+            'lider': lider_data,
+        }, status=201)
 
 
 class EstadosController(APIView):

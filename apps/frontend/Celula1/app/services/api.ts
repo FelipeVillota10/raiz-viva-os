@@ -296,6 +296,23 @@ export const adminService = {
     return response.json();
   },
 
+  async getLideresDisponibles(): Promise<AdminLider[]> {
+    const response = await fetchWithAuth(`${API_URL}/api/admin/lideres/?disponibles=true`);
+    return response.json();
+  },
+
+  async crearTerritorio(data: { nombre_territorio: string; region: string; id_administrador: number }): Promise<AdminTerritorio> {
+    const response = await fetchWithAuth(`${API_URL}/api/admin/territorios/`, {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+    if (!response.ok) {
+      const error = await response.json().catch(() => ({}));
+      throw new Error(error.error || 'Error al crear territorio');
+    }
+    return response.json();
+  },
+
   async getLider(id: number): Promise<PerfilActor> {
     const response = await fetchWithAuth(`${API_URL}/api/admin/lideres/${id}/`);
     return response.json();

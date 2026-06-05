@@ -58,6 +58,13 @@ export default function LideresPage() {
           <h1 className="text-3xl font-bold text-[#557149] mb-2">Líderes</h1>
           <p className="text-[#353535]">Gestiona los líderes territoriales registrados en el sistema</p>
         </div>
+        <button
+          type="button"
+          onClick={() => router.push('/admin/lideres/nuevo')}
+          className="bg-[#3b5630] hover:bg-[#2d6530] text-white font-semibold px-5 py-2.5 rounded-full transition"
+        >
+          Nuevo Líder
+        </button>
       </div>
 
       {error && (
