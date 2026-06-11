@@ -1,6 +1,6 @@
 # 🌱 Raíz Viva OS
 
-Proyecto académico - Universidad del Valle
+Proyecto académico - Universidad del Valle.
 
 ---
 
