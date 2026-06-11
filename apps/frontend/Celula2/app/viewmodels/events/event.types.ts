@@ -15,7 +15,7 @@ export interface WizardFormData {
   price:            string;
   currency:         string;
   capacity:         string;
-  category:         string;
+  category:         string | number;
 }
 
 export type StepErrors = Partial<Record<keyof WizardFormData, string>>;

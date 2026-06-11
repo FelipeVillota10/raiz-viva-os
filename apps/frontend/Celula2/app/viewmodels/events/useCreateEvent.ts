@@ -2,8 +2,8 @@
 import { useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import type { WizardFormData } from './event.types';
-import { getStoredEvents, saveStoredEvents } from './useEventList';
-import type { EventListItem } from './useEventList';
+/*import { getStoredEvents, saveStoredEvents } from './useEventList';
+import type { EventListItem } from './useEventList';*/
 
 interface UseCreateEventReturn {
   createEvent:  (data: WizardFormData) => Promise<void>;
@@ -29,6 +29,7 @@ export function useCreateEvent(): UseCreateEventReturn {
     formDataToSend.append('capacidad',    data.capacity);
     formDataToSend.append('fecha_inicio', `${data.startDate}T${data.startTime || '00:00'}`);
     formDataToSend.append('fecha_fin',    `${data.endDate || data.startDate}T${data.endTime || '00:00'}`);
+    formDataToSend.append('id_categoria', String(data.category));
 
     if (data.imageFile) {
       formDataToSend.append('imagen', data.imageFile);

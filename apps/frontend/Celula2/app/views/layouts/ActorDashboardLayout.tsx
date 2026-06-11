@@ -20,7 +20,7 @@ export function ActorDashboardLayout({ children }: Props) {
         <div className="flex items-center gap-4">
 
           <Image
-            src="/Celula2/logos/RaizViva-LogoFO.png"
+            src="/RaizLogoCirculo.png"
             alt="Raíz Viva"
             width={220}
             height={80}

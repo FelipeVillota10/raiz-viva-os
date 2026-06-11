@@ -92,22 +92,23 @@ export function EditEventWizard({ eventId }: Props) {
 
   // Publicar evento
   async function handlePublish() {
-    await editor.updateEvent(eventId, { ...wizard.formData });
+    await editor.publicarEvent(eventId);
     setShowPublish(false);
-    setStatus("pending");
-    setToastMessage("Evento enviado a revision. Estado: Pendiente");
-    setToastType("success");
+    setStatus('pending');
+    setToastMessage('Evento enviado a revisión. Estado: Pendiente');
+    setToastType('success');
     setToastVisible(true);
   }
 
   // Inactivar evento
   async function handleDeactivate() {
+    await editor.inactivarEvent(eventId);
     setShowDeactivate(false);
-    setStatus("inactive");
-    setToastMessage("Evento inactivado correctamente");
-    setToastType("success");
+    setStatus('inactive');
+    setToastMessage('Evento inactivado correctamente');
+    setToastType('success');
     setToastVisible(true);
-    setTimeout(() => router.push("/actor/events"), 1800);
+    setTimeout(() => router.push('/actor/events'), 1800);
   }
 
   if (!loaded) {

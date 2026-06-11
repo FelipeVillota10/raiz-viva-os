@@ -6,22 +6,25 @@ class EventoService:
 
     def listar_eventos(self):
         return self.repository.get_all()
+    
+
+    def obtener_evento(self, evento_id):
+        return self.repository.get_by_id(evento_id)
 
     def crear_evento(self, data, imagen=None):
-        # 1. Convertir QueryDict a dict plano
         if hasattr(data, 'dict'):
             data = data.dict()
 
-        # 2. Limpiar campos que no pertenecen al modelo
+        id_categoria = data.get('id_categoria')
+
+        # Limpiar campos que no pertenecen al modelo
         for campo in ['imagen', 'ubicacion_nombre', 'ubicacion_direccion']:
             data.pop(campo, None)
 
-        # 3. Normalizar booleano
         data['es_gratuito'] = str(data.get('es_gratuito', 'false')).lower() == 'true'
         if data['es_gratuito']:
             data['costo_evento'] = 0
 
-        # 4. Validar campos obligatorios
         for campo in ['nombre', 'descripcion', 'fecha_inicio', 'fecha_fin', 'capacidad']:
             if not data.get(campo):
                 raise ValueError(f"El campo '{campo}' es obligatorio.")
@@ -29,12 +32,15 @@ class EventoService:
         if int(data.get('capacidad', 0)) <= 0:
             raise ValueError("La capacidad debe ser mayor a 0.")
 
-        """# 5. Imagen
-        if imagen:
-            data['imagen'] = imagen"""
-
-        # 6. Estado inicial: Borrador
         data['id_estado_id'] = self._get_id_estado('Borrador')
+
+        if id_categoria:
+            from CategoriasEventos.CategoriaEventoModel import CategoriaEventoModel
+            data['id_categoria'] = CategoriaEventoModel.objects.get(pk=int(id_categoria))
+
+        # ← imagen se pasa directo, no dentro del dict
+        if imagen:
+            data['imagen'] = imagen
 
         return self.repository.create(data)
 
@@ -45,6 +51,8 @@ class EventoService:
 
         if hasattr(data, 'dict'):
             data = data.dict()
+
+        id_categoria = data.get('id_categoria')  # ← captura antes de limpiar
 
         for campo in ['imagen', 'ubicacion_nombre', 'ubicacion_direccion', 'id_estado_id']:
             data.pop(campo, None)
@@ -65,6 +73,11 @@ class EventoService:
         if imagen:
             data['imagen'] = imagen
 
+        # ← asigna instancia real de categoría
+        if id_categoria:
+            from CategoriasEventos.CategoriaEventoModel import CategoriaEventoModel
+            data['id_categoria'] = CategoriaEventoModel.objects.get(pk=int(id_categoria))
+
         return self.repository.update(evento, data)
 
     def inactivar_evento(self, evento_id):
@@ -79,3 +92,9 @@ class EventoService:
         if not estado:
             raise ValueError(f"Estado '{nombre}' no encontrado en la base de datos.")
         return estado.pk
+    
+    def publicar_evento(self, evento_id):
+        evento = self.repository.get_by_id(evento_id)
+        if not evento:
+            return None
+        return self.repository.update(evento, {'id_estado_id': self._get_id_estado('En revisión')})

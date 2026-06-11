@@ -2,6 +2,7 @@ from rest_framework import serializers
 from .EventoModel import EventoModel
 from DetallesEventos.DetalleEventoSerializer import DetalleEventoSerializer
 from Productos.ProductoSerializer import ProductoSerializer
+from CategoriasEventos.CategoriaEventoSerializer import CategoriaEventoSerializer
 
 
 
@@ -17,6 +18,8 @@ class EventoSerializer(serializers.ModelSerializer):
         many=True,
         read_only=True
     )
+
+    id_categoria = CategoriaEventoSerializer(read_only=True)
     
     class Meta:
         model = EventoModel
@@ -24,7 +27,7 @@ class EventoSerializer(serializers.ModelSerializer):
             'id_evento', 'nombre', 'descripcion', 'costo_evento',
             'capacidad', 'fecha_inicio', 'fecha_fin', 'es_gratuito',
             'id_estado', 'id_territorio', 'id_actor_principal',
-            'imagen', 'detalle', 'productos'
+            'imagen', 'detalle', 'productos', 'id_categoria'
             
         ]
 

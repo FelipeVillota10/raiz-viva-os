@@ -18,10 +18,11 @@ urlpatterns = [
     path('api/', include('usuarios.urls')),
     path('api/', include('Aprobaciones.urls')),
     path('api/', include('Servicios.urls')),
+    path('api/', include('CategoriasEventos.urls')),
+    path('api/', include('Eventos.urls')),
     path('api/growth/', GrowthController.as_view(), name='growth'),
 
-    path('api/eventos/', EventoController.as_view(), name='eventos'),
-    path('api/eventos/<int:pk>/', EventoController.as_view(), name='eventos-detail-update-delete'),
+
 
      path('api/ecoaventuras/', include('EcoAventuras.urls')),
      path('api/', include('Paquete.urls')),

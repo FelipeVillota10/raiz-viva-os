@@ -1,17 +1,16 @@
+# EventoModel.py
 import uuid
 import os
 
-
 from django.db import models
-
 from Estados.EstadoModel import EstadoModel
-
+from CategoriasEventos.CategoriaEventoModel import CategoriaEventoModel
 
 
 def ruta_imagen_evento(instance, filename):
-    ext = filename.split('.')[-1]                    # extrae jpg o png
-    nombre = f"{uuid.uuid4().hex}.{ext}"             # genera nombre único
-    return f"eventos/{nombre}"                       # ruta final en R2
+    ext = filename.split('.')[-1]
+    nombre = f"{uuid.uuid4().hex}.{ext}"
+    return f"eventos/{nombre}"
 
 
 class EventoModel(models.Model):
@@ -20,12 +19,21 @@ class EventoModel(models.Model):
     id_territorio = models.IntegerField(null=True, blank=True)
 
     id_estado = models.ForeignKey(
-    EstadoModel,
-    on_delete=models.SET_NULL,
-    null=True,
-    blank=True,
-    db_column='id_estado'
+        EstadoModel,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        db_column='id_estado'
     )
+
+    id_categoria = models.ForeignKey(
+        CategoriaEventoModel,  # ← string, sin import directo
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        db_column='id_categoria'
+    )
+
     nombre = models.CharField(max_length=200)
     descripcion = models.TextField()
     costo_evento = models.DecimalField(max_digits=10, decimal_places=2, default=0)
