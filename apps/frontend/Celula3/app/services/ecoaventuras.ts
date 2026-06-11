@@ -49,7 +49,11 @@ export interface Filtros {
   page?: number;
 }
 
+<<<<<<< HEAD
 const BASE = "http://localhost:8000/api/ecoaventuras";
+=======
+const BASE = "/api/ecoaventuras";
+>>>>>>> f6ed0b71b2b6b3c57bdb257c13c231eccb3675e7
 
 function buildQuery(filtros: Filtros): string {
   const params = new URLSearchParams();

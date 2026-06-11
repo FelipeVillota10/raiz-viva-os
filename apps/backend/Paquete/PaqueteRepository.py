@@ -26,13 +26,20 @@ class PaqueteRepository:
         ).exists()
 
     @staticmethod
-    def agregar_item(paquete: Paquete, ecoaventura: EcoAventuraModel, fecha_reserva, num_personas: int) -> PaqueteItem:
-        return PaqueteItem.objects.create(
+    def agregar_item(paquete, ecoaventura, fecha_reserva, num_personas):
+        # update_or_create busca el registro con los campos especificados.
+        # Si lo encuentra, actualiza los valores en 'defaults'.
+        # Si no lo encuentra, crea un registro nuevo.
+        item, created = PaqueteItem.objects.update_or_create(
             paquete=paquete,
             ecoaventura=ecoaventura,
             fecha_reserva=fecha_reserva,
-            num_personas=num_personas,
+            defaults={
+                'num_personas': num_personas,
+                # Si en el futuro requieres modificar 'cantidad', lo agregas aquí. 'cantidad': 1 
+            }
         )
+        return item
 
     @staticmethod
     def eliminar_item(item_id: int, session_key: str) -> bool:
@@ -48,3 +55,16 @@ class PaqueteRepository:
             paquete.items.all().delete()
         except Paquete.DoesNotExist:
             pass
+
+    @staticmethod
+    def obtener_reglas_operativas():
+        """
+        Obtiene las reglas globales de armado de paquetes.
+        Por ahora retorna un mock, pero debería consultar una tabla de Configuración.
+        """
+        return {
+            "min_personas": 1,
+            "max_personas": 20,
+            "max_actividades": 6,
+            "fechas_bloqueadas": []
+        }
