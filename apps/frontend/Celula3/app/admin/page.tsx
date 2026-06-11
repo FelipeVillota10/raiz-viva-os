@@ -6,8 +6,11 @@ import { Header } from "../components/Header";
 import { ListaAdmin } from "./components/ListaAdmin";
 import { FormEcoAventura } from "./components/FormEcoAventura";
 import { FormItinerario } from "./components/FormItinerario";
+import { ReglasForm } from "../admin/components/ReglasForm"; 
+import { guardarReglasOperativas } from "../services/ecoaventuras"; 
 
-type Vista = "lista" | "form" | "itinerario";
+
+type Vista = "lista" | "form" | "itinerario" | "reglas";
 
 export default function AdminPage() {
   const [ecoaventuras, setEcoaventuras] = useState<EcoAventura[]>([]);
@@ -40,35 +43,26 @@ export default function AdminPage() {
     setVista("lista");
   };
 
-  const handleActualizar = (eco: EcoAventura) => {
-    setEcoaventuras((prev) =>
-      prev.map((e) => (e.id === eco.id ? eco : e))
-    );
-  };
-
   return (
     <div className="min-h-screen bg-[#f9f3e7]">
       <Header />
 
       <main className="max-w-6xl mx-auto px-4 py-8">
-        {/* Encabezado del panel */}
         <div className="flex items-center justify-between mb-6">
           <div>
             <h1 className="text-2xl font-bold text-[#3a5c2e]">Panel de Eco-Aventuras</h1>
             <p className="text-sm text-gray-500 mt-0.5">
-              {ecoaventuras.length} experiencia{ecoaventuras.length !== 1 ? "s" : ""} registrada
-              {ecoaventuras.length !== 1 ? "s" : ""}
+              {ecoaventuras.length} experiencia{ecoaventuras.length !== 1 ? "s" : ""} registrada{ecoaventuras.length !== 1 ? "s" : ""}
             </p>
           </div>
-          {vista === "lista" && (
+          {vista === "lista" ? (
             <button
               onClick={() => { setSeleccionada(null); setVista("form"); }}
               className="bg-[#3a5c2e] hover:bg-[#557149] text-white px-4 py-2 rounded-lg text-sm font-medium transition"
             >
               + Nueva eco-aventura
             </button>
-          )}
-          {vista !== "lista" && (
+          ) : (
             <button
               onClick={() => setVista("lista")}
               className="text-sm text-gray-500 hover:text-gray-700 transition"
@@ -78,7 +72,6 @@ export default function AdminPage() {
           )}
         </div>
 
-        {/* Contenido según vista */}
         {cargando ? (
           <div className="bg-white rounded-2xl shadow-sm p-8 text-center text-gray-400 animate-pulse text-sm">
             Cargando eco-aventuras...
@@ -90,7 +83,8 @@ export default function AdminPage() {
                 ecoaventuras={ecoaventuras}
                 onEditar={(eco) => { setSeleccionada(eco); setVista("form"); }}
                 onItinerario={(eco) => { setSeleccionada(eco); setVista("itinerario"); }}
-                onActualizar={handleActualizar}
+                onReglas={(eco) => { setSeleccionada(eco); setVista("reglas"); }} 
+                onActualizar={(eco) => setEcoaventuras(prev => prev.map(e => e.id === eco.id ? eco : e))}
               />
             )}
 
@@ -107,6 +101,29 @@ export default function AdminPage() {
                 ecoaventuraId={seleccionada.id}
                 nombreEco={seleccionada.nombre}
                 onCerrar={() => setVista("lista")}
+              />
+            )}
+            
+            {vista === "reglas" && seleccionada && (
+              <ReglasForm
+                // Mapeamos los datos de forma segura para TypeScript usando accesores de objeto
+                reglas={{
+                  id: seleccionada.id,
+                  min_personas: (seleccionada as any).min_personas || 1,
+                  max_personas: seleccionada.capacidad_maxima || 20,
+                  max_actividades: (seleccionada as any).max_actividades || 6,
+                  fechas_bloqueadas: []
+                }} 
+                onGuardar={async (nuevasReglas: any) => {
+                  try {
+                    await guardarReglasOperativas(seleccionada.id, nuevasReglas);
+                    alert("¡Límites de la eco-aventura actualizados correctamente!");
+                    setVista("lista"); 
+                  } catch (error: any) {
+                    alert(`Hubo un error al guardar: ${error.message}`);
+                  }
+                }}
+                onCancelar={() => setVista("lista")} 
               />
             )}
           </>

@@ -58,13 +58,19 @@ class PaqueteRepository:
 
     @staticmethod
     def obtener_reglas_operativas():
-        """
-        Obtiene las reglas globales de armado de paquetes.
-        Por ahora retorna un mock, pero debería consultar una tabla de Configuración.
-        """
+        from .PaqueteModel import ReglasConfig
+        config = ReglasConfig.objects.first()
+        if not config:
+            # Valores por defecto si el admin nunca ha guardado reglas
+            return {
+                "min_personas": 1,
+                "max_personas": 20,
+                "max_actividades": 6,
+                "fechas_bloqueadas": []
+            }
         return {
-            "min_personas": 1,
-            "max_personas": 20,
-            "max_actividades": 6,
-            "fechas_bloqueadas": []
+            "min_personas": config.min_personas,
+            "max_personas": config.max_personas,
+            "max_actividades": config.max_actividades,
+            "fechas_bloqueadas": config.fechas_bloqueadas
         }
