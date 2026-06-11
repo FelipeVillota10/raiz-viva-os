@@ -17,6 +17,8 @@ class EcoAventuraModel(models.Model):
     dificultad = models.CharField(max_length=10, choices=DIFICULTAD_CHOICES, default='MEDIA')
     duracion = models.PositiveIntegerField(help_text='Duración en horas')
     capacidad_maxima = models.PositiveIntegerField()
+    min_personas = models.PositiveIntegerField(default=1, help_text='Mínimo de personas para el paquete')
+    max_actividades = models.PositiveIntegerField(default=6, help_text='Máximo de actividades permitidas')
     precio = models.DecimalField(max_digits=10, decimal_places=2)
     imagen_url = models.URLField(blank=True, null=True)
 

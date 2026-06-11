@@ -49,7 +49,9 @@ export interface Filtros {
   page?: number;
 }
 
-const BASE = "/api/ecoaventuras";
+
+const BASE = "http://localhost:8000/api/ecoaventuras";
+
 
 function buildQuery(filtros: Filtros): string {
   const params = new URLSearchParams();
@@ -136,4 +138,30 @@ export async function guardarItinerario(id: number, data: Itinerario): Promise<I
     throw new Error(JSON.stringify(err));
   }
   return res.json();
+}
+
+export async function guardarReglasOperativas(id: number, reglas: any) {
+  try {
+    const response = await fetch(`http://localhost:8000/api/ecoaventuras/${id}/`, {
+      method: "PATCH", // PATCH nos permite actualizar solo estos campos específicos
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        min_personas: reglas.minPersonas,
+        capacidad_maxima: reglas.maxPersonas, 
+        max_actividades: reglas.maxActividades
+      }),
+    });
+
+    if (!response.ok) {
+      const errorData = await response.json().catch(() => null);
+      throw new Error(errorData?.error || `Error en el servidor (${response.status})`);
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error("Error en guardarReglasOperativas:", error);
+    throw error;
+  }
 }
