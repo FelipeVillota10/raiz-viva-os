@@ -5,6 +5,9 @@ on:
     branches: [desarrollo]
   push:
     branches: [desarrollo]
+    
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
 
 jobs:
   qa-backend:
@@ -52,27 +55,40 @@ jobs:
         
   # frontend
   qa-frontend:
-    name: QA Verificaciones (Frontend)
+    name: QA Verificaciones (Frontend celula por celula porque asi esta apps/fronted/celulaX/package.json)
     runs-on: ubuntu-latest
-    defaults:
-      run:
-        working-directory: apps/frontend #Apunta a la carpeta de Next.js
     steps:
-    - name: Descargar Código
-      uses: actions/checkout@v4
+      - name: Descargar Código
+        uses: actions/checkout@v4
 
-    - name: Configurar Node.js
-      uses: actions/setup-node@v4
-      with:
-        node-version: '20' 
+      - name: Configurar Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
 
-    - name: Instalar Dependencias
-      run: npm ci
-
-    - name: QA Estático - Validar Código (ESLint)
-      run: npm run lint #Revisa que no tenga errores de sintaxis o malas prácticas
-      continue-on-error: true # Para que de la advertencia pero continue
-    - name: Compilar Proyecto (Build)
-      run: npm run build
-
-    #-  name: QA Funcional - Pruebas del Front
+      - name: Validar e Integrar Todas las Células
+        run: |
+          cd apps/frontend
+          for dir in */; do
+            if [ -f "${dir}package.json" ]; then
+              echo "================================================================="
+              echo "comprobando componente: ${dir%/}"
+              echo "================================================================="
+              
+              cd "$dir"
+              
+              echo "se estan instalando las dependencias"
+              npm ci
+              
+              echo "se valida el codigo"
+              npm run lint || echo "Esto detecto unas advertencias menores en ${dir%/}"
+              
+              echo "compilando el proyecto, frontend"
+              if ! npm run build; then
+                echo "Pucha el build de la celula [${dir%/}] falló"
+                exit 1
+              fi
+              
+              cd ..
+            fi
+          done
