@@ -19,6 +19,7 @@ class ClienteSerializer(serializers.ModelSerializer):
     observaciones = serializers.SerializerMethodField()
     foto_perfil_url = serializers.SerializerMethodField()
     foto_portada_url = serializers.SerializerMethodField()
+    activo = serializers.SerializerMethodField()
 
     class Meta:
         model = ClienteModel
@@ -27,7 +28,7 @@ class ClienteSerializer(serializers.ModelSerializer):
             'usuario_nombre', 'reputacion', 'es_actor', 'es_lider', 'es_turista',
             'territorio_nombre', 'moneda_nombre', 'tipos_actores', 'servicio',
             'descripcion', 'foto_perfil', 'foto_portada', 'foto_perfil_url', 'foto_portada_url',
-            'activo', 'estado_aprobacion', 'observaciones'
+            'activo', 'estado_aprobacion', 'observaciones', 'direccion'
         ]
 
     def get_usuario_nombre(self, obj):
@@ -64,3 +65,6 @@ class ClienteSerializer(serializers.ModelSerializer):
                 return request.build_absolute_uri(obj.foto_portada.url)
             return obj.foto_portada.url
         return None
+
+    def get_activo(self, obj):
+        return obj.estado.nombre_estado == 'activo' if obj.estado else False

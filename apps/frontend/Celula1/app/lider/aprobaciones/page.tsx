@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import { getToken, API_URL } from '../../services/api';
+import { solicitudesService } from '../../services/api';
 
 interface ActorInfo {
   id: number;
@@ -35,20 +35,9 @@ export default function AprobacionesPage() {
   const [filtro, setFiltro] = useState<string>('');
 
   const fetchSolicitudes = useCallback(async () => {
-    const token = getToken();
-    if (!token) {
-      setLoading(false);
-      return;
-    }
-
     try {
-      const response = await fetch(`${API_URL}/api/solicitudes/`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (response.ok) {
-        const data = await response.json();
-        setSolicitudes(data);
-      }
+      const data = await solicitudesService.getSolicitudes();
+      setSolicitudes(data);
     } catch (error) {
       console.error('Error fetching solicitudes:', error);
     } finally {
