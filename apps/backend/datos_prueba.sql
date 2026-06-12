@@ -11,7 +11,7 @@
 -- =============================================
 -- 0. LIMPIEZA (TRUNCATE con reinicio de secuencias)
 -- =============================================
-TRUNCATE TABLE cliente_servicios RESTART IDENTITY CASCADE;
+/*TRUNCATE TABLE cliente_servicios RESTART IDENTITY CASCADE;*/
 TRUNCATE TABLE aprobaciones RESTART IDENTITY CASCADE;
 TRUNCATE TABLE cliente_tipos_actores RESTART IDENTITY CASCADE;
 TRUNCATE TABLE territorios RESTART IDENTITY CASCADE;
@@ -179,7 +179,7 @@ INSERT INTO servicios (nombre, descripcion, precio_base, unidad) VALUES
 -- 12. RELACION ACTORES-SERVICIOS (Un actor puede tener varios servicios)
 -- =============================================
 -- Juan Martinez (id=3, productor) → Agricultura, Artesanias
-INSERT INTO cliente_servicios (id_cliente, id_servicio, precio_acordado, fecha_asociacion) VALUES
+/*INSERT INTO cliente_servicios (id_cliente, id_servicio, precio_acordado, fecha_asociacion) VALUES
 (3, 9, 15000.00, NOW()),
 (3, 5, 25000.00, NOW());
 
@@ -192,7 +192,7 @@ INSERT INTO cliente_servicios (id_cliente, id_servicio, precio_acordado, fecha_a
 INSERT INTO cliente_servicios (id_cliente, id_servicio, precio_acordado, fecha_asociacion) VALUES
 (5, 1, 20000.00, NOW()),
 (5, 2, 50000.00, NOW()),
-(5, 6, 10000.00, NOW());
+(5, 6, 10000.00, NOW());*/
 
 -- =============================================
 -- 12.5 CORREGIR SECUENCIAS (tras INSERTs con IDs explicitos)

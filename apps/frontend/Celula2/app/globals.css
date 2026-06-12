@@ -1,0 +1,15 @@
+@import "tailwindcss";
+
+:root {
+  --verde-oscuro: #3a5c2e;
+  --verde-medio: #557149;
+  --verde-claro: #7a9e6a;
+  --crema: #f9f3e7;
+  --tierra: #8b5e3c;
+}
+
+body {
+  font-family: 'Poppins', Arial, Helvetica, sans-serif;
+  background-color: var(--crema);
+  color: #1a1a1a;
+}
