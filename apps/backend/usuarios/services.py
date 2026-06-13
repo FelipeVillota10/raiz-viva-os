@@ -43,12 +43,7 @@ class UsuarioService:
                 if not cliente.estado or cliente.estado.nombre_estado == 'inactivo':
                     return None, 'Tu cuenta ha sido deshabilitada. Contacta al administrador.'
             elif cliente.es_actor:
-                tiene_aprobacion = AprobacionModel.objects.filter(
-                    id_actor=cliente,
-                    estado_resultado=EstadoAprobacion.APROBADO
-                ).exists()
-                if not tiene_aprobacion:
-                    return None, 'Tu solicitud esta en revision. El lider territorial la revisara pronto.'
+                # Permitir autenticación a actores en revisión
                 if not cliente.estado or cliente.estado.nombre_estado == 'inactivo':
                     return None, 'Tu cuenta ha sido deshabilitada. Contacta al lider territorial.'
             else:

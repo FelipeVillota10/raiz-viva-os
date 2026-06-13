@@ -134,7 +134,6 @@ class RegistroClienteSerializer(serializers.Serializer):
     es_lider = serializers.BooleanField(default=False)
     es_turista = serializers.BooleanField(default=False)
     es_admin = serializers.BooleanField(default=False)
-    activo = serializers.BooleanField(default=True)
 
     def validate_nombre_completo(self, value):
         if any(char.isdigit() for char in value):

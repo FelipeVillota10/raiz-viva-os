@@ -47,6 +47,13 @@ class SolicitudDetalleController(APIView):
 
 class SolicitudActualizarController(APIView):
     def patch(self, request, pk):
+        import logging
+        logger = logging.getLogger(__name__)
+        
+        logger.info(f"PATCH request received: pk={pk}")
+        logger.info(f"Content-Type: {request.content_type}")
+        logger.info(f"request.data: {request.data}")
+        
         auth_header = request.headers.get('Authorization', '')
         if not auth_header.startswith('Bearer '):
             return Response({'error': 'Token no proporcionado'}, status=401)
@@ -59,10 +66,14 @@ class SolicitudActualizarController(APIView):
         except Exception:
             return Response({'error': 'Token invalido'}, status=401)
 
-        estado = request.data.get('estado_resultado')
-        observaciones = request.data.get('observaciones', '')
+        # Try to get estado from request.data, request.POST, or parsed JSON
+        estado = request.data.get('estado') or request.data.get('estado_resultado')
+        observaciones = request.data.get('observaciones', '') or request.POST.get('observaciones', '')
+        
+        logger.info(f"Parsed estado={estado}, observaciones={observaciones}")
 
-        if estado not in ['EN_REVISION', 'APROBADO', 'RECHAZADO']:
+        if not estado or estado not in ['EN_REVISION', 'APROBADO', 'RECHAZADO']:
+            logger.error(f"Invalid or missing estado value: {estado}")
             return Response({'error': 'Estado invalido'}, status=400)
 
         service = AprobacionService()
@@ -70,6 +81,11 @@ class SolicitudActualizarController(APIView):
             aprobacion = service.actualizar_solicitud(pk, cliente, estado, observaciones)
         except AprobacionModel.DoesNotExist:
             return Response({'error': 'Solicitud no encontrada'}, status=404)
+        except Exception as e:
+            import logging
+            logger = logging.getLogger(__name__)
+            logger.exception(f"Error updating solicitud {pk}: {str(e)}")
+            return Response({'error': f'Error: {str(e)}'}, status=400)
 
         return Response(AprobacionesSerializer(aprobacion).data)
 
