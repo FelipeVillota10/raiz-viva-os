@@ -244,7 +244,7 @@ export function useTuristaRegistro(): UseTuristaRegistroReturn {
       };
 
       await registroService.registrarCliente(payload);
-      router.push('/');
+      router.push('/registro/confirmacion-turista');
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Error de conexión. Asegúrate de que el backend esté corriendo.';
       setGeneralError(message);

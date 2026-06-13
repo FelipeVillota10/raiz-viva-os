@@ -96,6 +96,7 @@ export function AppHeader({ role = 'public', backRoute, title, actions, rightSlo
     isAuthenticated,
     isLider,
     isActor,
+    isTurista,
     logout,
   } = useAuth();
 
@@ -269,6 +270,26 @@ export function AppHeader({ role = 'public', backRoute, title, actions, rightSlo
     </div>
   );
 
+  /** Navegación de turista autenticado (en página pública: home, mapa) */
+  const turistaAuthNav = (
+    <div className="flex items-center gap-4">
+      {pathname === '/mapa' && (
+        <Link href="/">
+          <button className="bg-yellow-500 hover:bg-yellow-400 text-black px-4 py-2 rounded-full text-sm font-medium transition">
+            Volver
+          </button>
+        </Link>
+      )}
+      <span className="text-sm text-white">Hola, {user?.nombre_completo}</span>
+      <button
+        onClick={() => handleLogout('/')}
+        className="bg-white/20 hover:bg-white/30 text-white px-4 py-2 rounded-full text-sm font-medium transition"
+      >
+        Cerrar Sesión
+      </button>
+    </div>
+  );
+
   /**
    * Selecciona qué navegación mostrar.
    * El orden importa: cada guard es excluyente.
@@ -297,6 +318,7 @@ export function AppHeader({ role = 'public', backRoute, title, actions, rightSlo
       if (isAdmin) return adminNav;
       if (isLider) return liderAuthNav;
       if (isActor) return actorAuthNav;
+      if (isTurista) return turistaAuthNav;
       return publicNav;
     }
 
