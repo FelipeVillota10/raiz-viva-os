@@ -1,31 +1,36 @@
-# Raíz Viva OS - Guía para el Equipo
+This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
 
-## Frontend (Next.js) - Patrón **MVVM**
+## Getting Started
 
-Usaremos el patrón **MVVM** (Model - View - ViewModel). Es muy sencillo y moderno:
+First, run the development server:
 
-- **Model** → Los datos (lo que viene del backend) 
-- **View** → Lo que ve el usuario (las pantallas, componentes) 
-- **ViewModel** → La lógica intermedia (conecta el Model con la View)
+```bash
+npm run dev
+# or
+yarn dev
+# or
+pnpm dev
+# or
+bun dev
+```
 
-**Cómo trabajar en frontend:** 
-1. Entra a la carpeta `apps/frontend` 
-2. Crea o modifica componentes en la carpeta `app/` o `components/` 
-3. Usa **ViewModels** (hooks o archivos separados) para manejar la lógica
+Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-**Ejemplo simple:** 
-- `View` = Página de login 
-- `ViewModel` = Lógica de validación y llamada al backend 
-- `Model` = Datos del usuario
+You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
 
-## Cómo empezar a trabajar
+This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
-1. Clona el repositorio 
-2. Cambia a la rama `desarrollo` y actualiza (git checkout desarrollo  -  git pull) 
-3. Trabaja en tu rama personal (`git checkout -b feature/c1-actores` por ejemplo) 
-4. Sube tu rama (git push) y se hace Pull Request hacia `desarrollo`
+## Learn More
 
-**Reglas importantes:** 
-- Nunca hagas push directo a `produccion` 
-- Siempre haz commit con mensajes claros (`feat:`, `fix:`, `refactor:`)
+To learn more about Next.js, take a look at the following resources:
 
+- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
+- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+
+You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+
+## Deploy on Vercel
+
+The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+
+Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
