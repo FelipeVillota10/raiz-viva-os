@@ -4,10 +4,7 @@ Django settings for backend project.
 
 import os
 from pathlib import Path
-from dotenv import load_dotenv
 import dj_database_url
-
-load_dotenv(os.path.join(Path(__file__).resolve().parent.parent, '.env'))
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
@@ -34,6 +31,11 @@ INSTALLED_APPS = [
     'corsheaders',
     'Estados',
     'Clientes',
+    'Productos',
+    'Eventos',
+    'DetallesEventos',
+    'Categorias',
+    'CategoriasEventos',
     'Evento',
     'Experiencia',
     'Territorio',
@@ -43,9 +45,12 @@ INSTALLED_APPS = [
     'ConsolidadoEvento',
     'ConsolidadoExperiencia',
     'DetalleEvento',
+    'EcoAventuras',
     'Servicios',
     'Aprobaciones',
     'usuarios',
+    'Comentarios',
+    'Paquete' 
 ]
 
 MIDDLEWARE = [
@@ -81,10 +86,16 @@ WSGI_APPLICATION = 'backend.wsgi.application'
 
 DATABASES = {
     'default': dj_database_url.config(
-        default='postgresql://neondb_owner:npg_h6lqt9OTDgyQ@ep-red-feather-amf5zv7i-pooler.c-5.us-east-1.aws.neon.tech/neondb?sslmode=require',
+       default='postgresql://neondb_owner:npg_h6lqt9OTDgyQ@ep-red-feather-amf5zv7i-pooler.c-5.us-east-1.aws.neon.tech/neondb?sslmode=require',
         conn_max_age=600,
         ssl_require=False
+
     )
+    #'default': dj_database_url.config(
+    #    default='sqlite:///db.sqlite3',
+    #    conn_max_age=600,
+    #    ssl_require=False
+    #)
 }
 
 
@@ -174,3 +185,7 @@ CORS_ALLOWED_ORIGINS = [
     "http://127.0.0.1:3000",
 ]
 CORS_ALLOW_ALL_ORIGINS = DEBUG
+
+SESSION_COOKIE_SAMESITE = 'Lax'
+SESSION_COOKIE_HTTPONLY = True
+CORS_ALLOW_CREDENTIALS = True   #necesario para que fetch con credentials:"include" funcione
