@@ -10,9 +10,9 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.RemoveField(
-            model_name='clientemodel',
-            name='activo',
+        migrations.RunSQL(
+            sql="ALTER TABLE clientes DROP COLUMN IF EXISTS activo;",
+            reverse_sql="SELECT 1;",
         ),
         migrations.AddField(
             model_name='clientemodel',
