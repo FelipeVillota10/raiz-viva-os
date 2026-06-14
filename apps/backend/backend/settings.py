@@ -84,12 +84,15 @@ TEMPLATES = [
 WSGI_APPLICATION = 'backend.wsgi.application'
 
 
-DATABASES = {
-    'default': dj_database_url.config(
-       default='postgresql://postgres:admin123@localhost:5433/raizviva',
-       conn_max_age=600,
-       ssl_require=False
+DATABASE_URL = os.environ.get('DATABASE_URL')
+if not DATABASE_URL:
+    raise Exception(
+        "DATABASE_URL no esta definida. "
+        "Copia .env.example a .env y configura tu conexion."
     )
+
+DATABASES = {
+    'default': dj_database_url.parse(DATABASE_URL, conn_max_age=600, ssl_require=False)
 }
 
 
