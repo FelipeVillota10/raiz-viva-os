@@ -1,5 +1,7 @@
 from .PaqueteRepository import PaqueteRepository
+from .PaqueteModel import Paquete, PaqueteItem
 from EcoAventuras.EcoAventuraRepository import EcoAventuraRepository
+from EcoAventuras.EcoAventuraModel import EcoAventuraModel
 from rest_framework.exceptions import ValidationError
 from django.db.models import Sum
 class PaqueteService:
@@ -7,11 +9,9 @@ class PaqueteService:
     @staticmethod
     def validar_reglas(paquete: Paquete, ecoaventura: EcoAventuraModel, num_personas_nuevo: int, fecha_reserva) -> None:
         """
-        Valida las reglas dinámicas globales y límites de capacidad real 
+        Valida las reglas dinámicas globales y límites de capacidad real
         para la eco-aventura específica dentro del paquete.
         """
-        from .PaqueteModel import PaqueteItem
-        from .PaqueteRepository import PaqueteRepository
 
         # 1. SOLUCIÓN CRÍTICA: Obtener límites globales reales desde ReglasConfig (HU14.A2)
         reglas_globales = PaqueteRepository.obtener_reglas_operativas()
