@@ -1,46 +1,15 @@
 @import "tailwindcss";
 
 :root {
-  --color-primary: #EFF7EA;
-  --color-secondary: #3E853F;
-  --color-accent: #E6D3A3;
-  --color-text-primary: #231F20;
-  --color-text-secondary: #353535;
-  --color-error: #E53935;
-  --color-success: #2E7D32;
-  --color-background: #F4F1EA;
-  --color-border: #C4C4C4;
-}
-
-@theme inline {
-  --color-primary: var(--color-primary);
-  --color-secondary: var(--color-secondary);
-  --color-accent: var(--color-accent);
-  --color-text-primary: var(--color-text-primary);
-  --color-text-secondary: var(--color-text-secondary);
-  --color-error: var(--color-error);
-  --color-success: var(--color-success);
-  --color-background: var(--color-background);
-  --color-border: var(--color-border);
-  --font-sans: var(--font-poppins);
-}
-
-* {
-  box-sizing: border-box;
+  --verde-oscuro: #3a5c2e;
+  --verde-medio: #557149;
+  --verde-claro: #7a9e6a;
+  --crema: #f9f3e7;
+  --tierra: #8b5e3c;
 }
 
 body {
-  background: var(--color-background);
-  color: var(--color-text-primary);
-  font-family: var(--font-sans), Arial, sans-serif;
-}
-
-input::-webkit-outer-spin-button,
-input::-webkit-inner-spin-button {
-  -webkit-appearance: none;
-  margin: 0;
-}
-
-input[type=number] {
-  -moz-appearance: textfield;
+  font-family: 'Poppins', Arial, Helvetica, sans-serif;
+  background-color: var(--crema);
+  color: #1a1a1a;
 }

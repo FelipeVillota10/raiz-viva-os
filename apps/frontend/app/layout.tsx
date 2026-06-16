@@ -1,17 +1,16 @@
 import type { Metadata } from "next";
 import { Poppins } from "next/font/google";
-import { AuthProvider } from "@/hooks/useAuth";
-
+import { AuthProvider } from '@/hooks/useAuth';
 import "./globals.css";
 
 const poppins = Poppins({
-  subsets: ['latin'],
-  weight: ['300', '400', '500', '600', '700'],
+  subsets: ["latin"],
+  weight: ["300", "400", "500", "600", "700"], 
 });
 
 export const metadata: Metadata = {
-  title: "Raíz Viva",
-  description: "Raíz Viva - Conexión territorial y turismo sostenible",
+  title: "Raíz Viva - Conectando Comunidades",
+  description: "Plataforma para el desarrollo sostenible y turismo consciente",
 };
 
 export default function RootLayout({
