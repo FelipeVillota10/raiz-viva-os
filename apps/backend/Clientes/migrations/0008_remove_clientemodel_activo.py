@@ -10,8 +10,8 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        migrations.RemoveField(
-            model_name='clientemodel',
-            name='activo',
+        migrations.RunSQL(
+            sql="SELECT 1;",
+            reverse_sql="SELECT 1;",
         ),
     ]

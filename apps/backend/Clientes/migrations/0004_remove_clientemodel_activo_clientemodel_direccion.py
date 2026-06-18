@@ -11,12 +11,16 @@ class Migration(migrations.Migration):
 
     operations = [
         migrations.RunSQL(
-            sql="ALTER TABLE clientes DROP COLUMN IF EXISTS activo;",
+            sql="ALTER TABLE clientes DROP COLUMN activo;",
             reverse_sql="SELECT 1;",
         ),
         migrations.AddField(
             model_name='clientemodel',
             name='direccion',
-            field=models.CharField(blank=True, max_length=255, null=True),
+            field=models.CharField(
+                max_length=255,
+                blank=True,
+                null=True,
+            ),
         ),
     ]

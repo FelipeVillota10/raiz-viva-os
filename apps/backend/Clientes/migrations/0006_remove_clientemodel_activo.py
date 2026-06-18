@@ -10,10 +10,8 @@ class Migration(migrations.Migration):
     ]
 
     operations = [
-        # Final cleanup: safely handle if column still exists from edge cases.
-        # In normal flow, this is already handled by 0004 with IF EXISTS.
         migrations.RunSQL(
-            sql="ALTER TABLE clientes DROP COLUMN IF EXISTS activo;",
+            sql="SELECT 1;",
             reverse_sql="SELECT 1;",
         ),
     ]
