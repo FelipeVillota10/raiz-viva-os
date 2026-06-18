@@ -4,7 +4,10 @@ Django settings for backend project.
 
 import os
 from pathlib import Path
+from dotenv import load_dotenv
 import dj_database_url
+
+load_dotenv()
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
@@ -84,18 +87,27 @@ TEMPLATES = [
 WSGI_APPLICATION = 'backend.wsgi.application'
 
 
-DATABASES = {
-    'default': dj_database_url.config(
-       default='postgresql://neondb_owner:npg_h6lqt9OTDgyQ@ep-red-feather-amf5zv7i-pooler.c-5.us-east-1.aws.neon.tech/neondb?sslmode=require',
-        conn_max_age=600,
-        ssl_require=False
+#DATABASE_URL = os.environ.get('DATABASE_URL')
+#if not DATABASE_URL:
+#    raise Exception(
+#        "DATABASE_URL no esta definida. "
+#        "Copia .env.example a .env y configura tu conexion."
+#    )
 
-    )
+DATABASES = {
+    #'default': dj_database_url.parse(DATABASE_URL, conn_max_age=600, ssl_require=False)
+
     #'default': dj_database_url.config(
-    #    default='sqlite:///db.sqlite3',
+    #   default='postgresql://neondb_owner:npg_h6lqt9OTDgyQ@ep-red-feather-amf5zv7i-pooler.c-5.us-east-1.aws.neon.tech/neondb?sslmode=require',
     #    conn_max_age=600,
     #    ssl_require=False
-    #)
+    
+    
+    'default': dj_database_url.config(
+        default='sqlite:///db.sqlite3',
+        conn_max_age=600,
+        ssl_require=False
+    )
 }
 
 

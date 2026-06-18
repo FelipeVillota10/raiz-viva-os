@@ -4,6 +4,7 @@ from .AprobacionModel import AprobacionModel, EstadoAprobacion
 from .AprobacionRepository import AprobacionRepository
 from Clientes.ClienteModel import ClienteModel
 from Estados.EstadoModel import EstadoModel
+from Territorio.TerritorioModel import TerritorioModel
 from usuarios.EmailService import EmailService
 
 
@@ -31,6 +32,13 @@ class AprobacionService:
             aprobacion.id_actor.es_actor = True
             aprobacion.id_actor.estado = EstadoModel.objects.get(nombre_estado='activo')
             aprobacion.id_actor.save()
+            
+            # Actualizar estado del territorio del líder
+            territorio = TerritorioModel.objects.filter(administrador=aprobacion.id_lider).first()
+            if territorio:
+                territorio.estado = EstadoModel.objects.get(nombre_estado='activo')
+                territorio.save()
+            
             EmailService.send_solicitud_aprobada(
                 cliente_email=aprobacion.id_actor.usuario.email,
                 cliente_nombre=aprobacion.id_actor.nombre,
