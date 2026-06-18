@@ -1,10 +1,15 @@
+"use client"; 
+
 import Image from "next/image";
+import { useRouter } from "next/navigation"; 
 
 export function Experiencias() {
+  const router = useRouter();
+
   return (
     <section className="bg-[#f9f3e7] py-10 px-6 text-center">
 
-      <h2 className="text-xl font-bold text-green-900 mb-2">
+      <h2 className="text-xl font-bold text-green-900 mb-2 font-poppins">
         ¿Qué experiencia quieres vivir?
       </h2>
 
@@ -12,38 +17,41 @@ export function Experiencias() {
         Participa y crea experiencias conscientes...
       </p>
 
-      <button className="bg-green-800 text-white px-4 py-2 rounded-full mb-6 hover:bg-green-700 transition cursor-pointer">
+      {/* 🚀 Redirección manual por evento onClick */}
+      <button 
+        onClick={() => router.push("@/app/catalogo")}
+        className="bg-green-800 text-white px-4 py-2 rounded-full mb-6 hover:bg-green-700 transition cursor-pointer font-medium shadow-sm"
+      >
         Quiero vivirlo
       </button>
 
       {/* fotos fake (grid por ahora) */}
       <div className="grid grid-cols-3 gap-2">
-
-        <div className="h-40 relative rounded overflow-hidden  hover:scale-110 transition">
+        <div className="h-40 relative rounded overflow-hidden hover:scale-110 transition">
           <Image
             src="/playa.jpg"
             alt="Playa"
             fill
             className="object-cover"
-            />
+          />
         </div>
 
-        <div className="h-40 relative rounded overflow-hidden  hover:scale-110 transition">
+        <div className="h-40 relative rounded overflow-hidden hover:scale-110 transition">
           <Image
             src="/cocora.jpg"
             alt="Cocora"
             fill
             className="object-cover"
-            />
+          />
         </div>
 
-        <div className="h-40 relative rounded overflow-hidden  hover:scale-110 transition">
+        <div className="h-40 relative rounded overflow-hidden hover:scale-110 transition">
           <Image
             src="/lago.jpg"
             alt="Lago"
             fill
             className="object-cover"
-            />
+          />
         </div>
       </div>
     </section>

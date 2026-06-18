@@ -1,16 +1,21 @@
 /**
  * Sección de experiencias
  * @celula - Celula1
- * Muestra la sección de experiencias en la página principal.
+ * Muestra la sección de experiencias en la página principal con redirección al catálogo.
  */
 
+"use client"; // ⚠️ Obligatorio en Next.js App Router para capturar el onClick con useRouter
+
 import Image from "next/image";
+import { useRouter } from "next/navigation"; // 🌿 Enrutador cliente de Next.js
 
 export function Experiencias() {
+  const router = useRouter();
+
   return (
     <section className="bg-[#f9f3e7] py-10 px-6 text-center">
 
-      <h2 className="text-xl font-bold text-green-900 mb-2">
+      <h2 className="text-xl font-bold text-green-900 mb-2 font-poppins">
         ¿Qué experiencia quieres vivir?
       </h2>
 
@@ -18,14 +23,18 @@ export function Experiencias() {
         Participa y crea experiencias conscientes...
       </p>
 
-      <button className="bg-green-800 text-white px-4 py-2 rounded-full mb-6 hover:bg-green-700 transition cursor-pointer">
+      {/* 🚀 Redirección controlada al catálogo público */}
+      <button 
+        onClick={() => router.push("/ecoaventuras")}
+        className="bg-green-800 text-white px-4 py-2 rounded-full mb-6 hover:bg-green-700 transition cursor-pointer font-medium shadow-sm"
+      >
         Quiero vivirlo
       </button>
 
       {/* Imágenes de ejemplo — serán dinámicas en futuras iteraciones */}
       <div className="grid grid-cols-3 gap-2">
 
-        <div className="h-40 relative rounded overflow-hidden  hover:scale-110 transition">
+        <div className="h-40 relative rounded overflow-hidden hover:scale-110 transition">
           <Image
             src="/playa.jpg"
             alt="Playa"
@@ -34,7 +43,7 @@ export function Experiencias() {
           />
         </div>
 
-        <div className="h-40 relative rounded overflow-hidden  hover:scale-110 transition">
+        <div className="h-40 relative rounded overflow-hidden hover:scale-110 transition">
           <Image
             src="/cocora.jpg"
             alt="Cocora"
@@ -43,7 +52,7 @@ export function Experiencias() {
           />
         </div>
 
-        <div className="h-40 relative rounded overflow-hidden  hover:scale-110 transition">
+        <div className="h-40 relative rounded overflow-hidden hover:scale-110 transition">
           <Image
             src="/lago.jpg"
             alt="Lago"

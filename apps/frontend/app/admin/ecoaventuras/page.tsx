@@ -6,9 +6,8 @@ import { Header } from "@/components/ecoaventuras/Header";
 import { ListaAdmin } from "@/components/ui/ecoaventuras/ListaAdmin";
 import { FormEcoAventura } from "@/components/ui/ecoaventuras/FormEcoAventura";
 import { FormItinerario } from "@/components/ui/ecoaventuras/FormItinerario";
-import { ReglasForm } from "@/components/ui/ecoaventuras/../../../components/ui/ecoaventuras/ReglasForm"; 
+import { ReglasForm } from "@/components/ui/ecoaventuras/ReglasForm"; // 🌿 Importación corregida y limpia con alias
 import { guardarReglasOperativas } from "@/services/ecoaventuras"; 
-
 
 type Vista = "lista" | "form" | "itinerario" | "reglas";
 
@@ -23,12 +22,16 @@ export default function AdminPage() {
     try {
       const data = await getAllAdmin();
       setEcoaventuras(data);
+    } catch (error) {
+      console.error("Error al cargar las eco-aventuras:", error);
     } finally {
       setCargando(false);
     }
   };
 
-  useEffect(() => { cargar(); }, []);
+  useEffect(() => { 
+    cargar(); 
+  }, []);
 
   const handleGuardado = (eco: EcoAventura) => {
     setEcoaventuras((prev) => {
@@ -50,7 +53,7 @@ export default function AdminPage() {
       <main className="max-w-6xl mx-auto px-4 py-8">
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h1 className="text-2xl font-bold text-[#3a5c2e]">Panel de Eco-Aventuras</h1>
+            <h1 className="text-2xl font-bold text-[#3a5c2e] font-poppins">Panel de Eco-Aventuras</h1>
             <p className="text-sm text-gray-500 mt-0.5">
               {ecoaventuras.length} experiencia{ecoaventuras.length !== 1 ? "s" : ""} registrada{ecoaventuras.length !== 1 ? "s" : ""}
             </p>
@@ -58,14 +61,14 @@ export default function AdminPage() {
           {vista === "lista" ? (
             <button
               onClick={() => { setSeleccionada(null); setVista("form"); }}
-              className="bg-[#3a5c2e] hover:bg-[#557149] text-white px-4 py-2 rounded-lg text-sm font-medium transition"
+              className="bg-[#3a5c2e] hover:bg-[#557149] text-white px-4 py-2 rounded-lg text-sm font-medium transition shadow-sm"
             >
               + Nueva eco-aventura
             </button>
           ) : (
             <button
               onClick={() => setVista("lista")}
-              className="text-sm text-gray-500 hover:text-gray-700 transition"
+              className="text-sm font-medium text-emerald-700 hover:text-emerald-900 transition flex items-center gap-1"
             >
               ← Volver a la lista
             </button>
@@ -106,7 +109,6 @@ export default function AdminPage() {
             
             {vista === "reglas" && seleccionada && (
               <ReglasForm
-                // Mapeamos los datos de forma segura para TypeScript usando accesores de objeto
                 reglas={{
                   id: seleccionada.id,
                   min_personas: (seleccionada as any).min_personas || 1,

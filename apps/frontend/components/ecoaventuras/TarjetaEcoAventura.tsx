@@ -1,4 +1,4 @@
-"use client";                                                        // ← agregar
+"use client";                                                       
 
 import Link from "next/link";
 import { EcoAventura } from "@/services/ecoaventuras";

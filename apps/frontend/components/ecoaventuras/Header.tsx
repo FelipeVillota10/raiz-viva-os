@@ -12,7 +12,7 @@ export function Header() {
       <nav className="flex items-center gap-4 text-sm font-medium">
         <Link href="/" className="hover:text-green-300 transition">Catálogo</Link>
         <BotonPaqueteHeader /> 
-        <Link href="/admin" className="bg-[#7a9e6a] hover:bg-[#557149] px-3 py-1 rounded-full transition">
+        <Link href="/admin/ecoaventuras" className="bg-[#7a9e6a] hover:bg-[#557149] px-3 py-1 rounded-full transition">
           Panel Admin
         </Link>
       </nav>
