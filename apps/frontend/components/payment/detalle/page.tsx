@@ -3,7 +3,7 @@
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { use, useState, useEffect } from 'react'
-import { obtenerEvento } from '@/services/Pago-evento.service'
+import { obtenerEvento } from '@/services/pago-evento.service'
 import { consultarRespuesta, descargarComprobante } from '@/services/pago.service'
 import type { Event } from '@/models/event.model'
 import type { PagoRespuesta } from '@/models/pago'

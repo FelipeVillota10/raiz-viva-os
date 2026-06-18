@@ -2,17 +2,17 @@
 
 import { useRouter } from 'next/navigation'
 import { use, useState, useEffect, useCallback } from 'react'
-import { obtenerEvento } from '@/lib/services/evento.service'
-import { iniciarPago, validarCupon } from '@/lib/services/pago.service'
-import type { EventoDetalle } from '@/lib/types/evento'
-import type { CuponRespuesta } from '@/lib/types/pago'
-import { formatearFecha } from '@/lib/utils/fecha'
+import { obtenerEvento } from '@/services/pago-evento.service'
+import { iniciarPago, validarCupon } from '@/services/pago.service'
+import type { Event } from '@/models/event.model'
+import type { CuponRespuesta } from '@/models/pago'
+import { formatearFecha } from '@/utils/fecha'
 
 export default function PagarReservaPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = use(params)
   const router = useRouter()
 
-  const [evento, setEvento] = useState<EventoDetalle | null>(null)
+  const [evento, setEvento] = useState<Event | null>(null)
   const [loadingEvento, setLoadingEvento] = useState(true)
   const [errorEvento, setErrorEvento] = useState<string | null>(null)
 
@@ -33,7 +33,7 @@ export default function PagarReservaPage({ params }: { params: Promise<{ id: str
       .finally(() => setLoadingEvento(false))
   }, [id])
 
-  const montoBase = evento?.costo_evento ? parseFloat(evento.costo_evento) : 0
+  const montoBase = evento?.price || 0
 
   const montoFinal = cupon
     ? cupon.tipo === 'porcentaje'
@@ -88,9 +88,9 @@ export default function PagarReservaPage({ params }: { params: Promise<{ id: str
         moneda: 'COP',
         email_comprador: email.trim(),
         nombre_comprador: nombre.trim(),
-        descripcion: evento.nombre,
+        descripcion: evento.name,
         codigo_cupon: cupon?.codigo || undefined,
-        id_evento: evento.id_evento,
+        id_evento: evento.id,
         frontend_base_url: window.location.origin,
       })
 
@@ -163,20 +163,20 @@ export default function PagarReservaPage({ params }: { params: Promise<{ id: str
             <div className="bg-white p-5 sm:p-6">
               <p className="font-bold text-sm sm:text-base text-[#1a1a1a] mb-2">Resumen Detallado de Compra</p>
               <p className="font-semibold text-sm sm:text-base text-[#1a1a1a]">Servicios de Experiencia:</p>
-              <p className="text-sm sm:text-base text-gray-700 mt-1">{evento.nombre}</p>
+              <p className="text-sm sm:text-base text-gray-700 mt-1">{evento.name}</p>
               <div className="flex justify-between items-center mt-2">
                 <span className="text-xs sm:text-sm text-gray-500">Territorio: {evento.territorio.nombre_territorio}</span>
                 <span className="text-sm sm:text-base font-semibold text-[#1a1a1a]">
-                  ${Number(evento.costo_evento || 0).toLocaleString('es-CO')} COP
+                  ${Number(evento.price || 0).toLocaleString('es-CO')} COP
                 </span>
               </div>
             </div>
 
             <div className="bg-[#f5f0e8] px-5 sm:px-6 py-4 sm:py-5 space-y-4">
-              {evento.fecha_inicio && (
+              {evento.startDate && (
                 <div className="flex justify-between text-sm sm:text-base text-gray-600">
-                  <span>{formatearFecha(evento.fecha_inicio)}</span>
-                  {evento.fecha_fin && <span>{formatearFecha(evento.fecha_fin)}</span>}
+                  <span>{formatearFecha(evento.startDate)}</span>
+                  {evento.endDate && <span>{formatearFecha(evento.endDate)}</span>}
                 </div>
               )}
 

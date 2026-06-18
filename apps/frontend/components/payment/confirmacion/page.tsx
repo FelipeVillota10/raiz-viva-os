@@ -3,7 +3,7 @@
 import { useRouter, useSearchParams } from 'next/navigation'
 import { use, useState, useEffect, useCallback } from 'react'
 import { consultarRespuesta, descargarComprobante } from '@/services/pago.service'
-import { obtenerEvento } from '@/services/Pago-evento.service'
+import { obtenerEvento } from '@/services/pago-evento.service'
 import type { PagoRespuesta } from '@/models/pago'
 import type { Event } from '@/models/event.model'
 import { FondoDecorado } from '@/components/layouts/PagosFondoDecorado'
