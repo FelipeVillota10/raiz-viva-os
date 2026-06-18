@@ -1,6 +1,6 @@
 "use client";
 
-import { EcoAventura, toggleActivo } from "../../services/ecoaventuras";
+import { EcoAventura, toggleActivo } from "@/services/ecoaventuras";
 import { Settings } from "lucide-react"; // Importamos el icono
 
 const DIFICULTAD_COLOR: Record<string, string> = {

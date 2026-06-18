@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { Save, X } from "lucide-react";
-import { ReglasPaquete } from "../../models/types"; 
+import { ReglasPaquete } from "@/models/types"; 
 
 interface Props {
   reglas?: ReglasPaquete | null;

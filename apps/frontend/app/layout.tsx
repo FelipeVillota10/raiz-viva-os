@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Poppins } from "next/font/google";
 import { AuthProvider } from '@/hooks/useAuth';
+// 1. Importamos el proveedor del carrito/paquete
+import { PaqueteProvider } from "@/components/ecoaventuras/PaqueteContext"; 
 import "./globals.css";
 
 const poppins = Poppins({
@@ -22,7 +24,10 @@ export default function RootLayout({
     <html lang="es">
       <body className={poppins.className}>
         <AuthProvider>
-          {children}
+          {/* 2. Envolvemos los componentes hijos con el PaqueteProvider */}
+          <PaqueteProvider>
+            {children}
+          </PaqueteProvider>
         </AuthProvider>
       </body>
     </html>

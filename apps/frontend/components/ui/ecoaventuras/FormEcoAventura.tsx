@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from "react";
-import { EcoAventura, crearEcoAventura, editarEcoAventura } from "../../services/ecoaventuras";
+import { EcoAventura, crearEcoAventura, editarEcoAventura } from "@/services/ecoaventuras";
 
 interface Props {
   inicial?: EcoAventura | null;

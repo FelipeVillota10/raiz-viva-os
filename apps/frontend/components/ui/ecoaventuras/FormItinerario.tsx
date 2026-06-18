@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Itinerario, getItinerario, guardarItinerario } from "../../services/ecoaventuras";
+import { Itinerario, getItinerario, guardarItinerario } from "@/services/ecoaventuras";
 
 interface Props {
   ecoaventuraId: number;

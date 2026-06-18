@@ -16,7 +16,7 @@ export interface UserPerfil {
   es_actor?: boolean;
   es_lider?: boolean;
   es_turista?: boolean;
-  es_admin?: boolean;
+  es_admin?: boolean; // Integrado para control de acceso al panel
   territorio_nombre?: string | null;
   territorio_id?: number | null;
   tipos_actores?: { id: number; nombre_tipo: string }[];
@@ -63,22 +63,18 @@ export interface ServicioPerfil {
 export interface Territorio {
   id_territorio: number;
   nombre_estado: string;
-  nombre_territorio?: string;
 }
 
 /** Tipo de moneda */
 export interface Moneda {
   id: number;
   nombre_moneda: string;
-  nombre?: string;
-  simbolo?: string;
 }
 
 /** Tipo de actor en el ecosistema */
 export interface TipoActor {
   id: number;
   nombre_tipo: string;
-  descripcion?: string;
 }
 
 /** Servicio del catálogo general */
@@ -102,8 +98,8 @@ export interface RegistroData {
   email: string;
   password: string;
   telefono: string;
-  id_territorio?: number | null;
-  id_tipo_moneda?: number | null;
+  id_territorio?: number;
+  id_tipo_moneda?: number;
   tipos_actores: number[];
   servicios?: number[];
   es_actor: boolean;
@@ -114,7 +110,6 @@ export interface RegistroData {
 /** Solicitud de aprobación */
 export interface Solicitud {
   id: number;
-  id_aprobacion: number;
   estado_resultado: 'EN_REVISION' | 'APROBADO' | 'RECHAZADO';
   observaciones: string;
   fecha_solicitud: string;
@@ -124,7 +119,6 @@ export interface Solicitud {
     nombre: string;
     telefono: string;
     usuario_email: string;
-    servicio?: string;
     tipos_actores: { id: number; nombre_tipo: string }[];
     territorio_nombre: string | null;
   };
@@ -175,4 +169,13 @@ export interface TerritorioUpdatePayload {
   region?: string;
   id_estado?: number;
   administrador_activo?: boolean;
+}
+
+// NUEVA INTERFAZ PARA HU14.A2
+export interface ReglasPaquete {
+  id: number;
+  min_personas: number;
+  max_personas: number;
+  max_actividades: number;
+  fechas_bloqueadas: string[]; // ISO Strings "YYYY-MM-DD"
 }
