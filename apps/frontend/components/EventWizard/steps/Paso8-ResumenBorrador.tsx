@@ -61,7 +61,7 @@ export function Step8Review({ formData }: Props) {
       {/* Datos del evento */}
       <div className="bg-[#f4ede0] rounded-xl px-4 py-2">
         <ReviewRow label="Nombre"      value={formData.name} />
-        <ReviewRow label="Categoría"   value={formData.category} />
+        <ReviewRow label="Categoría" value={String(formData.category)} />
         <ReviewRow label="Fecha"       value={dateLabel} />
         <ReviewRow label="Hora"        value={timeLabel} />
         <ReviewRow label="Lugar"       value={formData.locationName} />
