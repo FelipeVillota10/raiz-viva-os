@@ -66,7 +66,7 @@ jobs:
           node-version: '20' 
 
       - name: Instalar Dependencias
-        run: npm ci
+        run: npm install --no-audit --no-fund
 
       - name: QA Estático - Validar Código (ESLint)
         run: npm run lint
