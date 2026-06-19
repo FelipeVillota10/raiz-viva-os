@@ -207,7 +207,7 @@ export function AppHeader({ role = 'public', backRoute, title, actions, rightSlo
           Mapa
         </button>
       </Link>
-      <Link href="/login/inicio">
+      <Link href="/login">
         <button className="bg-white/20 hover:bg-white/30 text-white px-4 py-2 rounded-full text-sm font-medium transition">
           Iniciar Sesión
         </button>
