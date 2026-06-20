@@ -23,7 +23,7 @@ export function Experiencias() {
         Participa y crea experiencias conscientes...
       </p>
 
-      {/* 🚀 Redirección controlada al catálogo público */}
+      {/* 🚀 Redirección unificada y corregida a la ruta pública real */}
       <button 
         onClick={() => router.push("/ecoaventuras")}
         className="bg-green-800 text-white px-4 py-2 rounded-full mb-6 hover:bg-green-700 transition cursor-pointer font-medium shadow-sm"
@@ -33,7 +33,6 @@ export function Experiencias() {
 
       {/* Imágenes de ejemplo — serán dinámicas en futuras iteraciones */}
       <div className="grid grid-cols-3 gap-2">
-
         <div className="h-40 relative rounded overflow-hidden hover:scale-110 transition">
           <Image
             src="/playa.jpg"
