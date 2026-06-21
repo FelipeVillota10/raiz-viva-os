@@ -154,7 +154,20 @@ class RegistroClienteController(APIView):
             return Response({'errores': serializer.errors}, status=400)
 
         service = UsuarioService()
-        cliente = service.register_cliente(serializer.validated_data)
+        # FIX: try/except explicito para capturar y loguear cualquier excepcion
+        # que se escape del servicio (por ejemplo, un constraint NOT NULL que
+        # el modelo no conozca). Asi el frontend recibe un 500 con detalle en
+        # vez de la pagina HTML de error por defecto de Django.
+        try:
+            cliente = service.register_cliente(serializer.validated_data)
+        except Exception as e:
+            import traceback
+            print(f"[CONTROLLER] EXCEPTION en /api/registro/cliente/: {type(e).__name__}: {e}")
+            traceback.print_exc()
+            return Response(
+                {'error': f'Error interno: {type(e).__name__}: {str(e)}'},
+                status=500
+            )
 
         if cliente.es_turista:
             mensaje = 'Registro completado. Ya puedes iniciar sesion con tu correo y contrasena.'

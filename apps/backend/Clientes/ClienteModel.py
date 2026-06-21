@@ -33,11 +33,29 @@ class ClienteModel(models.Model):
     es_lider      = models.BooleanField(default=False)
     es_turista    = models.BooleanField(default=False)
     es_admin      = models.BooleanField(default=False)
-    descripcion   = models.CharField(max_length=250, null=True, blank=True)
+    # FIX (sincronizacion con Neon): la columna 'descripcion' es varchar NOT NULL
+    # en la BD (modeloraizviva.json). El default='' evita que el INSERT del ORM
+    # envie NULL y dispare un IntegrityError. La columna ya existe en Neon,
+    # no se requiere migracion.
+    descripcion   = models.CharField(max_length=250, null=True, blank=True, default='')
     foto_perfil   = models.ImageField(upload_to='perfiles/', null=True, blank=True)
     foto_portada  = models.ImageField(upload_to='portadas/', null=True, blank=True)
     direccion = models.CharField(max_length=255, null=True, blank=True)
- 
+    # FIX (sincronizacion con Neon): la columna 'servicio' es text NOT NULL en la BD
+    # y no existia en el modelo. Declararla aqui permite que el ORM la incluya en
+    # el INSERT con default='', evitando la violacion de NOT NULL. NO requiere
+    # migracion porque la columna ya existe fisicamente en Neon.
+    servicio = models.TextField(default='', blank=True)
+    # FIX (sincronizacion con Neon): la columna 'id_territorio' existe en la BD como
+    # integer nullable con FK a territorios.id_territorio. El modelo no la conocia,
+    # por lo que el INSERT la dejaba NULL (no rompia, pero se perdia la referencia
+    # directa). Nullable, no obliga a setearla.
+    id_territorio = models.IntegerField(null=True, blank=True)
+    # FIX (sincronizacion con Neon): la columna 'nombre_mostrar' existe en la BD
+    # como varchar nullable. Solo se declara para que el modelo refleje la realidad
+    # de la tabla. Nullable, no rompe el INSERT.
+    nombre_mostrar = models.CharField(max_length=255, null=True, blank=True, default='')
+
     class Meta:
         managed = True
         db_table = 'clientes'
