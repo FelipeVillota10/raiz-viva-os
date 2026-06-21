@@ -121,7 +121,7 @@ async function fetchWithAuth(url: string, options: RequestInit = {}) {
       if (path.startsWith('/lider')) {
         window.location.href = '/lider/login';
       } else {
-        window.location.href = '/login/inicio';
+        window.location.href = '/login';
       }
     }
     throw new Error('Sesión expirada');

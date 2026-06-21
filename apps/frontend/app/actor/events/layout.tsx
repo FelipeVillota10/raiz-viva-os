@@ -4,15 +4,18 @@
  
 import React from 'react';
 import { ActorDashboardLayout } from '@/components/layouts/ActorDashboardLayout';
- 
+import { ActorAuthGuard } from '@/components/shared/ActorAuthGuard';
+
 interface Props {
   children: React.ReactNode;
 }
  
 export default function ActorEventsLayout({ children }: Props) {
   return (
-    <ActorDashboardLayout>
-      {children}
-    </ActorDashboardLayout>
+    <ActorAuthGuard>
+      <ActorDashboardLayout>
+        {children}
+      </ActorDashboardLayout>
+    </ActorAuthGuard>
   );
 }
