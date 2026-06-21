@@ -23,12 +23,15 @@ urlpatterns = [
     path('api/comentarios/', include('Comentarios.urls')),
     path('api/', include('CategoriasEventos.urls')),
     path('api/', include('Eventos.urls')),
+    path('api/', include('usuarios.urls')),
     path('api/growth/', GrowthController.as_view(), name='growth'),
 
 
 
      path('api/ecoaventuras/', include('EcoAventuras.urls')),
      path('api/', include('Paquete.urls')),
+     path('api/', include('Monedas.urls')),
+     path('api/', include('Territorio.urls')),
 
     # Ruta raíz (esto soluciona el 404)
     path('', home, name='home'),
