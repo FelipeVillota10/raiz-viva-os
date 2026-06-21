@@ -15,7 +15,7 @@ export default function CreateEventPage() {
   const handleSubmit = async (data: EventDataPayload) => {
     setIsLoading(true);
     try {
-      await eventosService.crearEvento(data, user?.id_cliente, user?.territorio_id);
+      await eventosService.crearEvento(data, user?.id_cliente);
       router.push('/actor/events');
     } finally {
       setIsLoading(false);

@@ -15,8 +15,7 @@ export interface EventDataPayload {
   startTime: string;
   endDate: string;
   endTime: string;
-  locationName: string;
-  locationAddress: string;
+  locationId: string;
   imageFile: File | null;
   imagePreviewUrl: string | null;
 }
@@ -25,7 +24,7 @@ export const eventosService = {
   /**
    * Helper privado para crear el FormData desde el payload del formulario
    */
-  _buildFormData(data: EventDataPayload, userId?: number, territorioId?: number): FormData {
+  _buildFormData(data: EventDataPayload, userId?: number): FormData {
     const formData = new FormData();
     formData.append('nombre', data.name);
     formData.append('descripcion', data.description);
@@ -37,7 +36,7 @@ export const eventosService = {
     formData.append('id_categoria', String(data.category));
 
     if (userId) formData.append('id_actor_principal', String(userId));
-    if (territorioId) formData.append('id_territorio', String(territorioId));
+    if (data.locationId) formData.append('id_territorio', String(data.locationId));
     if (data.currency) formData.append('id_moneda', data.currency);
     
     // Aquí es donde se adjunta el objeto File de la imagen
@@ -45,12 +44,11 @@ export const eventosService = {
       formData.append('imagen', data.imageFile);
     }
     
-    // (A futuro: incluir campos de ubicación si el backend los soporta)
     return formData;
   },
 
-  async crearEvento(data: EventDataPayload, userId?: number, territorioId?: number) {
-    const formData = this._buildFormData(data, userId, territorioId);
+  async crearEvento(data: EventDataPayload, userId?: number) {
+    const formData = this._buildFormData(data, userId);
     
     const res = await fetch(`${API_BASE}/api/eventos/`, {
       method: 'POST',
@@ -65,8 +63,8 @@ export const eventosService = {
     return res.json();
   },
 
-  async actualizarEvento(eventId: string, data: EventDataPayload, userId?: number, territorioId?: number) {
-    const formData = this._buildFormData(data, userId, territorioId);
+  async actualizarEvento(eventId: string, data: EventDataPayload, userId?: number) {
+    const formData = this._buildFormData(data, userId);
     
     const res = await fetch(`${API_BASE}/api/eventos/${eventId}/`, {
       method: 'PUT',
@@ -101,16 +99,20 @@ export const eventosService = {
       loadedCurrency = typeof item.id_moneda === 'object' ? item.id_moneda.id.toString() : item.id_moneda.toString();
     }
 
+    const imgUrl = item.imagen;
+    const previewUrl = imgUrl 
+      ? (imgUrl.startsWith('/') ? `${API_BASE}${imgUrl}` : imgUrl)
+      : null;
+
     return {
       imageFile:       null,
-      imagePreviewUrl: item.imagen ?? null,
+      imagePreviewUrl: previewUrl,
       name:            item.nombre        ?? '',
       startDate:       fechaInicio.toISOString().split('T')[0],
       startTime:       fechaInicio.toTimeString().slice(0, 5),
       endDate:         fechaFin.toISOString().split('T')[0],
       endTime:         fechaFin.toTimeString().slice(0, 5),
-      locationName:    '',
-      locationAddress: '',
+      locationId:      item.id_territorio ? String(item.id_territorio) : '',
       description:     item.descripcion   ?? '',
       pricingType:     item.es_gratuito ? 'free' : 'paid',
       price:           item.costo_evento  ? String(item.costo_evento) : '',

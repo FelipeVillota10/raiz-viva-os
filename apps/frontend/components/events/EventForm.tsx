@@ -8,6 +8,7 @@ import { Toast } from '@/components/shared/Toast';
 import { EventSummaryModal } from '@/components/events/EventSummaryModal';
 import { useCategoriasViewModel } from '@/hooks/events/useCategoriasViewModel';
 import { useMonedas } from '@/hooks/shared/useMonedas';
+import { useTerritorios } from '@/hooks/shared/useTerritorios';
 import { type EventDataPayload } from '@/services/eventosService';
 import { IMAGE_CONFIG } from '@/models/event.model';
 
@@ -30,8 +31,7 @@ const DEFAULT_DATA: EventDataPayload = {
   startTime: '',
   endDate: '',
   endTime: '',
-  locationName: '',
-  locationAddress: '',
+  locationId: '',
   imageFile: null,
   imagePreviewUrl: null,
 };
@@ -49,6 +49,7 @@ export function EventForm({ initialData, onSubmit, isLoading, isEditMode = false
   
   const { categorias, isLoading: loadingCat } = useCategoriasViewModel();
   const { monedas, isLoading: loadingMon } = useMonedas();
+  const { territorios, isLoading: loadingTerr } = useTerritorios();
 
   const updateField = <K extends keyof EventDataPayload>(field: K, value: EventDataPayload[K]) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -239,13 +240,18 @@ export function EventForm({ initialData, onSubmit, isLoading, isEditMode = false
               value={formData.endTime}
               onChange={(e) => updateField('endTime', e.target.value)}
             />
-            <div className="md:col-span-2">
-              <Input
-                label="Lugar o Establecimiento (opcional)"
-                value={formData.locationName}
-                onChange={(e) => updateField('locationName', e.target.value)}
-                placeholder="Ej. Casa de la Cultura"
-              />
+            <div className="md:col-span-2 flex flex-col gap-1">
+              <label className="text-sm font-medium text-[#2c3a26] ml-1">Lugar (Territorio)</label>
+              <select
+                value={formData.locationId}
+                onChange={(e) => updateField('locationId', e.target.value)}
+                className="w-full px-4 py-3 bg-[#f9f3e7] border border-[#c9d4be] rounded-xl outline-none text-sm transition-all focus:border-[#8c9a80]"
+              >
+                <option value="">Selecciona un territorio (opcional)</option>
+                {!loadingTerr && territorios.map(t => (
+                  <option key={t.id_territorio} value={t.id_territorio}>{t.nombre_territorio}</option>
+                ))}
+              </select>
             </div>
           </div>
         </section>

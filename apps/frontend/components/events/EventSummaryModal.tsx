@@ -4,6 +4,8 @@ import React, { useState, useEffect } from 'react';
 import { Modal } from '@/components/shared/Modal';
 import { Button } from '@/components/shared/Button';
 import { useMonedas } from '@/hooks/shared/useMonedas';
+import { useCategoriasViewModel } from '@/hooks/events/useCategoriasViewModel';
+import { useTerritorios } from '@/hooks/shared/useTerritorios';
 import { eventosService, type EventDataPayload } from '@/services/eventosService';
 
 interface Props {
@@ -38,6 +40,9 @@ export function EventSummaryModal({
   isLoading = false,
 }: Props) {
   const { monedas } = useMonedas();
+  const { categorias } = useCategoriasViewModel();
+  const { territorios } = useTerritorios();
+  
   const [data, setData] = useState<EventDataPayload | null>(initialData || null);
   const [isFetching, setIsFetching] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -74,6 +79,14 @@ export function EventSummaryModal({
   const timeLabel  = data?.startTime
     ? `${data.startTime}${data.endTime ? ` – ${data.endTime}` : ''}`
     : 'Sin hora definida';
+
+  const categoryName = data?.category 
+    ? categorias.find(c => c.id.toString() === data.category.toString())?.nombre || data.category
+    : '—';
+
+  const territoryName = data?.locationId
+    ? territorios.find(t => t.id_territorio.toString() === data.locationId.toString())?.nombre_territorio || data.locationId
+    : '—';
 
   return (
     <Modal
@@ -127,13 +140,10 @@ export function EventSummaryModal({
             {/* Datos del evento */}
             <div className="bg-[#f4ede0] rounded-xl px-4 py-2">
               <ReviewRow label="Nombre"      value={data.name} />
-              <ReviewRow label="Categoría"   value={String(data.category)} />
+              <ReviewRow label="Categoría"   value={String(categoryName)} />
               <ReviewRow label="Fecha"       value={dateLabel} />
               <ReviewRow label="Hora"        value={timeLabel} />
-              <ReviewRow label="Lugar"       value={data.locationName} />
-              {data.locationAddress && (
-                <ReviewRow label="Dirección" value={data.locationAddress} />
-              )}
+              <ReviewRow label="Lugar"       value={String(territoryName)} />
               <ReviewRow label="Descripción" value={
                 data.description.length > 80
                   ? data.description.substring(0, 80) + '...'

@@ -32,7 +32,7 @@ export default function EditEventPage({ params }: Props) {
   const handleSubmit = async (data: EventDataPayload) => {
     setIsSubmitting(true);
     try {
-      await eventosService.actualizarEvento(eventId, data, user?.id_cliente, user?.territorio_id);
+      await eventosService.actualizarEvento(eventId, data, user?.id_cliente);
       router.push('/actor/events');
     } finally {
       setIsSubmitting(false);
