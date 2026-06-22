@@ -13,10 +13,24 @@ export default function BotonAgregarPaquete({ ecoaventuraId, precio, capacidadMa
   const { agregar, agregando } = usePaquete();
   const [fechaReserva, setFechaReserva] = useState<string>("");
   const [numPersonas, setNumPersonas] = useState(1);
+  const [guiaLocal, setGuiaLocal] = useState(false);
+  const [transporteLocal, setTransporteLocal] = useState(false);
   const [mensaje, setMensaje] = useState<{ texto: string; tipo: "exito" | "error" | "duplicado" } | null>(null);
   const [mostrarOpciones, setMostrarOpciones] = useState(false);
 
   const hoy = new Date().toISOString().split("T")[0];
+  const PRECIO_GUIA = 10000;
+  const PRECIO_TRANSPORTE = 15000;
+
+  const subtotal = precio * numPersonas;
+
+  const extras =
+    (guiaLocal ? PRECIO_GUIA : 0) +
+    (transporteLocal ? PRECIO_TRANSPORTE : 0);
+
+  const cupones = 0;
+
+  const total = subtotal + extras - cupones;
 
   async function handleAgregar() {
     setMensaje(null);
@@ -94,12 +108,90 @@ export default function BotonAgregarPaquete({ ecoaventuraId, precio, capacidadMa
               </div>
             </div>
 
-            <div className="flex justify-between items-center pt-1 border-t border-gray-100">
-              <p className="text-xs text-gray-500">Subtotal estimado</p>
-              <p className="text-sm font-bold text-emerald-700">
-                ${(precio * numPersonas).toLocaleString("es-CO")}
+        {/* Apartado de EXTRAS */}
+            <div className="pt-2 border-t border-gray-100">
+              <p className="text-sm font-semibold text-gray-700 mb-3">
+                EXTRAS
               </p>
+
+              <div className="space-y-2">
+
+                <label className="flex justify-between items-center">
+                  <span className="text-sm">Guía local</span>
+                  <button
+                    type="button"
+                    onClick={() => setGuiaLocal(!guiaLocal)}
+                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                      guiaLocal ? "bg-emerald-600" : "bg-gray-300"
+                    }`}
+                  >
+                    <span
+                      className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                        guiaLocal ? "translate-x-6" : "translate-x-1"
+                      }`}
+                    />
+                  </button>
+                </label>
+
+                <label className="flex justify-between items-center">
+                  <span className="text-sm">Transporte local</span>
+                  <button
+                    type="button"
+                    onClick={() => setTransporteLocal(!transporteLocal)}
+                    className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+                      transporteLocal ? "bg-emerald-600" : "bg-gray-300"
+                    }`}
+                  >
+                    <span
+                      className={`inline-block h-4 w-4 transform rounded-full bg-white transition-transform ${
+                        transporteLocal ? "translate-x-6" : "translate-x-1"
+                      }`}
+                    />
+                  </button>
+                </label>
+              </div>
             </div>
+
+        {/* Calculo de EXTRAS */}
+            <div className="pt-3 border-t border-gray-100 space-y-2">
+
+            <div className="flex justify-between">
+              <span className="text-sm text-gray-600">
+                Subtotal
+              </span>
+              <span className="font-semibold">
+                ${subtotal.toLocaleString("es-CO")}
+              </span>
+            </div>
+
+            <div className="flex justify-between">
+              <span className="text-sm text-gray-600">
+                Extras
+              </span>
+              <span className="font-semibold">
+                ${extras.toLocaleString("es-CO")}
+              </span>
+            </div>
+
+            <div className="flex justify-between">
+              <span className="text-sm text-gray-600">
+                Cupones
+              </span>
+              <span className="font-semibold">
+                ${cupones.toLocaleString("es-CO")}
+              </span>
+            </div>
+
+            <div className="border-t pt-2 flex justify-between">
+              <span className="font-bold text-gray-800">
+                Total
+              </span>
+              <span className="font-bold text-emerald-700">
+                ${total.toLocaleString("es-CO")}
+              </span>
+            </div>
+
+          </div>
           </div>
 
           <div className="flex gap-2">
