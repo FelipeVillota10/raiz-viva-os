@@ -3,7 +3,7 @@
 import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { use, useState, useEffect } from 'react'
-import { obtenerEvento } from '@/services/Pago-evento.service'
+import { obtenerEvento } from '@/services/pago-evento.service'
 import { consultarRespuesta, descargarComprobante } from '@/services/pago.service'
 import type { Event } from '@/models/event.model'
 import type { PagoRespuesta } from '@/models/pago'
@@ -142,7 +142,7 @@ export default function DetalleReservaPage({ params }: { params: Promise<{ id: s
         <div className="bg-[#f5f0e8] border border-[#e8e0d0] rounded-2xl px-5 py-3.5 flex items-center gap-2.5">
           <span className="w-2.5 h-2.5 rounded-full bg-[#16a34a] flex-shrink-0" />
           <span className="text-sm text-[#1a1a1a]">
-            Territorio: <span className="font-semibold text-[#557149]">{evento.territorio.nombre_territorio}</span>
+            {/*Territorio: <span className="font-semibold text-[#557149]">{evento.territorio.nombre_territorio}</span>*/}
           </span>
         </div>
 
@@ -167,12 +167,12 @@ export default function DetalleReservaPage({ params }: { params: Promise<{ id: s
             </div>
           )}
 
-          {evento.territorio.region && (
+          {/*{evento.territorio.region && (
             <div className="flex items-start gap-1.5 mb-3">
               <IconoPin />
               <span className="text-sm text-[#4b5563]">{evento.territorio.region}</span>
             </div>
-          )}
+          )} */}
 
           <div className="space-y-2 mt-3 pt-3 border-t border-[#e0d8c8]">
             <div className="flex justify-between items-center">
@@ -194,15 +194,15 @@ export default function DetalleReservaPage({ params }: { params: Promise<{ id: s
           <div className="flex items-center justify-between gap-3">
             <div className="flex items-center gap-3 min-w-0">
               <div className="w-12 h-12 rounded-full bg-[#557149] flex items-center justify-center flex-shrink-0">
-                <span className="text-white font-bold text-lg">
-                  {evento.actor_principal.nombre.charAt(0).toUpperCase()}
+                {/* <span className="text-white font-bold text-lg">
+                 {evento.actor_principal.nombre.charAt(0).toUpperCase()}
                 </span>
               </div>
               <div className="min-w-0">
                 <span className="font-medium text-sm sm:text-base text-[#1a1a1a] truncate block">
                   {evento.actor_principal.nombre}
                 </span>
-                <span className="text-xs text-gray-500 truncate block">{evento.actor_principal.email}</span>
+                <span className="text-xs text-gray-500 truncate block">{evento.actor_principal.email}</span> */}
               </div>
             </div>
           </div>
@@ -228,8 +228,8 @@ export default function DetalleReservaPage({ params }: { params: Promise<{ id: s
                 <circle cx="18" cy="18" r="7" fill="white" />
               </svg>
               <span className="text-xs font-medium text-[#557149] bg-white/85 px-3 py-1 rounded-full shadow-sm max-w-[200px] text-center leading-tight">
-                {evento.territorio.nombre_territorio}{evento.territorio.region ? `, ${evento.territorio.region}` : ''}
-              </span>
+              {/*  {evento.territorio.nombre_territorio}{evento.territorio.region ? `, ${evento.territorio.region}` : ''}
+              */}</span>
             </div>
           </div>
         </div>
