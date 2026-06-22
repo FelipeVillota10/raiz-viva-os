@@ -44,11 +44,13 @@ export function useEventListViewModel() {
         currency:    item.moneda       ?? item.currency    ?? 'COP',
         capacity:    Number(item.capacidad ?? item.capacity ?? 0),
         startDate:   item.fecha_inicio ?? item.startDate   ?? '',
-        status:      item.id_estado === 3 ? 'draft'
-                   : item.id_estado === 6 ? 'pending'
-                   : item.id_estado === 1 ? 'active'
-                   : item.id_estado === 2 ? 'inactive'
-                   : 'draft',
+        status:      item.id_estado?.nombre_estado ?? (
+                       item.id_estado === 11 ? 'Borrador'
+                     : item.id_estado === 6 ? 'en_revisión'
+                     : item.id_estado === 8 ? 'aprobado'
+                     : item.id_estado === 10 ? 'inactivo'
+                     : 'Borrador'
+                   ),
       }));
 
       setEvents(mapped);

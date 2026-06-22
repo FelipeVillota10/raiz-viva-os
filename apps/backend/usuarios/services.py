@@ -17,31 +17,38 @@ from .EmailService import EmailService
 
 
 class UsuarioService:
+    #inyeccion de dependencias para hacer uso de los metodos
     def __init__(self):
         self.repository = UsuarioRepository()
 
+    #metodo para autenticacion
     def authenticate(self, username, password):
+        #toma tanto username como correo para verificar si se encuentra por email opor usuario
         if '@' in username:
             user_obj = self.repository.get_user_by_email(username)
             if user_obj:
                 username = user_obj.username
         else:
             user_obj = self.repository.get_user_by_username(username)
-
+        
         if not user_obj:
             return None, 'No se encontró una cuenta con esas credenciales'
-
+        #revisa la contraseña en hash aplicado desde create_user
         if not user_obj.check_password(password):
             return None, 'No se encontró una cuenta con esas credenciales'
-
+        #validacion de activo
         if not user_obj.is_active:
             return None, 'Tu cuenta ha sido desactivada. Contacta al administrador.'
-
+        #instanciacion del cliente mediante el usuario
         cliente = self.repository.get_cliente_by_user(user_obj)
+        
+        #ilegible
+        #verificacion del rol y el porque se encontraria inhabilitado.
         if cliente:
             if cliente.es_turista or cliente.es_lider or cliente.es_admin:
                 if not cliente.estado or cliente.estado.nombre_estado == 'inactivo':
                     return None, 'Tu cuenta ha sido deshabilitada. Contacta al administrador.'
+            #mismo nivel para solo ser aplicado al actor territorial == True        
             elif cliente.es_actor:
                 # Permitir autenticación a actores en revisión
                 if not cliente.estado or cliente.estado.nombre_estado == 'inactivo':
@@ -51,11 +58,23 @@ class UsuarioService:
 
         return cliente, None
 
+    #metodo realizado para la presentacion del perfil de actor territorial
     def get_perfil(self, user_id):
+        #retorna el usuario, el estado y la moneda, mediante el metodo select-related
+        #basicamente trae uno de cada uno, el usuario, un estado, y un tipo de moenda, hace de DTO
+
+        #se usa selected related para obtener la informacion de las entidades con las cuales no tiene
+        #relacion muchos a muchos 
+        #se usa prefetch_related para obtener la infomraicon de 
+        #las relaciones muchos a muchos ya que en slq se multiplicarian los datos
         return ClienteModel.objects.select_related(
             'usuario', 'estado', 'tipo_moneda'
         ).prefetch_related('tipos_actores__id_tipo').get(usuario_id=user_id)
 
+
+    #registro del respectivo cliente
+    #data=informacion entrante desde el controller
+    #se desempaqueta la informacion para ser tratada--------------
     def register_cliente(self, data):
         nombre_completo = data.get('nombre_completo')
         email = data.get('email')
@@ -68,6 +87,11 @@ class UsuarioService:
         es_lider = data.get('es_lider', False)
         es_turista = data.get('es_turista', False)
         es_admin = data.get('es_admin', False)
+        # FIX (sincronizacion con Neon): 'descripcion' y 'servicio' son NOT NULL
+        # en la tabla 'clientes' de Neon. Se extraen del payload con default '' para
+        # que el INSERT del ORM no envie NULL y dispare un IntegrityError.
+        descripcion = data.get('descripcion', '') or ''
+        servicio = data.get('servicio', '') or ''
 
         partes_nombre = nombre_completo.split(' ', 1)
         first_name = partes_nombre[0]
@@ -75,68 +99,94 @@ class UsuarioService:
         username = email.split('@')[0]
         counter = 1
         base_username = username
-
+    #termina desempaquetado
         while self.repository.user_exists_by_username(username):
             username = f"{base_username}{counter}"
             counter += 1
-
-        user = self.repository.create_user(
-            username=username,
-            email=email,
-            password=password,
-            first_name=first_name,
-            last_name=last_name
-        )
-
+        #valida el ingreso de un territorio mediante su busqueda
         territorio = None
         if id_territorio:
             try:
                 territorio = TerritorioModel.objects.get(id_territorio=id_territorio)
             except TerritorioModel.DoesNotExist:
                 pass
-
+        #valida el ingreso de la moneda de preferencia
         tipo_moneda = None
         if id_tipo_moneda:
             try:
                 tipo_moneda = MonedaModel.objects.get(id=id_tipo_moneda)
             except MonedaModel.DoesNotExist:
                 pass
-
+        #si es actor es verdadero el estado lo establece a en revision
         if es_actor:
             estado = EstadoModel.objects.get(nombre_estado='en_revision')
-        else:
+        else:#si no es un actor el estado queda en activo, basicamente lider o turista, los cuales no necesitan aprobacion
             estado = EstadoModel.objects.get(nombre_estado='activo')
-
-        cliente = ClienteModel.objects.create(
-            usuario=user,
-            nombre=nombre_completo,
-            telefono=telefono,
-            estado=estado,
-            tipo_moneda=tipo_moneda,
-            es_actor=es_actor,
-            es_lider=es_lider,
-            es_turista=es_turista,
-            es_admin=es_admin,
-        )
-
+        # FIX: Envolver la creacion de User + Cliente en transaction.atomic().
+        # Antes, si el INSERT en 'clientes' fallaba, el registro en 'auth_user'
+        # quedaba huerfano (sintoma reportado: "se crea auth_user pero no clientes").
+        # Con atomic(), cualquier excepcion hace rollback de ambos INSERTs.
+        try:
+            with transaction.atomic():
+                #instancia usuario y crea el usuario con la información desempaquetada
+                user = self.repository.create_user(
+                    username=username,
+                    email=email,
+                    password=password,
+                    first_name=first_name,
+                    last_name=last_name
+                )
+                # FIX (sincronizacion con Neon): se pasan los campos 'descripcion',
+                # 'servicio' (NOT NULL) y 'id_territorio' (FK nullable a territorios)
+                # para que el INSERT cumpla con el esquema real de Neon.
+                #finalmente instancia el cliente con su respectiva informacion basica
+                cliente = ClienteModel.objects.create(
+                    usuario=user,
+                    nombre=nombre_completo,
+                    telefono=telefono,
+                    estado=estado,
+                    tipo_moneda=tipo_moneda,
+                    es_actor=es_actor,
+                    es_lider=es_lider,
+                    es_turista=es_turista,
+                    es_admin=es_admin,
+                    descripcion=descripcion,
+                    servicio=servicio,
+                    id_territorio=id_territorio,
+                )
+        except Exception as e:
+            # FIX: Log explicito del error con traceback para diagnosticar
+            # futuros fallos en el registro (por ejemplo, otro constraint NOT NULL
+            # que el modelo desconozca). El raise propaga la excepcion al controller
+            # que tiene su propio try/except.
+            import traceback
+            print(f"[REGISTER] ERROR creando user/cliente: {type(e).__name__}: {e}")
+            traceback.print_exc()
+            raise
+        #finalmente le asigna los tipos de actor entregados al cliente entregado
         for tipo_id in tipos_actores:
             tipo = TipoActorModel.objects.get(id=tipo_id)
             ClienteTiposActoresModel.objects.create(id_actor=cliente, id_tipo=tipo)
-
+        #genera un array para obtener los servicios de la informacion desempaquetada
         servicios_ids = data.get('servicios', [])
+        #recorre el array
         for servicio_id in servicios_ids:
+            #e intenta carga los servicios al respectivo cliente
             try:
                 servicio = ServicioModel.objects.get(id=servicio_id)
                 ClienteServicioModel.objects.create(cliente=cliente, servicio=servicio)
             except ServicioModel.DoesNotExist:
                 pass
 
+        #finalmente consume el controller para mandar la notificacion de registro al cliente y al lider
+        #y retorna el cliente ya creado con la informacion cargada
         self.send_registration_notifications(cliente, territorio)
         return cliente
 
     def send_registration_notifications(self, cliente, territorio=None):
         territorio_nombre = territorio.nombre_territorio if territorio else ''
 
+        #correo para turista por eso el territorio es nulo
         EmailService.send_solicitud_recibida(
             cliente_email=cliente.usuario.email,
             cliente_nombre=cliente.nombre,
