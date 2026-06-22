@@ -1,6 +1,8 @@
 import type { Metadata } from "next";
 import { Poppins } from "next/font/google";
 import { AuthProvider } from '@/hooks/useAuth';
+import { PaqueteProvider } from "@/components/ecoaventuras/PaqueteContext"; 
+import PaqueteCarrito from "@/components/ecoaventuras/PaqueteCarrito";
 import "./globals.css";
 
 const poppins = Poppins({
@@ -22,7 +24,10 @@ export default function RootLayout({
     <html lang="es">
       <body className={poppins.className}>
         <AuthProvider>
-          {children}
+          <PaqueteProvider>
+            {children}
+            <PaqueteCarrito />
+          </PaqueteProvider>
         </AuthProvider>
       </body>
     </html>

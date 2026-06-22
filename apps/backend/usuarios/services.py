@@ -87,6 +87,11 @@ class UsuarioService:
         es_lider = data.get('es_lider', False)
         es_turista = data.get('es_turista', False)
         es_admin = data.get('es_admin', False)
+        # FIX (sincronizacion con Neon): 'descripcion' y 'servicio' son NOT NULL
+        # en la tabla 'clientes' de Neon. Se extraen del payload con default '' para
+        # que el INSERT del ORM no envie NULL y dispare un IntegrityError.
+        descripcion = data.get('descripcion', '') or ''
+        servicio = data.get('servicio', '') or ''
 
         partes_nombre = nombre_completo.split(' ', 1)
         first_name = partes_nombre[0]
@@ -98,14 +103,6 @@ class UsuarioService:
         while self.repository.user_exists_by_username(username):
             username = f"{base_username}{counter}"
             counter += 1
-        #instancia usuario y crea el usuario con la información desempaquetada
-        user = self.repository.create_user(
-            username=username,
-            email=email,
-            password=password,
-            first_name=first_name,
-            last_name=last_name
-        )
         #valida el ingreso de un territorio mediante su busqueda
         territorio = None
         if id_territorio:
@@ -125,18 +122,47 @@ class UsuarioService:
             estado = EstadoModel.objects.get(nombre_estado='en_revision')
         else:#si no es un actor el estado queda en activo, basicamente lider o turista, los cuales no necesitan aprobacion
             estado = EstadoModel.objects.get(nombre_estado='activo')
-        #finalmente instancia el cliente con su respectiva informacion basica
-        cliente = ClienteModel.objects.create(
-            usuario=user,
-            nombre=nombre_completo,
-            telefono=telefono,
-            estado=estado,
-            tipo_moneda=tipo_moneda,
-            es_actor=es_actor,
-            es_lider=es_lider,
-            es_turista=es_turista,
-            es_admin=es_admin,
-        )
+        # FIX: Envolver la creacion de User + Cliente en transaction.atomic().
+        # Antes, si el INSERT en 'clientes' fallaba, el registro en 'auth_user'
+        # quedaba huerfano (sintoma reportado: "se crea auth_user pero no clientes").
+        # Con atomic(), cualquier excepcion hace rollback de ambos INSERTs.
+        try:
+            with transaction.atomic():
+                #instancia usuario y crea el usuario con la información desempaquetada
+                user = self.repository.create_user(
+                    username=username,
+                    email=email,
+                    password=password,
+                    first_name=first_name,
+                    last_name=last_name
+                )
+                # FIX (sincronizacion con Neon): se pasan los campos 'descripcion',
+                # 'servicio' (NOT NULL) y 'id_territorio' (FK nullable a territorios)
+                # para que el INSERT cumpla con el esquema real de Neon.
+                #finalmente instancia el cliente con su respectiva informacion basica
+                cliente = ClienteModel.objects.create(
+                    usuario=user,
+                    nombre=nombre_completo,
+                    telefono=telefono,
+                    estado=estado,
+                    tipo_moneda=tipo_moneda,
+                    es_actor=es_actor,
+                    es_lider=es_lider,
+                    es_turista=es_turista,
+                    es_admin=es_admin,
+                    descripcion=descripcion,
+                    servicio=servicio,
+                    id_territorio=id_territorio,
+                )
+        except Exception as e:
+            # FIX: Log explicito del error con traceback para diagnosticar
+            # futuros fallos en el registro (por ejemplo, otro constraint NOT NULL
+            # que el modelo desconozca). El raise propaga la excepcion al controller
+            # que tiene su propio try/except.
+            import traceback
+            print(f"[REGISTER] ERROR creando user/cliente: {type(e).__name__}: {e}")
+            traceback.print_exc()
+            raise
         #finalmente le asigna los tipos de actor entregados al cliente entregado
         for tipo_id in tipos_actores:
             tipo = TipoActorModel.objects.get(id=tipo_id)
