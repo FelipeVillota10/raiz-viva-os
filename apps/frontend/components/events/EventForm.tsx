@@ -193,9 +193,9 @@ export function EventForm({ initialData, onSubmit, isLoading, isEditMode = false
                     <button
                       key={cat.id}
                       type="button"
-                      onClick={() => updateField('category', formData.category === cat.id ? '' : cat.id)}
+                      onClick={() => updateField('category', formData.category === String(cat.id) ? '' : String(cat.id))}
                       className={`px-3 py-1.5 rounded-full text-xs border transition-colors ${
-                        formData.category === cat.id 
+                        formData.category === String(cat.id) 
                           ? 'bg-[#557149] text-white border-[#557149]' 
                           : 'bg-[#f4ede0] text-[#6b7a63] border-[#c9d4be] hover:border-[#8c9a80]'
                       }`}
