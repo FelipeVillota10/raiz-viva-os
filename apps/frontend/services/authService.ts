@@ -121,7 +121,7 @@ async function fetchWithAuth(url: string, options: RequestInit = {}) {
       if (path.startsWith('/lider')) {
         window.location.href = '/lider/login';
       } else {
-        window.location.href = '/login/inicio';
+        window.location.href = '/login';
       }
     }
     throw new Error('Sesión expirada');
@@ -129,6 +129,18 @@ async function fetchWithAuth(url: string, options: RequestInit = {}) {
 
   // Cualquier otro error se empaqueta en ApiError con mensaje en español
   if (!response.ok) {
+    const contentType = response.headers.get('content-type') || '';
+    // FIX: para 5xx o respuestas HTML (página de debug de Django), NO exponer el
+    // body crudo como message. Devolver un mensaje genérico en español. Esto evita
+    // que el usuario vea el traceback HTML completo en el ErrorBanner.
+    // Se preserva la lógica existente de parseo JSON para 4xx (necesaria para
+    // que useNuevoTerritorio.tsx siga usando err.responseBody / err.fieldErrors).
+    if (response.status >= 500 || contentType.includes('text/html')) {
+      throw new ApiError(
+        'Error del servidor. Intentá nuevamente más tarde.',
+        response.status
+      );
+    }
     let apiErr: ApiError;
     try {
       const cloned = response.clone();
