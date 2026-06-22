@@ -1,6 +1,7 @@
 import { fetchGrowthMetrics } from "@/services/growth";
 import { EstadisticaCard } from "@/components/dashboard/EstadisticaCard";
 import { DashboardError } from "@/components/dashboard/DashboardError";
+import { Footer } from '@/components/shared/Footer';
 
 function fmtMoney(val: string | number): string {
     const n = typeof val === "string" ? parseFloat(val) : val;
@@ -33,52 +34,6 @@ export default async function DashboardPage() {
     return (
         <div style={{ minHeight: "100vh", background: "#f9f3e7", display: "flex", flexDirection: "column" }}>
 
-            <header
-                style={{
-                    background: "#3b5630",
-                    color: "#fff",
-                    padding: "0 40px",
-                    height: "64px",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "space-between",
-                    position: "sticky",
-                    top: 0,
-                    zIndex: 100,
-                    boxShadow: "0 2px 12px rgba(0,0,0,0.15)",
-                }}
-            >
-                <div style={{ display: "flex", alignItems: "center", gap: "12px" }}>
-                    <div style={{
-                        width: "42px",
-                        height: "42px",
-                        borderRadius: "50%",
-                        background: "#ffffff",
-                        overflow: "hidden",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        flexShrink: 0,
-                        fontSize: "20px",
-                        fontWeight: 700,
-                        color: "#3b5630",
-                    }}>
-                        🌿
-                    </div>
-                    <div>
-                        <p style={{ fontSize: "16px", fontWeight: 700, margin: 0, lineHeight: 1.1 }}>
-                            Raíz Viva
-                        </p>
-                        <p style={{ fontSize: "11px", opacity: 0.65, margin: 0, letterSpacing: "0.04em" }}>
-                            Panel de control
-                        </p>
-                    </div>
-                </div>
-
-                <p style={{ fontSize: "12px", opacity: 0.65, margin: 0, textTransform: "capitalize" }}>
-                    {today}
-                </p>
-            </header>
 
 
             <main
@@ -202,17 +157,7 @@ export default async function DashboardPage() {
             </main>
 
 
-            <footer
-                style={{
-                    background: "#3b5630",
-                    color: "rgba(255,255,255,0.55)",
-                    textAlign: "center",
-                    padding: "16px",
-                    fontSize: "12px",
-                }}
-            >
-                © {new Date().getFullYear()} Raíz Viva · Todos los derechos reservados
-            </footer>
+           <Footer/>
         </div>
     );
 }

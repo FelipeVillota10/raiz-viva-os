@@ -163,6 +163,19 @@ export function AppHeader({ role = 'public', backRoute, title, actions, rightSlo
   /** Navegación del administrador (solo si está autenticado como admin) */
   const adminNav = (
     <div className="flex items-center gap-2">
+      <NavLink
+        href="/admin/dashboard"
+        active={pathname.startsWith("/admin/dashboard")}
+      >
+        Dashboard
+      </NavLink>
+
+      <NavLink
+        href="/admin/comentarios"
+        active={pathname.startsWith("/admin/comentarios")}
+      >
+        Comentarios
+      </NavLink>
       <NavLink href="/admin/territorios" active={pathname.startsWith('/admin/territorios')}>
         Territorios
       </NavLink>

@@ -12,6 +12,7 @@ import {
   deleteComentario,
 } from "@/services/comentariosApi";
 
+import { Footer } from '@/components/shared/Footer';
 import { ComentarioForm } from "@/components/comentarios/ComentarioForm";
 import { ComentarioList } from "@/components/comentarios/ComentarioList";
 import { FiltrosComentarios } from "@/components/comentarios/FiltrosComentarios";
@@ -202,87 +203,7 @@ export default function ComentariosPage() {
     >
       {/* HEADER */}
 
-      <header
-        style={{
-          background: "#3b5630",
-          color: "#fff",
-          padding: "0 40px",
-          height: "64px",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "space-between",
-          position: "sticky",
-          top: 0,
-          zIndex: 100,
-          boxShadow: "0 2px 12px rgba(0,0,0,0.15)",
-        }}
-      >
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: "12px",
-          }}
-        >
-          <div
-            style={{
-              width: "180px",
-              height: "180px",
-              overflow: "hidden",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              flexShrink: 0,
-            }}
-          >
-            <img
-              src="/logo.png"
-              alt="Raíz Viva"
-              style={{
-                width: "100%",
-                height: "100%",
-                objectFit: "contain",
-              }}
-            />
-          </div>
-
-          <div>
-            <p
-              style={{
-                fontSize: "18px",
-                fontWeight: 700,
-                margin: 0,
-                lineHeight: 1.1,
-                color: "#ffffff",
-              }}
-            >
-              Raíz Viva
-            </p>
-
-            <p
-              style={{
-                fontSize: "11px",
-                opacity: 0.65,
-                margin: 0,
-                letterSpacing: "0.04em",
-              }}
-            >
-              Gestión de comentarios
-            </p>
-          </div>
-        </div>
-
-        <p
-          style={{
-            fontSize: "12px",
-            opacity: 0.65,
-            margin: 0,
-            textTransform: "capitalize",
-          }}
-        >
-          {today}
-        </p>
-      </header>
+      
 
       {/* TOASTS */}
 
@@ -685,17 +606,7 @@ export default function ComentariosPage() {
 
       {/* FOOTER */}
 
-      <footer
-        style={{
-          background: "#3b5630",
-          color: "rgba(255,255,255,0.55)",
-          textAlign: "center",
-          padding: "16px",
-          fontSize: "12px",
-        }}
-      >
-        © {new Date().getFullYear()} Raíz Viva · Todos los derechos reservados
-      </footer>
+      <Footer />
     </div>
   );
 }
