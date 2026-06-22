@@ -21,7 +21,8 @@ export function Header() {
         <span>🔍</span>
         <span>👤</span>
 
-        <Link href="/login">
+        
+            <Link href="/login">
           <button className="bg-white text-green-900 px-3 py-1 rounded-full text-sm hover:bg-gray-700 transition cursor-pointer">
             login
           </button>
