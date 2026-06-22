@@ -5,6 +5,7 @@ import React, { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { StatusBadge } from '@/components/shared/StatusBadge';
 import { DeactivateConfirmModal } from '@/components/events/DeactivateConfirmModal';
+import { EventSummaryModal } from '@/components/events/EventSummaryModal';
 import type { EventListItem } from '@/hooks/events/useEventListViewModel';
  
 interface Props {
@@ -15,10 +16,14 @@ interface Props {
 export function EventCard({ event, onDeactivate }: Props) {
   const router = useRouter();
   const [showDeactivate, setShowDeactivate] = useState(false);
+  const [showSummary, setShowSummary] = useState(false);
   const [isLoading,      setIsLoading]      = useState(false);
  
-  const canEdit       = event.status !== 'active' && event.status !== 'inactive';
-  const canDeactivate = event.status === 'draft' || event.status === 'pending';
+  const s = (event.status || '').toLowerCase();
+  const isInactive = s.includes('inactivo') || s.includes('inactive');
+  
+  const canEdit       = !isInactive;
+  const canDeactivate = !isInactive;
  
   const priceLabel = event.pricingType === 'free'
     ? 'Gratuito'
@@ -33,7 +38,10 @@ export function EventCard({ event, onDeactivate }: Props) {
  
   return (
     <>
-      <div className="bg-white rounded-xl border border-[#c9d4be] px-4 py-3 flex flex-col gap-2 hover:shadow-sm transition-shadow">
+      <div 
+        onClick={() => setShowSummary(true)}
+        className="bg-white rounded-xl border border-[#c9d4be] px-4 py-3 flex flex-col gap-2 hover:shadow-sm hover:border-[#8c9a80] transition-colors cursor-pointer"
+      >
         {/* Fila superior: nombre + estado */}
         <div className="flex items-start justify-between gap-2">
           <p className="text-sm font-semibold text-[#2c3a26] leading-snug flex-1">
@@ -66,7 +74,7 @@ export function EventCard({ event, onDeactivate }: Props) {
         </div>
  
         {/* Acciones */}
-        <div className="flex gap-2 pt-1">
+        <div className="flex gap-2 pt-1" onClick={(e) => e.stopPropagation()}>
           {canEdit && (
             <button
               onClick={() => router.push(`/actor/events/${event.id}/edit`)}
@@ -97,6 +105,12 @@ export function EventCard({ event, onDeactivate }: Props) {
         onConfirm={handleDeactivate}
         onClose={() => setShowDeactivate(false)}
         isLoading={isLoading}
+      />
+
+      <EventSummaryModal
+        visible={showSummary}
+        onClose={() => setShowSummary(false)}
+        eventId={event.id}
       />
     </>
   );
