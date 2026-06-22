@@ -158,12 +158,6 @@ export default function DetalleReservaPage({ params }: { params: Promise<{ id: s
                 <IconoCalendario />
                 {formatearFecha(evento.startDate)}
               </span>
-              {evento.endDate && (
-                <span className="flex items-center gap-1.5 text-sm text-[#4b5563]">
-                  <IconoCalendario />
-                  {formatearFecha(evento.endDate)}
-                </span>
-              )}
             </div>
           )}
 

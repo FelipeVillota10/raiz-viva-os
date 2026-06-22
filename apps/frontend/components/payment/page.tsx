@@ -176,7 +176,6 @@ export default function PagarReservaPage({ params }: { params: Promise<{ id: str
               {evento.startDate && (
                 <div className="flex justify-between text-sm sm:text-base text-gray-600">
                   <span>{formatearFecha(evento.startDate)}</span>
-                  {evento.endDate && <span>{formatearFecha(evento.endDate)}</span>}
                 </div>
               )}
 
