@@ -104,7 +104,11 @@ class PerfilUsuarioController(APIView):
             descripcion = request.data['descripcion']
             if descripcion and len(descripcion) > 250:
                 return Response({'error': 'La descripcion no puede exceder 250 caracteres'}, status=400)
-            cliente.descripcion = descripcion if descripcion else None
+            # FIX: Se usa `or ''` en vez de `if descripcion else None` para preservar
+            # strings vacíos. La columna `descripcion` en Neon es `varchar NOT NULL`
+            # (sincronizada en ClienteModel.py), así que enviar `None` dispara
+            # `IntegrityError` y devuelve un 500 al frontend.
+            cliente.descripcion = descripcion or ''
 
         if 'nombre' in request.data:
             nombre = request.data['nombre']
@@ -117,7 +121,20 @@ class PerfilUsuarioController(APIView):
         if 'foto_portada' in request.FILES:
             cliente.foto_portada = request.FILES['foto_portada']
 
-        cliente.save()
+        # FIX (defensa en profundidad): try/except alrededor de cliente.save() para
+        # capturar cualquier error inesperado de BD y devolver un JSON 500 limpio,
+        # en vez de la página HTML de debug de Django. También loguea el traceback
+        # en consola del backend para diagnóstico.
+        try:
+            cliente.save()
+        except Exception as e:
+            import traceback
+            print(f"[PROFILE] ERROR guardando perfil user_id={user_id}: {type(e).__name__}: {e}")
+            traceback.print_exc()
+            return Response(
+                {'error': f'Error interno: {type(e).__name__}: {str(e)}'},
+                status=500
+            )
         serializer = ClienteSerializer(cliente, context={'request': request})
         return Response(serializer.data)
 
