@@ -100,7 +100,7 @@ export default function CatalogoPage() {
           {/* Grid de tarjetas */}
           {!cargando && !error && datos && datos.count > 0 && (
             <>
-              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5">
+              <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-3 gap-5 items-start">
                 {datos.results.map((eco) => (
                   <TarjetaEcoAventura key={eco.id} eco={eco} />
                 ))}
