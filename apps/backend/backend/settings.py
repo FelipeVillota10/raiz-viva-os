@@ -95,15 +95,10 @@ WSGI_APPLICATION = 'backend.wsgi.application'
 #    )
 
 DATABASES = {
-<<<<<<< HEAD
-    'default': dj_database_url.config(
-        default='postgresql://neondb_owner:npg_h6lqt9OTDgyQ@ep-red-feather-amf5zv7i-pooler.c-5.us-east-1.aws.neon.tech/neondb?sslmode=require',
-=======
     #'default': dj_database_url.parse(DATABASE_URL, conn_max_age=600, ssl_require=False)
 
     'default': dj_database_url.config(
        default='postgresql://neondb_owner:npg_h6lqt9OTDgyQ@ep-red-feather-amf5zv7i-pooler.c-5.us-east-1.aws.neon.tech/neondb?sslmode=require',
->>>>>>> fe77b10db0d705ce1913b9dc27af6cc65254f0d6
         conn_max_age=600,
         ssl_require=False
     
