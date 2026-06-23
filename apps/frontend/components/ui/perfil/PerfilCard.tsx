@@ -128,7 +128,7 @@ export function PerfilCard({
             );
           })}
           <span className="text-xs text-[#353535] ml-1">
-            ({perfil.reputacion?.toFixed(1) || '0.0'})
+          ({perfil.reputacion ? Number(perfil.reputacion).toFixed(1) : '0.0'})
           </span>
         </div>
 

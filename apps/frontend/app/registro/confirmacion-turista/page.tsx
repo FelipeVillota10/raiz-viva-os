@@ -34,7 +34,7 @@ export default function ConfirmacionTuristaPage() {
             </p>
           </div>
 
-          <Button onClick={() => router.push('/login/inicio')} size="lg" className="w-full">
+          <Button onClick={() => router.push('/login')} size="lg" className="w-full">
             Iniciar Sesión
           </Button>
         </div>

@@ -16,8 +16,8 @@ export default function RegistroPage() {
 
   useEffect(() => {
     const referrer = document.referrer;
-    if (referrer.includes('/login/inicio')) {
-      setBackRoute('/login/inicio');
+    if (referrer.includes('/login')) {
+      setBackRoute('/login');
     } else {
       setBackRoute('/');
     }

@@ -95,10 +95,23 @@ WSGI_APPLICATION = 'backend.wsgi.application'
 #    )
 
 DATABASES = {
+<<<<<<< HEAD
     'default': dj_database_url.config(
         default='postgresql://neondb_owner:npg_h6lqt9OTDgyQ@ep-red-feather-amf5zv7i-pooler.c-5.us-east-1.aws.neon.tech/neondb?sslmode=require',
+=======
+    #'default': dj_database_url.parse(DATABASE_URL, conn_max_age=600, ssl_require=False)
+
+    'default': dj_database_url.config(
+       default='postgresql://neondb_owner:npg_h6lqt9OTDgyQ@ep-red-feather-amf5zv7i-pooler.c-5.us-east-1.aws.neon.tech/neondb?sslmode=require',
+>>>>>>> fe77b10db0d705ce1913b9dc27af6cc65254f0d6
         conn_max_age=600,
         ssl_require=False
+    
+    
+    #'default': dj_database_url.config(
+    #    default='sqlite:///db.sqlite3',
+    #   conn_max_age=600,
+    #    ssl_require=False
     )
 }
 
@@ -122,6 +135,9 @@ STATIC_URL = 'static/'
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
 
+r2_public_url = os.environ.get('R2_PUBLIC_URL', '')
+r2_domain = r2_public_url.split('//')[-1] if '://' in r2_public_url else r2_public_url
+
 if os.environ.get("R2_ACCESS_KEY_ID") and os.environ.get("R2_BUCKET_NAME"):
     STORAGES = {
         "default": {
@@ -133,7 +149,7 @@ if os.environ.get("R2_ACCESS_KEY_ID") and os.environ.get("R2_BUCKET_NAME"):
                 "endpoint_url": os.environ.get("R2_ENDPOINT_URL"),
                 "region_name": "auto",
                 "signature_version": "s3v4",
-                "custom_domain": os.environ.get("R2_PUBLIC_URL"),
+                "custom_domain": r2_domain,
                 "default_acl": "public-read",
             },
         },
@@ -151,9 +167,8 @@ else:
         },
     }
 
-r2_public_url = os.environ.get('R2_PUBLIC_URL')
-if r2_public_url:
-    MEDIA_URL = f"https://{r2_public_url}/"
+if r2_domain:
+    MEDIA_URL = f"https://{r2_domain}/"
 else:
     MEDIA_URL = '/media/'
 

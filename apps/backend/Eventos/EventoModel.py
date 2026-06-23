@@ -5,6 +5,7 @@ import os
 from django.db import models
 from Estados.EstadoModel import EstadoModel
 from CategoriasEventos.CategoriaEventoModel import CategoriaEventoModel
+from Monedas.MonedaModel import MonedaModel
 
 
 def ruta_imagen_evento(instance, filename):
@@ -29,9 +30,17 @@ class EventoModel(models.Model):
     id_categoria = models.ForeignKey(
         CategoriaEventoModel,  # ← string, sin import directo
         on_delete=models.SET_NULL,
-        null=True,
+        null= True,
         blank=True,
         db_column='id_categoria'
+    )
+
+    id_moneda = models.ForeignKey(
+        MonedaModel,  # ← string, sin import directo
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        db_column='id_moneda'
     )
 
     nombre = models.CharField(max_length=200)

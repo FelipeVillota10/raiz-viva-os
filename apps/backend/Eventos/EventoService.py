@@ -38,6 +38,11 @@ class EventoService:
             from CategoriasEventos.CategoriaEventoModel import CategoriaEventoModel
             data['id_categoria'] = CategoriaEventoModel.objects.get(pk=int(id_categoria))
 
+        id_moneda = data.get('id_moneda')
+        if id_moneda:
+            from Monedas.MonedaModel import MonedaModel
+            data['id_moneda'] = MonedaModel.objects.get(pk=int(id_moneda))
+
         # ← imagen se pasa directo, no dentro del dict
         if imagen:
             data['imagen'] = imagen
@@ -78,13 +83,18 @@ class EventoService:
             from CategoriasEventos.CategoriaEventoModel import CategoriaEventoModel
             data['id_categoria'] = CategoriaEventoModel.objects.get(pk=int(id_categoria))
 
+        id_moneda = data.get('id_moneda')
+        if id_moneda:
+            from Monedas.MonedaModel import MonedaModel
+            data['id_moneda'] = MonedaModel.objects.get(pk=int(id_moneda))
+
         return self.repository.update(evento, data)
 
     def inactivar_evento(self, evento_id):
         evento = self.repository.get_by_id(evento_id)
         if not evento:
             return None
-        return self.repository.update(evento, {'id_estado_id': self._get_id_estado('Inactivo')})
+        return self.repository.update(evento, {'id_estado_id': self._get_id_estado('inactivo')})
 
     def _get_id_estado(self, nombre):
         from Estados.EstadoModel import EstadoModel
@@ -97,4 +107,4 @@ class EventoService:
         evento = self.repository.get_by_id(evento_id)
         if not evento:
             return None
-        return self.repository.update(evento, {'id_estado_id': self._get_id_estado('En revisión')})
+        return self.repository.update(evento, {'id_estado_id': self._get_id_estado('en_revision')})

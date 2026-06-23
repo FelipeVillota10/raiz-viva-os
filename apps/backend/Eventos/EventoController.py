@@ -14,17 +14,17 @@ class EventoController(APIView):
             evento = self.service.obtener_evento(pk)
             if not evento:
                 return Response({"error": "Evento no encontrado."}, status=status.HTTP_404_NOT_FOUND)
-            serializer = EventoSerializer(evento)
+            serializer = EventoSerializer(evento, context={'request': request})
             return Response(serializer.data)
         eventos = self.service.listar_eventos()
-        serializer = EventoSerializer(eventos, many=True)
+        serializer = EventoSerializer(eventos, many=True, context={'request': request})
         return Response(serializer.data)
 
     def post(self, request, pk=None):
         try:
             imagen = request.FILES.get('imagen', None)
             nuevo_evento = self.service.crear_evento(request.data.copy(), imagen)
-            serializer = EventoSerializer(nuevo_evento)
+            serializer = EventoSerializer(nuevo_evento, context={'request': request})
             return Response(serializer.data, status=status.HTTP_201_CREATED)
         except ValueError as e:
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
@@ -39,7 +39,7 @@ class EventoController(APIView):
             evento_actualizado = self.service.actualizar_evento(pk, request.data.copy(), imagen)
             if not evento_actualizado:
                 return Response({"error": "Evento no encontrado."}, status=status.HTTP_404_NOT_FOUND)
-            serializer = EventoSerializer(evento_actualizado)
+            serializer = EventoSerializer(evento_actualizado, context={'request': request})
             return Response(serializer.data)
         except ValueError as e:
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
@@ -64,7 +64,7 @@ class EventoController(APIView):
             if not evento:
                 return Response({"error": "Evento no encontrado."}, status=status.HTTP_404_NOT_FOUND)
 
-            serializer = EventoSerializer(evento)
+            serializer = EventoSerializer(evento, context={'request': request})
             return Response(serializer.data)
         except ValueError as e:
             return Response({"error": str(e)}, status=status.HTTP_400_BAD_REQUEST)
