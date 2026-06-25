@@ -16,7 +16,11 @@ class EventoController(APIView):
                 return Response({"error": "Evento no encontrado."}, status=status.HTTP_404_NOT_FOUND)
             serializer = EventoSerializer(evento, context={'request': request})
             return Response(serializer.data)
-        eventos = self.service.listar_eventos()
+        
+        estado = request.query_params.get('estado')
+        territorio = request.query_params.get('territorio')
+        actor = request.query_params.get('actor')
+        eventos = self.service.listar_eventos(estado=estado, territorio=territorio, actor=actor)
         serializer = EventoSerializer(eventos, many=True, context={'request': request})
         return Response(serializer.data)
 
@@ -52,12 +56,17 @@ class EventoController(APIView):
         print("📦 Content-Type:", request.content_type)
         accion = request.data.get('accion')
         print("📦 accion:", accion)
-        accion = request.data.get('accion')
         try:
             if accion == 'inactivar':
                 evento = self.service.inactivar_evento(pk)
             elif accion == 'publicar':
                 evento = self.service.publicar_evento(pk)
+            elif accion == 'aprobar':
+                evento = self.service.aprobar_evento(pk)
+            elif accion == 'rechazar':
+                evento = self.service.rechazar_evento(pk)
+            elif accion == 'cancelar_envio':
+                evento = self.service.cancelar_envio_evento(pk)
             else:
                 return Response({"error": "Acción no válida."}, status=status.HTTP_400_BAD_REQUEST)
 
