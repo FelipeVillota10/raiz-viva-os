@@ -142,5 +142,51 @@ export const eventosService = {
     });
     if (!res.ok) throw new Error('Error al publicar');
     return res.json();
+  },
+
+  async aprobarEvento(eventId: string) {
+    const res = await fetch(`${API_BASE}/api/eventos/${eventId}/`, {
+      method: 'PATCH',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ accion: 'aprobar' }),
+    });
+    if (!res.ok) throw new Error('Error al aprobar');
+    return res.json();
+  },
+
+  async rechazarEvento(eventId: string) {
+    const res = await fetch(`${API_BASE}/api/eventos/${eventId}/`, {
+      method: 'PATCH',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ accion: 'rechazar' }),
+    });
+    if (!res.ok) throw new Error('Error al rechazar');
+    return res.json();
+  },
+
+  async cancelarEnvioEvento(eventId: string) {
+    const res = await fetch(`${API_BASE}/api/eventos/${eventId}/`, {
+      method: 'PATCH',
+      credentials: 'include',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ accion: 'cancelar_envio' }),
+    });
+    if (!res.ok) throw new Error('Error al cancelar envío');
+    return res.json();
+  },
+
+  async listarEventos(estado?: string, territorio?: number) {
+    const params = new URLSearchParams();
+    if (estado) params.append('estado', estado);
+    if (territorio) params.append('territorio', String(territorio));
+
+    const query = params.toString() ? `?${params.toString()}` : '';
+    const res = await fetch(`${API_BASE}/api/eventos/${query}`, {
+      credentials: 'include',
+    });
+    if (!res.ok) throw new Error('Error al listar eventos');
+    return res.json();
   }
 };
