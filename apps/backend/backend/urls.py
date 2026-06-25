@@ -23,6 +23,9 @@ urlpatterns = [
     path('api/comentarios/', include('Comentarios.urls')),
     path('api/', include('CategoriasEventos.urls')),
     path('api/', include('Eventos.urls')),
+    path('api/c/', include('Eventos.urls')),
+    path('api/c/pagos/', include('Pagos.urls')),
+    path('api/pagos/', include('Pagos.urls')),
     path('api/', include('usuarios.urls')),
     path('api/growth/', GrowthController.as_view(), name='growth'),
 
