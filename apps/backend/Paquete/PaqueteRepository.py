@@ -1,4 +1,4 @@
-from .PaqueteModel import Paquete, PaqueteItem
+from .PaqueteModel import Paquete, PaqueteItem,  ReglasConfig
 from EcoAventuras.EcoAventuraModel import EcoAventuraModel
 
 class PaqueteRepository:
@@ -61,7 +61,6 @@ class PaqueteRepository:
         """
         Retorna las configuraciones operativas globales registradas en el sistema.
         """
-        from .PaqueteModel import ReglasConfig
         config = ReglasConfig.objects.first()
         if not config:
             # Valores por defecto de contingencia si el admin nunca ha guardado reglas
