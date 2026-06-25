@@ -75,6 +75,7 @@ export default function ColaborarEventPage() {
               }
             } catch (e) {}
             return {
+              id_cliente: detalle.id_colaboradores,
               id_colaborador: detalle.id_colaboradores,
               porcentaje: detalle.distribucion_pago.toString(),
               servicios,
@@ -113,7 +114,7 @@ export default function ColaborarEventPage() {
       console.error("Error al obtener servicios", e);
     }
 
-    setColaboradores([...colaboradores, { id_colaborador: actorId, porcentaje: '', servicios }]);
+    setColaboradores([...colaboradores, { id_cliente: actorId, id_colaborador: actorId, porcentaje: '', servicios }]);
     e.target.value = "";
   };
 

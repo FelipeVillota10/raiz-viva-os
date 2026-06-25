@@ -14,7 +14,7 @@ export interface EventListItem {
   currency:    string;
   capacity:    number;
   startDate:   string;
-  status:      'draft' | 'pending' | 'active' | 'inactive';
+  status:      string;
   image:       string | null;
 }
 
