@@ -37,6 +37,7 @@ INSTALLED_APPS = [
     'Productos',
     'Eventos',
     'DetallesEventos',
+    'Tiquetes',
     'Categorias',
     'CategoriasEventos',
     'Evento',

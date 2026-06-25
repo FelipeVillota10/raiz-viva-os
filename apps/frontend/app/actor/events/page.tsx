@@ -7,7 +7,7 @@ import { EventListHeader }      from '@/components/events/EventListHeader';
 import { EventCard }            from '@/components/events/EventCard';
 import { useEventListViewModel }         from '@/hooks/events/useEventListViewModel';
  
-type EventFilterTab = 'todos' | 'Borrador' | 'en_revisión' | 'aprobado' | 'rechazado' | 'inactivo';
+type EventFilterTab = 'todos' | 'Borrador' | 'en_revisión' | 'aprobado' | 'publicado' | 'rechazado' | 'inactivo';
 
 import { useAuth } from '@/hooks/useAuth';
 
@@ -20,6 +20,7 @@ export default function EventsPage() {
     deactivateEvent,
     cancelSubmit,
     submitEvent,
+    activateEvent,
   } = useEventListViewModel(user?.id);
   const [search, setSearch] = useState('');
   const [activeTab, setActiveTab] = useState<EventFilterTab>('todos');
@@ -39,6 +40,7 @@ export default function EventsPage() {
     { label: 'Borrador', value: 'Borrador' },
     { label: 'En Revisión', value: 'en_revisión' },
     { label: 'Aprobados', value: 'aprobado' },
+    { label: 'Publicados', value: 'publicado' },
     { label: 'Rechazados', value: 'rechazado' },
     { label: 'Inactivos', value: 'inactivo' },
   ];
@@ -95,6 +97,7 @@ export default function EventsPage() {
             onDeactivate={deactivateEvent}
             onCancelSubmit={cancelSubmit}
             onSubmitEvent={submitEvent}
+            onActivate={activateEvent}
           />
         ))}
       </div>

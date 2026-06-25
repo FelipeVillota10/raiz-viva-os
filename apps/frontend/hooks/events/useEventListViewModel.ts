@@ -14,7 +14,7 @@ export interface EventListItem {
   currency:    string;
   capacity:    number;
   startDate:   string;
-  status:      'draft' | 'pending' | 'active' | 'inactive';
+  status:      string;
   image:       string | null;
 }
 
@@ -42,7 +42,7 @@ export function useEventListViewModel(actorId?: number) {
         id:          String(item.id_evento),
         name:        item.nombre       ?? item.name,
         description: item.descripcion  ?? item.description ?? '',
-        category:    item.categoria    ?? item.category    ?? '',
+        category:    item.id_categoria?.nombre ?? item.categoria ?? item.category ?? '',
         pricingType: item.precio > 0 ? 'paid' : 'free',
         price:       Number(item.precio ?? item.price ?? 0),
         currency:    item.moneda       ?? item.currency    ?? 'COP',
@@ -52,7 +52,9 @@ export function useEventListViewModel(actorId?: number) {
                        item.id_estado === 11 ? 'Borrador'
                      : item.id_estado === 6 ? 'en_revisión'
                      : item.id_estado === 8 ? 'aprobado'
+                     : item.id_estado === 9 ? 'activo'
                      : item.id_estado === 10 ? 'inactivo'
+                     : item.id_estado === 12 ? 'publicado'
                      : 'Borrador'
                    ),
         image:       item.imagen ?? null,
@@ -125,5 +127,22 @@ export function useEventListViewModel(actorId?: number) {
     }
   }, []);
 
-  return { events, isLoading, error, fetchEvents, deactivateEvent, cancelSubmit, submitEvent };
+  const activateEvent = useCallback(async (id: string) => {
+    try {
+      const res = await fetch(`${API_BASE}/api/eventos/${id}/`, {
+        method:      'PATCH',
+        credentials: 'include',
+        headers:     { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ accion: 'activar' }),
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      setEvents((prev) =>
+        prev.map((e) => e.id === id ? { ...e, status: 'publicado' } : e)
+      );
+    } catch (e: any) {
+      console.error('Error al activar evento:', e.message);
+    }
+  }, []);
+
+  return { events, isLoading, error, fetchEvents, deactivateEvent, cancelSubmit, submitEvent, activateEvent };
 }

@@ -14,7 +14,7 @@ interface Invitacion {
 }
 
 interface Estado {
-  id_estado: number;
+  id: number;
   nombre_estado: string;
 }
 
@@ -25,6 +25,8 @@ export default function ColaborarPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [procesando, setProcesando] = useState<number | null>(null);
+
+  const [filterState, setFilterState] = useState<string>('todos');
 
   useEffect(() => {
     async function fetchData() {
@@ -50,7 +52,7 @@ export default function ColaborarPage() {
   }, [user?.id]);
 
   const getEstadoNombre = (id_estado: number) => {
-    return estados.find(e => e.id_estado === id_estado)?.nombre_estado || 'Pendiente';
+    return estados.find(e => e.id === id_estado)?.nombre_estado || 'Pendiente';
   };
 
   const handleRespuesta = async (id_detalle: number, aceptar: boolean) => {
@@ -76,6 +78,12 @@ export default function ColaborarPage() {
     }
   };
 
+  const filteredInvitaciones = invitaciones.filter(inv => {
+    if (filterState === 'todos') return true;
+    const estadoNombre = getEstadoNombre(inv.id_estado).toLowerCase();
+    return estadoNombre === filterState;
+  });
+
   if (loading) return <div className="p-8 text-center">Cargando invitaciones...</div>;
 
   return (
@@ -83,15 +91,31 @@ export default function ColaborarPage() {
       <h1 className="text-2xl font-bold text-[#2c3a26] mb-2">Mis Invitaciones para Colaborar</h1>
       <p className="text-[#6b7a63] mb-8">Aquí puedes ver y gestionar las invitaciones a eventos donde solicitan tu colaboración.</p>
       
+      <div className="flex flex-wrap gap-2 mb-6">
+        {['todos', 'en_revision', 'aprobado', 'rechazado'].map(f => (
+          <button
+            key={f}
+            onClick={() => setFilterState(f)}
+            className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
+              filterState === f
+                ? 'bg-[#557149] text-white'
+                : 'bg-white border border-[#c9d4be] text-[#557149] hover:bg-[#f4ede0]'
+            }`}
+          >
+            {f === 'todos' ? 'Todos' : f.replace('_', ' ').replace(/\b\w/g, l => l.toUpperCase())}
+          </button>
+        ))}
+      </div>
+
       {error && <div className="bg-red-50 text-red-600 p-4 rounded-lg mb-6">{error}</div>}
 
       <div className="space-y-4">
-        {invitaciones.length === 0 ? (
+        {filteredInvitaciones.length === 0 ? (
           <div className="bg-white p-8 text-center rounded-xl border border-gray-200">
-            <p className="text-gray-500 italic">No tienes invitaciones pendientes por ahora.</p>
+            <p className="text-gray-500 italic">No hay invitaciones que mostrar en esta categoría.</p>
           </div>
         ) : (
-          invitaciones.map(inv => {
+          filteredInvitaciones.map(inv => {
             const estadoNombre = getEstadoNombre(inv.id_estado);
             const isPendiente = estadoNombre.toLowerCase() === 'en_revision' || estadoNombre.toLowerCase() === 'pendiente';
 

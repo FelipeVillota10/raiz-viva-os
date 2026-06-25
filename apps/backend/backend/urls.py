@@ -25,6 +25,7 @@ urlpatterns = [
     path('api/', include('Eventos.urls')),
     path('api/growth/', GrowthController.as_view(), name='growth'),
     path('api/detalles_eventos/', include('DetallesEventos.urls')),
+    path('api/tiquetes/', include('Tiquetes.urls')),
 
 
 

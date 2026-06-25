@@ -17,11 +17,13 @@ interface ServiceItem {
 }
 
 interface CollaboratorInput {
-  id_cliente: number;
+  id_detalle?: number;
+  id_cliente?: number;
   id_colaborador: number;
   porcentaje: string; // lo manejamos como string para el input
   servicios: ServiceItem[];
   isExisting?: boolean;
+  statusText?: string;
 }
 
 export default function ColaborarEventPage() {
@@ -61,11 +63,29 @@ export default function ColaborarEventPage() {
         );
         setActores(posiblesActores);
         
-        // Obtener detalles (invitaciones) previas de este evento
-        const resDetalles = await fetch(`${API_BASE}/api/detalles_eventos/?id_evento=${eventId}`);
-        if (resDetalles.ok) {
+        // Obtener detalles (invitaciones) previas y estados
+        const [resDetalles, resEstados] = await Promise.all([
+          fetch(`${API_BASE}/api/detalles_eventos/?id_evento=${eventId}`),
+          fetch(`${API_BASE}/api/estados/`)
+        ]);
+
+        if (resDetalles.ok && resEstados.ok) {
           const detallesPrevios = await resDetalles.json();
-          const colaboradoresIniciales = await Promise.all(detallesPrevios.map(async (detalle: any) => {
+          const estados = await resEstados.json();
+          
+          const estadoRechazado = estados.find((e: any) => e.nombre_estado.toLowerCase() === 'rechazado');
+          const idRechazado = estadoRechazado ? estadoRechazado.id : -1;
+          
+          const estadoAprobado = estados.find((e: any) => e.nombre_estado.toLowerCase() === 'aprobado');
+          const idAprobado = estadoAprobado ? estadoAprobado.id : -1;
+          
+          const estadoInactivo = estados.find((e: any) => e.nombre_estado.toLowerCase() === 'inactivo');
+          const idInactivo = estadoInactivo ? estadoInactivo.id : -1;
+
+          // Filtrar las rechazadas e inactivas para que no aparezcan y suelten el porcentaje
+          const detallesValidos = detallesPrevios.filter((d: any) => d.id_estado !== idRechazado && d.id_estado !== idInactivo);
+
+          const colaboradoresIniciales = await Promise.all(detallesValidos.map(async (detalle: any) => {
             let servicios: ServiceItem[] = [];
             try {
               const resServ = await fetch(`${API_BASE}/api/clientes/${detalle.id_colaboradores}/servicios/`);
@@ -75,10 +95,12 @@ export default function ColaborarEventPage() {
               }
             } catch (e) {}
             return {
+              id_detalle: detalle.id_detalle,
               id_colaborador: detalle.id_colaboradores,
-              porcentaje: detalle.distribucion_pago.toString(),
+              porcentaje: detalle.distribucion_pago ? detalle.distribucion_pago.toString() : '0',
               servicios,
-              isExisting: true
+              isExisting: true,
+              statusText: detalle.id_estado === idAprobado ? 'Aceptado' : 'Ya Invitado'
             };
           }));
           setColaboradores(colaboradoresIniciales);
@@ -92,6 +114,21 @@ export default function ColaborarEventPage() {
     }
     fetchData();
   }, [eventId, user?.id]);
+
+  const handleCancelar = async (id_detalle: number) => {
+    if (!confirm('¿Estás seguro de que deseas cancelar esta invitación?')) return;
+    try {
+      const res = await fetch(`${API_BASE}/api/detalles_eventos/${id_detalle}/`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ accion: 'cancelar' })
+      });
+      if (!res.ok) throw new Error('Error al cancelar la invitación');
+      setColaboradores(prev => prev.filter(c => c.id_detalle !== id_detalle));
+    } catch (err: any) {
+      alert(err.message);
+    }
+  };
 
   const totalPorcentaje = colaboradores.reduce((acc, curr) => acc + (parseFloat(curr.porcentaje) || 0), 0);
   const remaining = 100 - totalPorcentaje;
@@ -134,8 +171,14 @@ export default function ColaborarEventPage() {
       setError('Debes agregar al menos un colaborador');
       return;
     }
-    if (Math.abs(remaining) > 0.01) {
-      setError(`La suma de porcentajes debe ser exactamente 100%. Falta asignar: ${remaining}%`);
+    if (remaining < 0) {
+      setError(`La suma de porcentajes no puede superar el 100%. Te has excedido por: ${Math.abs(remaining).toFixed(2)}%`);
+      return;
+    }
+
+    const hasZeroPercentage = colaboradores.some(c => !c.isExisting && (parseFloat(c.porcentaje) <= 0 || !c.porcentaje));
+    if (hasZeroPercentage) {
+      setError('No puedes enviar invitaciones con un porcentaje de 0%.');
       return;
     }
 
@@ -298,8 +341,19 @@ export default function ColaborarEventPage() {
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
                   </button>
                 ) : (
-                  <div className="mt-5 p-2.5 self-end md:self-center text-xs font-bold text-[#557149] bg-[#e8efe3] rounded-xl">
-                    Ya Invitado
+                  <div className="flex flex-col gap-2 self-end md:self-center items-end mt-4 md:mt-0">
+                    <div className={`p-2.5 text-xs font-bold rounded-xl ${colab.statusText === 'Aceptado' ? 'text-green-700 bg-green-100' : 'text-[#557149] bg-[#e8efe3]'}`}>
+                      {colab.statusText || 'Ya Invitado'}
+                    </div>
+                    {colab.statusText !== 'Aceptado' && (
+                      <button 
+                        onClick={() => handleCancelar(colab.id_detalle!)}
+                        className="text-xs font-semibold text-red-500 hover:text-red-700 underline cursor-pointer"
+                        title="Cancelar esta invitación"
+                      >
+                        Cancelar invitación
+                      </button>
+                    )}
                   </div>
                 )}
               </div>
@@ -324,7 +378,7 @@ export default function ColaborarEventPage() {
         </button>
         <button
           onClick={handleInvitar}
-          disabled={isSubmitting || colaboradores.length === 0 || remaining !== 0}
+          disabled={isSubmitting || colaboradores.length === 0 || remaining < 0 || colaboradores.some(c => !c.isExisting && (parseFloat(c.porcentaje) <= 0 || !c.porcentaje))}
           className="px-8 py-3.5 bg-[#557149] hover:bg-[#3b5630] text-white font-bold rounded-xl shadow-lg shadow-[#557149]/30 transition-all disabled:opacity-50 disabled:shadow-none disabled:cursor-not-allowed w-full sm:w-auto flex justify-center items-center gap-2"
         >
           {isSubmitting ? (
