@@ -55,6 +55,8 @@ class DetalleEventoController(APIView):
                 detalle = self.service.actualizar_estado(pk, 'aprobado')
             elif accion == 'rechazar':
                 detalle = self.service.actualizar_estado(pk, 'rechazado')
+            elif accion == 'cancelar':
+                detalle = self.service.actualizar_estado(pk, 'inactivo')
             else:
                 return Response({"error": "Accion no valida"}, status=status.HTTP_400_BAD_REQUEST)
                 

@@ -6,6 +6,8 @@ import { useRouter } from 'next/navigation';
 import { StatusBadge } from '@/components/shared/StatusBadge';
 import { DeactivateConfirmModal } from '@/components/events/DeactivateConfirmModal';
 import { EventSummaryModal } from '@/components/events/EventSummaryModal';
+import { PublishConfirmModal } from '@/components/events/PublishConfirmModal';
+import { DistributionModal } from '@/components/events/DistributionModal';
 import type { EventListItem } from '@/hooks/events/useEventListViewModel';
  
 interface Props {
@@ -13,11 +15,14 @@ interface Props {
   onDeactivate: (id: string) => Promise<void>;
   onCancelSubmit?: (id: string) => Promise<void>;
   onSubmitEvent?: (id: string) => Promise<void>;
+  onActivate?: (id: string) => Promise<void>;
 }
  
-export function EventCard({ event, onDeactivate, onCancelSubmit, onSubmitEvent }: Props) {
+export function EventCard({ event, onDeactivate, onCancelSubmit, onSubmitEvent, onActivate }: Props) {
   const router = useRouter();
   const [showDeactivate, setShowDeactivate] = useState(false);
+  const [showPublish, setShowPublish] = useState(false);
+  const [showDistribution, setShowDistribution] = useState(false);
   const [showSummary, setShowSummary] = useState(false);
   const [isLoading,      setIsLoading]      = useState(false);
   const [isCanceling,    setIsCanceling]    = useState(false);
@@ -27,10 +32,12 @@ export function EventCard({ event, onDeactivate, onCancelSubmit, onSubmitEvent }
   const isInactive = s.includes('inactivo') || s.includes('inactive');
   const isEnRevision = s.includes('revisión') || s.includes('revision');
   const isAprobado = s.includes('aprobado');
+  const isPublicado = s.includes('publicado');
+  const isActivo = s.includes('activo') && !isInactive;
   const isBorrador = s.includes('borrador') || s.includes('draft');
   
-  const canEdit       = !isInactive && !isEnRevision && !isAprobado;
-  const canDeactivate = !isInactive && !isEnRevision;
+  const canEdit       = !isInactive && !isEnRevision && !isAprobado && !isActivo && !isPublicado;
+  const canDeactivate = !isInactive && !isEnRevision && !isActivo && !isPublicado;
  
   const priceLabel = event.pricingType === 'free'
     ? 'Gratuito'
@@ -55,6 +62,11 @@ export function EventCard({ event, onDeactivate, onCancelSubmit, onSubmitEvent }
     setIsSubmitting(true);
     await onSubmitEvent(event.id);
     setIsSubmitting(false);
+  }
+
+  async function handleActivate() {
+    if (!onActivate) return;
+    await onActivate(event.id);
   }
  
   return (
@@ -103,9 +115,15 @@ export function EventCard({ event, onDeactivate, onCancelSubmit, onSubmitEvent }
             {event.capacity} personas
           </span>
           <span className="bg-[#f4ede0] text-[#6b7a63] text-[10px] px-2 py-0.5 rounded-full">
-            {new Date(event.startDate + 'T00:00:00').toLocaleDateString('es-CO', {
-              day: '2-digit', month: 'short', year: 'numeric'
-            })}
+            {(() => {
+              try {
+                const d = new Date(event.startDate);
+                if (isNaN(d.getTime())) return 'Fecha no definida';
+                return d.toLocaleDateString('es-CO', { day: '2-digit', month: 'short', year: 'numeric' });
+              } catch {
+                return 'Fecha inválida';
+              }
+            })()}
           </span>
         </div>
  
@@ -141,12 +159,20 @@ export function EventCard({ event, onDeactivate, onCancelSubmit, onSubmitEvent }
           )}
 
           {isAprobado && (
-            <button
-              onClick={() => router.push(`/actor/events/${event.id}/colaborar`)}
-              className="flex-1 text-xs bg-[#8c9a80] hover:bg-[#748171] text-white py-1.5 rounded-lg font-medium transition-colors"
-            >
-              Colaborar
-            </button>
+            <>
+              <button
+                onClick={() => router.push(`/actor/events/${event.id}/colaborar`)}
+                className="flex-1 text-xs border border-[#8c9a80] text-[#557149] hover:bg-[#f4ede0] py-1.5 rounded-lg font-medium transition-colors"
+              >
+                Colaborar
+              </button>
+              <button
+                onClick={() => setShowPublish(true)}
+                className="flex-1 text-xs bg-[#557149] hover:bg-[#3b5630] text-white py-1.5 rounded-lg font-medium transition-colors"
+              >
+                Publicar
+              </button>
+            </>
           )}
 
           {canDeactivate && (
@@ -158,7 +184,16 @@ export function EventCard({ event, onDeactivate, onCancelSubmit, onSubmitEvent }
             </button>
           )}
 
-          {!canEdit && !canDeactivate && !isEnRevision && !isAprobado && !isBorrador && (
+          { (isActivo || isPublicado) && (
+            <button
+              onClick={() => setShowDistribution(true)}
+              className="flex-1 text-xs border border-[#8c9a80] text-[#557149] hover:bg-[#f4ede0] py-1.5 rounded-lg font-medium transition-colors"
+            >
+              Distribución de pago
+            </button>
+          )}
+
+          {!canEdit && !canDeactivate && !isEnRevision && !isAprobado && !isBorrador && !isActivo && !isPublicado && (
             <span className="text-[10px] text-[#9eaa94] italic flex-1 flex items-center">
               Sin acciones disponibles
             </span>
@@ -173,6 +208,20 @@ export function EventCard({ event, onDeactivate, onCancelSubmit, onSubmitEvent }
         onConfirm={handleDeactivate}
         onClose={() => setShowDeactivate(false)}
         isLoading={isLoading}
+      />
+
+      <PublishConfirmModal
+        visible={showPublish}
+        event={event}
+        onConfirm={handleActivate}
+        onClose={() => setShowPublish(false)}
+      />
+
+      <DistributionModal
+        visible={showDistribution}
+        eventId={event.id}
+        eventName={event.name}
+        onClose={() => setShowDistribution(false)}
       />
 
       <EventSummaryModal

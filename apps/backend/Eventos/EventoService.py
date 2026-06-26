@@ -116,6 +116,12 @@ class EventoService:
             return None
         return self.repository.update(evento, {'id_estado_id': self._get_id_estado('en_revision')})
 
+    def activar_evento(self, evento_id):
+        evento = self.repository.get_by_id(evento_id)
+        if not evento:
+            return None
+        return self.repository.update(evento, {'id_estado_id': self._get_id_estado('publicado')})
+
     def aprobar_evento(self, evento_id):
         evento = self.repository.get_by_id(evento_id)
         if not evento:

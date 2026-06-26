@@ -59,6 +59,8 @@ class EventoController(APIView):
         try:
             if accion == 'inactivar':
                 evento = self.service.inactivar_evento(pk)
+            elif accion == 'activar':
+                evento = self.service.activar_evento(pk)
             elif accion == 'publicar':
                 evento = self.service.publicar_evento(pk)
             elif accion == 'aprobar':
