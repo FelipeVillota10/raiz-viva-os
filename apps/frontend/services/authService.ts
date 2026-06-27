@@ -10,7 +10,7 @@
  */
 
 import { LoginCredentials, UserPerfil } from '@/models/types';
-import { ApiError } from '@/services/apiError';
+import { ApiError, parseApiError } from '@/services/apiError';
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 
@@ -176,7 +176,7 @@ export const authService = {
     });
 
     if (!response.ok) {
-      throw new Error('Credenciales inválidas');
+      throw await parseApiError(response);
     }
 
     const tokens = await response.json();
