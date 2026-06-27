@@ -35,10 +35,17 @@ export function TuristaEventModal({ visible, event, nombreTerritorio, onClose }:
   const [loading, setLoading] = useState(true);
   const [ticket, setTicket] = useState<any>(null);
   const [reserving, setReserving] = useState(false);
+  
+  const [step, setStep] = useState<'details' | 'quantity'>('details');
+  const [cantidad, setCantidad] = useState(1);
+  const [errorMsg, setErrorMsg] = useState('');
 
   useEffect(() => {
     async function fetchColaboradores() {
       if (!visible || !event) return;
+      setStep('details');
+      setCantidad(1);
+      setErrorMsg('');
       try {
         setLoading(true);
         const [resDetalles, resClientes] = await Promise.all([
@@ -99,27 +106,30 @@ export function TuristaEventModal({ visible, event, nombreTerritorio, onClose }:
     fetchColaboradores();
   }, [visible, event]);
 
-  const handleReservar = async () => {
+  const isFree = event?.es_gratuito || Number(event?.costo_evento) === 0;
+
+  const handleReservarClick = () => {
     if (!isAuthenticated) {
       router.push('/login');
       return;
     }
-    
+    if (isFree) {
+      generarTiquetesGratis();
+    } else {
+      setStep('quantity');
+    }
+  };
+
+  const generarTiquetesGratis = async () => {
     try {
       setReserving(true);
       const clientId = user?.id || user?.id_cliente;
-      if (!clientId) {
-        throw new Error("No se pudo identificar tu usuario. Inicia sesión nuevamente.");
-      }
+      if (!clientId) throw new Error("No se pudo identificar tu usuario. Inicia sesión nuevamente.");
 
       const res = await fetch(`${API_BASE}/api/tiquetes/`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          accion: 'generar',
-          id_cliente: clientId,
-          id_evento: event?.id_evento
-        })
+        body: JSON.stringify({ accion: 'generar', id_cliente: clientId, id_evento: event?.id_evento })
       });
 
       if (!res.ok) {
@@ -128,21 +138,67 @@ export function TuristaEventModal({ visible, event, nombreTerritorio, onClose }:
       }
 
       const data = await res.json();
-      setTicket(data);
+      setTicket({ ...data, isFree: true });
     } catch (err: any) {
       alert(err.message);
     } finally {
       setReserving(false);
     }
   };
+
+  const handlePagar = async () => {
+    setErrorMsg('');
+    if (cantidad <= 0) {
+      setErrorMsg("La cantidad debe ser mayor a 0");
+      return;
+    }
+    if (cantidad > event.capacidad) {
+      setErrorMsg("No hay suficientes cupos disponibles");
+      return;
+    }
+
+    try {
+      setReserving(true);
+      const clientId = user?.id || user?.id_cliente;
+      if (!clientId) throw new Error("No se pudo identificar tu usuario.");
+
+      const res = await fetch(`${API_BASE}/api/consolidado_eventos/`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          cliente: clientId,
+          evento: event?.id_evento,
+          monto_pagado: cantidad * Number(event.costo_evento),
+          cantidad_tickets: cantidad,
+          pagado: false,
+          fecha_participacion: event.fecha_inicio
+        })
+      });
+
+      if (!res.ok) throw new Error('Error al procesar la reserva');
+
+      const data = await res.json();
+      
+      // ESPACIO PARA EL EQUIPO DE PAGOS: 
+      // Redirigir a la pasarela de pagos con el id del consolidado
+      const paymentUrl = `/pago?id_consolidado=${data.id_consolidado_ev}&monto=${data.monto_pagado}`;
+      router.push(paymentUrl);
+      
+    } catch (err: any) {
+      setErrorMsg(err.message);
+    } finally {
+      setReserving(false);
+    }
+  };
+
   if (!visible || !event) return null;
 
   if (ticket) {
     return (
-      <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm transition-opacity">
+      <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 transition-opacity">
         <div className="bg-[#f4ede0] rounded-3xl overflow-hidden max-w-2xl w-full flex flex-col md:flex-row shadow-2xl relative">
           
-          <button onClick={onClose} className="absolute top-4 right-4 z-20 bg-black/40 hover:bg-black/60 p-2 rounded-full text-white backdrop-blur-md transition-colors">
+          <button onClick={onClose} className="absolute top-4 right-4 z-20 bg-black/40 hover:bg-black/60 p-2 rounded-full text-white transition-colors">
             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
           </button>
 
@@ -209,10 +265,74 @@ export function TuristaEventModal({ visible, event, nombreTerritorio, onClose }:
     }
   };
 
-  const isFree = event.es_gratuito || Number(event.precio) === 0;
+
+  if (step === 'quantity') {
+    const total = cantidad * Number(event.costo_evento);
+    return (
+      <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 bg-[#2c3a26]/70 transition-all duration-300">
+        <div className="bg-[#fdfbf7] w-full max-w-md rounded-[2rem] overflow-hidden shadow-2xl relative animate-in fade-in zoom-in duration-300">
+          <button onClick={() => setStep('details')} className="absolute top-4 right-4 z-10 bg-black/40 hover:bg-black/60 p-2 rounded-full text-white transition-colors border border-white/20 shadow-lg">
+            <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+          </button>
+          
+          <div className="h-32 bg-[#557149] relative">
+            {event.imagen && <Image src={event.imagen} alt={event.nombre} fill className="object-cover opacity-50" />}
+            <div className="absolute inset-0 flex items-center justify-center p-6 bg-black/40">
+              <h2 className="text-white text-2xl font-black text-center drop-shadow-md">{event.nombre}</h2>
+            </div>
+          </div>
+
+          <div className="p-8">
+            <h3 className="text-xl font-bold text-[#2c3a26] mb-6 text-center">Selecciona tus Tickets</h3>
+            
+            <div className="flex items-center justify-center gap-6 mb-8">
+              <button 
+                onClick={() => setCantidad(Math.max(1, cantidad - 1))}
+                className="w-12 h-12 rounded-full bg-[#f4ede0] hover:bg-[#e8efe3] flex items-center justify-center text-[#557149] font-bold text-2xl transition-colors border border-[#d3ddca]"
+              >
+                -
+              </button>
+              <span className="text-4xl font-black text-[#2c3a26] w-16 text-center">{cantidad}</span>
+              <button 
+                onClick={() => setCantidad(cantidad + 1)}
+                className="w-12 h-12 rounded-full bg-[#f4ede0] hover:bg-[#e8efe3] flex items-center justify-center text-[#557149] font-bold text-2xl transition-colors border border-[#d3ddca]"
+              >
+                +
+              </button>
+            </div>
+
+            {errorMsg && (
+              <div className="bg-red-50 text-red-600 p-3 rounded-lg text-sm font-bold text-center mb-6 border border-red-200">
+                {errorMsg}
+              </div>
+            )}
+
+            <div className="bg-[#f4ede0] p-4 rounded-xl mb-6">
+              <div className="flex justify-between items-center mb-2">
+                <span className="text-[#6b7a63] font-medium">Precio unitario</span>
+                <span className="text-[#2c3a26] font-bold">${Number(event.costo_evento).toLocaleString('es-CO')}</span>
+              </div>
+              <div className="flex justify-between items-center pt-2 border-t border-[#d3ddca]">
+                <span className="text-[#2c3a26] font-bold uppercase tracking-wider">Total a Pagar</span>
+                <span className="text-2xl font-black text-[#557149]">${total.toLocaleString('es-CO')} <span className="text-sm font-normal">COP</span></span>
+              </div>
+            </div>
+
+            <button 
+              onClick={handlePagar}
+              disabled={reserving}
+              className="w-full py-4 bg-[#557149] hover:bg-[#3b5630] text-white font-bold rounded-xl shadow-lg shadow-[#557149]/30 transition-all transform hover:scale-105 active:scale-95 disabled:opacity-70 disabled:hover:scale-100"
+            >
+              {reserving ? 'Procesando...' : 'Ir a pagar'}
+            </button>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 bg-[#2c3a26]/70 backdrop-blur-md transition-all duration-300">
+    <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6 bg-[#2c3a26]/70 transition-all duration-300">
       <div 
         className="bg-[#fdfbf7] w-full max-w-4xl max-h-[90vh] rounded-[2rem] overflow-hidden shadow-2xl flex flex-col md:flex-row relative animate-in fade-in zoom-in duration-300"
         onClick={e => e.stopPropagation()}
@@ -220,7 +340,7 @@ export function TuristaEventModal({ visible, event, nombreTerritorio, onClose }:
         {/* Botón Cerrar */}
         <button 
           onClick={onClose}
-          className="absolute top-4 right-4 z-10 bg-black/40 hover:bg-black/60 backdrop-blur-md p-2 rounded-full text-white transition-colors border border-white/20 shadow-lg"
+          className="absolute top-4 right-4 z-10 bg-black/40 hover:bg-black/60 p-2 rounded-full text-white transition-colors border border-white/20 shadow-lg"
         >
           <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
         </button>
@@ -322,12 +442,12 @@ export function TuristaEventModal({ visible, event, nombreTerritorio, onClose }:
               <div>
                 <p className="text-xs font-bold text-[#8c9a80] uppercase tracking-wider mb-1">Precio por persona</p>
                 <div className="text-3xl font-black text-[#2c3a26]">
-                  {isFree ? 'Gratis' : `$${Number(event.precio).toLocaleString('es-CO')}`}
+                  {isFree ? 'Gratis' : `$${Number(event.costo_evento).toLocaleString('es-CO')}`}
                   {!isFree && <span className="text-sm text-[#8c9a80] font-normal ml-1">COP</span>}
                 </div>
               </div>
               <button 
-                onClick={handleReservar}
+                onClick={handleReservarClick}
                 disabled={reserving}
                 className="w-full sm:w-auto px-10 py-4 bg-[#557149] hover:bg-[#3b5630] text-white font-bold rounded-xl shadow-lg shadow-[#557149]/30 transition-all transform hover:scale-105 active:scale-95 disabled:opacity-70 disabled:hover:scale-100"
               >

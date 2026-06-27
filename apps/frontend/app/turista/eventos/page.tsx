@@ -76,9 +76,9 @@ export default function TuristaEventosPage() {
       // Filtro de territorio
       if (territorioId && e.id_territorio.toString() !== territorioId) return false;
       // Filtro de gratutidad
-      if (isFree && !e.es_gratuito && Number(e.precio) > 0) return false;
+      if (isFree && !e.es_gratuito && Number(e.costo_evento) > 0) return false;
       // Filtro de precio máximo
-      if (priceMax !== '' && Number(e.precio) > Number(priceMax)) return false;
+      if (priceMax !== '' && Number(e.costo_evento) > Number(priceMax)) return false;
       // Filtro de fecha
       if (dateStr) {
         const eDate = e.fecha_inicio ? e.fecha_inicio.split('T')[0] : '';
@@ -254,9 +254,9 @@ export default function TuristaEventosPage() {
 
                       <div className="pt-4 border-t border-[#e8efe3] flex items-center justify-between mt-auto">
                         <span className="font-black text-lg text-[#557149]">
-                          {event.es_gratuito || Number(event.precio) === 0 
+                          {event.es_gratuito || Number(event.costo_evento) === 0 
                             ? 'Gratis' 
-                            : `$${Number(event.precio).toLocaleString('es-CO')} COP`}
+                            : `$${Number(event.costo_evento).toLocaleString('es-CO')} COP`}
                         </span>
                         <button 
                           onClick={() => {
