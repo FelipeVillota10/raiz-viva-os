@@ -176,3 +176,12 @@ export interface TerritorioUpdatePayload {
   id_estado?: number;
   administrador_activo?: boolean;
 }
+
+// NUEVA INTERFAZ PARA HU14.A2
+export interface ReglasPaquete {
+  id: number;
+  min_personas: number;
+  max_personas: number;
+  max_actividades: number;
+  fechas_bloqueadas: string[]; // ISO Strings "YYYY-MM-DD"
+}

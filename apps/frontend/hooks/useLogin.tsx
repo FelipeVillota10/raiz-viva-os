@@ -129,7 +129,7 @@ export function useLogin(role: LoginRole = 'general'): UseLoginReturn {
           setLocalError('No tienes permisos de administrador.');
           return;
         }
-        router.push('/admin/territorios');
+        router.push('/admin/dashboard');
       } else if (role === 'lider') {
         if (!user?.es_lider) {
           setLocalError('No tienes acceso al panel de líder territorial.');
@@ -141,7 +141,7 @@ export function useLogin(role: LoginRole = 'general'): UseLoginReturn {
         if (user?.es_lider) {
           setLocalError('Los líderes territoriales deben iniciar sesión desde el panel de líder.');
         } else if (user?.es_actor) {
-          router.push('/mi-perfil');
+          router.push('/actor/perfil');
         } else {
           router.push('/');
         }

@@ -163,6 +163,19 @@ export function AppHeader({ role = 'public', backRoute, title, actions, rightSlo
   /** Navegación del administrador (solo si está autenticado como admin) */
   const adminNav = (
     <div className="flex items-center gap-2">
+      <NavLink
+        href="/admin/dashboard"
+        active={pathname.startsWith("/admin/dashboard")}
+      >
+        Dashboard
+      </NavLink>
+
+      <NavLink
+        href="/admin/comentarios"
+        active={pathname.startsWith("/admin/comentarios")}
+      >
+        Comentarios
+      </NavLink>
       <NavLink href="/admin/territorios" active={pathname.startsWith('/admin/territorios')}>
         Territorios
       </NavLink>
@@ -184,6 +197,9 @@ export function AppHeader({ role = 'public', backRoute, title, actions, rightSlo
     <div className="flex items-center gap-2">
       <NavLink href="/lider/aprobaciones" active={pathname.startsWith('/lider/aprobaciones')}>
         Solicitudes
+      </NavLink>
+      <NavLink href="/lider/eventos" active={pathname.startsWith('/lider/eventos')}>
+        Eventos
       </NavLink>
       <NavLink href="/lider/actores" active={pathname.startsWith('/lider/actores')}>
         Actores
@@ -207,13 +223,15 @@ export function AppHeader({ role = 'public', backRoute, title, actions, rightSlo
           Mapa
         </button>
       </Link>
+
       <Link href="/login">
         <button className="bg-white/20 hover:bg-white/30 text-white px-4 py-2 rounded-full text-sm font-medium transition">
           Iniciar Sesión
         </button>
       </Link>
+
       <Link href="/registro">
-        <button className="bg-white hover:bg-white/90 text-[#3b5630] px-4 py-2 rounded-full text-sm font-medium transition">
+        <button className="bg-white hover:bg-white/90 text-[#3b5c2e] px-4 py-2 rounded-full text-sm font-medium transition">
           Crear Cuenta
         </button>
       </Link>
@@ -256,7 +274,17 @@ export function AppHeader({ role = 'public', backRoute, title, actions, rightSlo
           </button>
         </Link>
       )}
-      <Link href="/mi-perfil">
+      <Link href="/actor/colaborar">
+        <button className="bg-white/20 hover:bg-white/30 text-white px-4 py-2 rounded-full text-sm font-medium transition">
+          Notificaciones
+        </button>
+      </Link>
+      <Link href="/actor/events">
+        <button className="bg-white/20 hover:bg-white/30 text-white px-4 py-2 rounded-full text-sm font-medium transition">
+          Mis Eventos
+        </button>
+      </Link>
+      <Link href="/actor/perfil">
         <span className="text-sm text-white hover:underline cursor-pointer">
           Hola, {user?.nombre_completo}
         </span>

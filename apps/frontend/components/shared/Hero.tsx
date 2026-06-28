@@ -5,6 +5,7 @@
  */
 
 import Image from 'next/image';
+import Link from 'next/link';
 
 export function Hero() {
   return (
@@ -32,9 +33,9 @@ export function Hero() {
             Un espacio para crear y disfrutar Eco experiencias
           </p>
 
-          <button className="bg-cyan-400 text-black px-4 py-2 rounded-full font-semibold hover:bg-cyan-300 transition cursor-pointer">
+          <Link href="/turista/eventos" className="inline-block bg-cyan-400 text-black px-4 py-2 rounded-full font-semibold hover:bg-cyan-300 transition cursor-pointer">
             Unirme a la Aventura
-          </button>
+          </Link>
         </div>
       </div>
     </section>
