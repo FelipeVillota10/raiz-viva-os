@@ -47,19 +47,29 @@ export default function DetalleReservaPage({ params }: { params: Promise<{ id: s
 
   const [evento, setEvento] = useState<Event | null>(null)
   const [pago, setPago] = useState<PagoRespuesta | null>(null)
+  const [consolidado, setConsolidado] = useState<any | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [downloading, setDownloading] = useState(false)
 
   useEffect(() => {
-    Promise.all([
-      obtenerEvento(Number(id)).catch(() => null),
-      Promise.resolve(null),
-    ])
-      .then(([eventoData]) => {
+    const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
+    setLoading(true)
+    setError(null)
+
+    fetch(`${API_BASE}/api/consolidado_eventos/${id}/`)
+      .then((res) => {
+        if (!res.ok) throw new Error("No se pudo cargar la información de la reserva")
+        return res.json()
+      })
+      .then((consolidadoData) => {
+        setConsolidado(consolidadoData)
+        return obtenerEvento(Number(consolidadoData.evento))
+      })
+      .then((eventoData) => {
         setEvento(eventoData)
       })
-      .catch(() => setError('Error al cargar los datos'))
+      .catch((e: any) => setError(e.message || 'Error al cargar los datos'))
       .finally(() => setLoading(false))
   }, [id])
 
@@ -170,15 +180,31 @@ export default function DetalleReservaPage({ params }: { params: Promise<{ id: s
 
           <div className="space-y-2 mt-3 pt-3 border-t border-[#e0d8c8]">
             <div className="flex justify-between items-center">
-              <span className="text-sm text-gray-500">Capacidad:</span>
-              <span className="text-sm font-medium text-[#1a1a1a]">{evento.capacity || 'N/A'}</span>
-            </div>
-            <div className="flex justify-between items-center">
-              <span className="text-sm text-gray-500">Costo:</span>
-              <span className="text-sm font-semibold text-[#1a1a1a]">
+              <span className="text-sm text-gray-500">Precio Unitario:</span>
+              <span className="text-sm font-medium text-[#1a1a1a]">
                 {evento.price ? `$${Number(evento.price).toLocaleString('es-CO')} COP` : 'N/A'}
               </span>
             </div>
+            {consolidado && (
+              <>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-gray-500">Tickets Reservados:</span>
+                  <span className="text-sm font-medium text-[#1a1a1a]">{consolidado.cantidad_tickets}</span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-gray-500">Total Reserva:</span>
+                  <span className="text-sm font-semibold text-[#1a1a1a]">
+                    ${Number(consolidado.monto_pagado).toLocaleString('es-CO')} COP
+                  </span>
+                </div>
+                <div className="flex justify-between items-center">
+                  <span className="text-sm text-gray-500">Estado de Pago:</span>
+                  <span className={`text-sm font-bold ${consolidado.pagado ? 'text-green-600' : 'text-yellow-600'}`}>
+                    {consolidado.pagado ? '✓ Pagado' : '⏳ Pendiente'}
+                  </span>
+                </div>
+              </>
+            )}
           </div>
         </div>
 
@@ -236,18 +262,27 @@ export default function DetalleReservaPage({ params }: { params: Promise<{ id: s
             <div className="flex items-center justify-between mb-4">
               <span className="text-sm sm:text-base text-[#4b5563]">Total:</span>
               <span className="text-lg sm:text-xl font-bold text-[#1a1a1a]">
-                {evento.price ? `$${Number(evento.price).toLocaleString('es-CO')} COP` : 'N/A'}
+                {consolidado ? `$${Number(consolidado.monto_pagado).toLocaleString('es-CO')} COP` : (evento.price ? `$${Number(evento.price).toLocaleString('es-CO')} COP` : 'N/A')}
               </span>
             </div>
 
-            <button
-              onClick={() => router.push(`/pagos/reserva/${id}`)}
-              className="w-full bg-[#6b7c45] hover:bg-[#5a6b3a] text-white
-                rounded-xl py-4 font-semibold text-base sm:text-lg
-                transition cursor-pointer"
-            >
-              Ir a Pagar
-            </button>
+            {consolidado?.pagado ? (
+              <button
+                disabled
+                className="w-full bg-green-600 text-white rounded-xl py-4 font-semibold text-base sm:text-lg cursor-not-allowed opacity-75"
+              >
+                ✓ Pago Completado
+              </button>
+            ) : (
+              <button
+                onClick={() => router.push(`/pagos/reserva/${id}`)}
+                className="w-full bg-[#6b7c45] hover:bg-[#5a6b3a] text-white
+                  rounded-xl py-4 font-semibold text-base sm:text-lg
+                  transition cursor-pointer"
+              >
+                Ir a Pagar
+              </button>
+            )}
           </div>
         </div>
       </div>

@@ -139,6 +139,22 @@ class WebhookMercadoPagoController(APIView):
         topic, resource_id = self._extract(request)
         payload = request.data if isinstance(request.data, dict) else {'raw': str(request.data)}
         PagoService.log_webhook(topic, resource_id, payload, dict(request.query_params))
+
+        if topic == 'payment' and resource_id:
+            try:
+                sdk = PagoService._get_sdk()
+                payment_info = sdk.payment().get(resource_id)
+                if payment_info.get('status') in (200, 201):
+                    resp = payment_info.get('response', {})
+                    ref = resp.get('external_reference')
+                    mp_status = resp.get('status')
+                    transaction_amount = resp.get('transaction_amount')
+                    if ref and mp_status:
+                        monto = Decimal(str(transaction_amount)) if transaction_amount is not None else None
+                        PagoService.procesar_confirmacion_pago(ref, mp_status, monto)
+            except Exception as e:
+                logger.exception(f"Error procesando webhook de MercadoPago para resource {resource_id}: {e}")
+
         return Response({'ok': True}, status=200)
 
     def get(self, request):
@@ -147,6 +163,22 @@ class WebhookMercadoPagoController(APIView):
 
         topic, resource_id = self._extract(request)
         PagoService.log_webhook(topic, resource_id, {}, dict(request.query_params))
+        
+        if topic == 'payment' and resource_id:
+            try:
+                sdk = PagoService._get_sdk()
+                payment_info = sdk.payment().get(resource_id)
+                if payment_info.get('status') in (200, 201):
+                    resp = payment_info.get('response', {})
+                    ref = resp.get('external_reference')
+                    mp_status = resp.get('status')
+                    transaction_amount = resp.get('transaction_amount')
+                    if ref and mp_status:
+                        monto = Decimal(str(transaction_amount)) if transaction_amount is not None else None
+                        PagoService.procesar_confirmacion_pago(ref, mp_status, monto)
+            except Exception as e:
+                logger.exception(f"Error procesando webhook de MercadoPago para resource {resource_id}: {e}")
+
         return Response({'ok': True}, status=200)
 
 
@@ -191,11 +223,32 @@ class RespuestaMercadoPagoController(APIView):
         }
         estado = estado_map.get(status, 1)
 
+        if referencia:
+            PagoService.procesar_confirmacion_pago(referencia, status)
+
+        monto_str = '0.00'
+        id_cliente = None
+        
+        if referencia and referencia.startswith('CONF-'):
+            try:
+                parts = referencia.split('-')
+                if len(parts) >= 2:
+                    id_consolidado = int(parts[1])
+                    from ConsolidadoEvento.ConsolidadoEventoModel import ConsolidadoEventoModel
+                    consolidado = ConsolidadoEventoModel.objects.filter(id_consolidado_ev=id_consolidado).first()
+                    if consolidado:
+                        if consolidado.pagado:
+                            estado = 2
+                        monto_str = str(consolidado.monto_pagado or '0.00')
+                        id_cliente = consolidado.cliente_id
+            except Exception:
+                pass
+
         return Response({
             'id_pago': 0,
             'estado': estado,
-            'id_cliente': None,
-            'monto': '0.00',
+            'id_cliente': id_cliente,
+            'monto': monto_str,
             'moneda': 'COP',
             'fecha_creacion': None,
             'fecha_confirmacion': None,
@@ -204,3 +257,4 @@ class RespuestaMercadoPagoController(APIView):
             'mp_payment_id': request.query_params.get('payment_id') or request.query_params.get('collection_id'),
             'mp_status': status,
         }, status=200)
+

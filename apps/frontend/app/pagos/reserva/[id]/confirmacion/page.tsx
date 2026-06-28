@@ -37,6 +37,7 @@ export default function ConfirmacionPagoPage({ params }: { params: Promise<{ id:
 
   const [pago, setPago] = useState<PagoRespuesta | null>(null)
   const [evento, setEvento] = useState<Event | null>(null)
+  const [consolidado, setConsolidado] = useState<any | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [downloading, setDownloading] = useState(false)
@@ -44,6 +45,7 @@ export default function ConfirmacionPagoPage({ params }: { params: Promise<{ id:
   useEffect(() => {
     const referencia = searchParams.get('external_reference')
     const mpStatus = searchParams.get('status') || undefined
+    const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000';
 
     if (!referencia) {
       setError('No se recibio referencia de pago')
@@ -51,18 +53,29 @@ export default function ConfirmacionPagoPage({ params }: { params: Promise<{ id:
       return
     }
 
-    Promise.all([
-      consultarRespuesta(referencia).catch((e: any) => {
-        throw new Error(e.message || 'Error al consultar el pago')
-      }),
-      obtenerEvento(Number(id)).catch(() => null),
-    ])
-      .then(([pagoData, eventoData]) => {
-        const pagoConStatus = { ...pagoData, mp_status: mpStatus || pagoData.mp_status }
+    setLoading(true)
+    setError(null)
+
+    let pagoConStatus: any = null
+
+    consultarRespuesta(referencia)
+      .then((pagoData) => {
+        pagoConStatus = { ...pagoData, mp_status: mpStatus || pagoData.mp_status }
+        return fetch(`${API_BASE}/api/consolidado_eventos/${id}/`)
+      })
+      .then((res) => {
+        if (!res.ok) throw new Error("No se pudo cargar la información de la reserva")
+        return res.json()
+      })
+      .then((consolidadoData) => {
+        setConsolidado(consolidadoData)
+        return obtenerEvento(Number(consolidadoData.evento))
+      })
+      .then((eventoData) => {
         setPago(pagoConStatus)
         setEvento(eventoData)
       })
-      .catch((e: any) => setError(e.message))
+      .catch((e: any) => setError(e.message || 'Error al cargar confirmación'))
       .finally(() => setLoading(false))
   }, [searchParams, id])
 
@@ -178,7 +191,9 @@ export default function ConfirmacionPagoPage({ params }: { params: Promise<{ id:
             {evento && (
               <div className="flex justify-between items-center">
                 <span className="text-sm text-gray-500">Evento:</span>
-                <span className="text-sm font-medium text-gray-900">{evento.name}</span>
+                <span className="text-sm font-medium text-gray-900">
+                  {evento.name} {consolidado?.cantidad_tickets && `(x${consolidado.cantidad_tickets})`}
+                </span>
               </div>
             )}
             <div className="flex justify-between items-center">

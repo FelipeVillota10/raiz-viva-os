@@ -10,4 +10,6 @@ class IniciarPagoSerializer(serializers.Serializer):
     codigo_cupon = serializers.CharField(max_length=50, required=False, allow_blank=True)
     id_cliente = serializers.IntegerField(required=False, allow_null=True)
     id_evento = serializers.IntegerField(required=False, allow_null=True)
+    id_consolidado = serializers.IntegerField(required=False, allow_null=True)
     frontend_base_url = serializers.URLField(required=False, allow_blank=True)
+

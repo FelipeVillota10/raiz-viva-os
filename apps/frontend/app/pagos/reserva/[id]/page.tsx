@@ -7,6 +7,7 @@ import { iniciarPago, validarCupon } from "@/services/pago.service";
 import type { Event } from "@/models/event.model";
 import type { CuponRespuesta } from "@/models/pago";
 import { formatearFecha } from "@/utils/fecha";
+import { useAuth } from "@/hooks/useAuth";
 
 export default function PagarReservaPage({
   params,
@@ -15,7 +16,9 @@ export default function PagarReservaPage({
 }) {
   const { id } = use(params);
   const router = useRouter();
+  const { user } = useAuth();
 
+  const [consolidado, setConsolidado] = useState<any | null>(null);
   const [evento, setEvento] = useState<Event | null>(null);
   const [loadingEvento, setLoadingEvento] = useState(true);
   const [errorEvento, setErrorEvento] = useState<string | null>(null);
@@ -31,13 +34,42 @@ export default function PagarReservaPage({
   const [errorPago, setErrorPago] = useState<string | null>(null);
 
   useEffect(() => {
-    obtenerEvento(Number(id))
-      .then(setEvento)
-      .catch((e: any) => setErrorEvento(e.message))
-      .finally(() => setLoadingEvento(false));
+    const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+    setLoadingEvento(true);
+    setErrorEvento(null);
+
+    fetch(`${API_BASE}/api/consolidado_eventos/${id}/`)
+      .then((res) => {
+        if (!res.ok) throw new Error("No se pudo cargar la información de la reserva");
+        return res.json();
+      })
+      .then((consolidadoData) => {
+        setConsolidado(consolidadoData);
+        return obtenerEvento(Number(consolidadoData.evento));
+      })
+      .then((eventoData) => {
+        setEvento(eventoData);
+      })
+      .catch((e: any) => {
+        setErrorEvento(e.message || "Error al cargar la reserva");
+      })
+      .finally(() => {
+        setLoadingEvento(false);
+      });
   }, [id]);
 
-  const montoBase = evento?.price || 0;
+  useEffect(() => {
+    if (user) {
+      if (!nombre && (user.nombre_completo || user.nombre)) {
+        setNombre(user.nombre_completo || user.nombre || "");
+      }
+      if (!email && user.usuario_email) {
+        setEmail(user.usuario_email);
+      }
+    }
+  }, [user, nombre, email]);
+
+  const montoBase = Number(consolidado?.monto_pagado || 0);
 
   const montoFinal = cupon
     ? cupon.tipo === "porcentaje"
@@ -73,7 +105,7 @@ export default function PagarReservaPage({
   }, []);
 
   const handlePagar = useCallback(async () => {
-    if (!evento) return;
+    if (!evento || !consolidado) return;
     if (!email.trim()) {
       setErrorPago("Ingrese su correo electronico");
       return;
@@ -94,7 +126,8 @@ export default function PagarReservaPage({
         nombre_comprador: nombre.trim(),
         descripcion: evento.name,
         codigo_cupon: cupon?.codigo || undefined,
-        id_evento: evento.id,
+        id_evento: Number(evento.id),
+        id_consolidado: Number(id),
       });
 
       const redirectUrl = result.init_point;
@@ -108,7 +141,8 @@ export default function PagarReservaPage({
     } finally {
       setLoadingPago(false);
     }
-  }, [evento, email, nombre, montoFinal, cupon]);
+  }, [evento, consolidado, email, nombre, montoFinal, cupon, id]);
+
 
   if (loadingEvento) {
     return (
@@ -196,12 +230,12 @@ export default function PagarReservaPage({
                 Servicios de Experiencia:
               </p>
               <p className="text-sm sm:text-base text-gray-700 mt-1">
-                {evento.name}
+                {evento.name} {consolidado?.cantidad_tickets && `(x${consolidado.cantidad_tickets} ${consolidado.cantidad_tickets === 1 ? 'ticket' : 'tickets'})`}
               </p>
               <div className="flex justify-between items-center mt-2">
-                {/* <span className="text-xs sm:text-sm text-gray-500">Territorio: {evento.territorio.nombre_territorio}</span> */}
+                <span className="text-xs sm:text-sm text-gray-500">Precio unitario: ${Number(evento.price || 0).toLocaleString("es-CO")} COP</span>
                 <span className="text-sm sm:text-base font-semibold text-[#1a1a1a]">
-                  ${Number(evento.price || 0).toLocaleString("es-CO")} COP
+                  Total base: ${Number(consolidado?.monto_pagado || 0).toLocaleString("es-CO")} COP
                 </span>
               </div>
             </div>

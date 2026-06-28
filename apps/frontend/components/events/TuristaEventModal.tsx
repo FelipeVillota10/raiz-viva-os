@@ -181,7 +181,7 @@ export function TuristaEventModal({ visible, event, nombreTerritorio, onClose }:
       
       // ESPACIO PARA EL EQUIPO DE PAGOS: 
       // Redirigir a la pasarela de pagos con el id del consolidado
-      const paymentUrl = `/pago?id_consolidado=${data.id_consolidado_ev}&monto=${data.monto_pagado}`;
+      const paymentUrl = `/pagos/reserva/${data.id_consolidado_ev}`;
       router.push(paymentUrl);
       
     } catch (err: any) {
