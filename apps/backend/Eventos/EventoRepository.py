@@ -2,8 +2,11 @@ from .EventoModel import EventoModel
 
 class EventoRepository:
     @staticmethod
-    def get_all():
-        return EventoModel.objects.all()
+    def get_all(filters=None):
+        queryset = EventoModel.objects.all()
+        if filters:
+            queryset = queryset.filter(**filters)
+        return queryset
 
     @staticmethod
     def get_by_id(evento_id):

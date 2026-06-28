@@ -1,21 +1,49 @@
 "use client";
+
+import Image from "next/image";
 import Link from "next/link";
-import BotonPaqueteHeader from "@/components/ecoaventuras/BotonPaqueteHeader"; 
+import BotonPaqueteHeader from "@/components/ecoaventuras/BotonPaqueteHeader";
 
 export function Header() {
   return (
-    <header className="bg-[#3a5c2e] text-white px-6 py-4 flex items-center justify-between shadow-md">
+    <header className="flex justify-between items-center px-4 py-2 h-16 bg-[#3b5630] text-white shadow-md">
+
+      {/* Logo igual al AppHeader */}
       <Link href="/" className="flex items-center gap-2">
-        <span className="text-2xl font-bold tracking-tight">🌿 Raíz Viva</span>
-        <span className="text-sm text-green-200 hidden sm:block">Eco-Aventuras</span>
+        <Image
+          src="/raiz_header.png"
+          alt="Logo Raíz Viva"
+          width={256}
+          height={256}
+          className="w-64 h-64 object-contain mt-2"
+        />
+
+        <span className="font-medium text-base hidden sm:inline self-center">
+          Eco-Aventuras
+        </span>
       </Link>
-      <nav className="flex items-center gap-4 text-sm font-medium">
-        <Link href="/ecoaventuras" className="hover:text-green-300 transition">Catálogo</Link>
-        <BotonPaqueteHeader /> 
-        <Link href="/admin/ecoaventuras" className="bg-[#7a9e6a] hover:bg-[#557149] px-3 py-1 rounded-full transition">
+
+      {/* Botones propios de Ecoaventuras */}
+      <nav className="flex items-center gap-3">
+
+        <Link
+          href="/ecoaventuras"
+          className="bg-white/20 hover:bg-white/30 text-white px-4 py-2 rounded-full text-sm font-medium transition"
+        >
+          Catálogo
+        </Link>
+
+        <BotonPaqueteHeader />
+
+        <Link
+          href="/admin/ecoaventuras"
+          className="bg-[#8c9a80] hover:bg-[#748171] text-white px-4 py-2 rounded-full text-sm font-medium transition"
+        >
           Panel Admin
         </Link>
+
       </nav>
+
     </header>
   );
 }

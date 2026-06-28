@@ -2,7 +2,10 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { getCatalogo, Filtros, PaginatedResponse } from "@/services/ecoaventuras";
+
 import { Header } from "@/components/ecoaventuras/Header";
+import { Footer } from "@/components/Footer";
+
 import { TarjetaEcoAventura } from "@/components/ecoaventuras/TarjetaEcoAventura";
 import { FiltrosEcoAventuras } from "@/components/ecoaventuras/FiltrosEcoAventuras";
 import { Paginacion } from "@/components/ecoaventuras/Paginacion";
@@ -37,7 +40,8 @@ export default function CatalogoPage() {
   const handlePagina = (p: number) => setFiltros((f) => ({ ...f, page: p }));
 
   return (
-    <div className="min-h-screen bg-[#f9f3e7]">
+    <div className="min-h-flex flex-col bg-[#f9f3e7]">
+
       <Header />
 
       {/* Hero */}
@@ -114,6 +118,7 @@ export default function CatalogoPage() {
           )}
         </div>
       </main>
+      <Footer />
     </div>
   );
 }

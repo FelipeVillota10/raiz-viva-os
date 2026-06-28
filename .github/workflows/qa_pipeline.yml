@@ -45,7 +45,7 @@ jobs:
         continue-on-error: true # Alertas de seguridad
 
       - name: QA Funcional - Pruebas Unitarias (Django)
-        run: python manage.py test
+        run: python manage.py test --keepdb
         continue-on-error: true # Pruebas de django
         
   # Revision de calidad frontend
