@@ -14,7 +14,7 @@ interface Evento {
   descripcion: string;
   imagen: string | null;
   fecha_inicio: string;
-  precio: string | number;
+  costo_evento: string | number;
   es_gratuito: boolean;
   id_territorio: number;
   id_categoria?: { nombre: string };
