@@ -4,19 +4,18 @@ import { Comentario } from "../../services/comentariosApi";
 
 interface ComentarioCardProps {
   comentario: Comentario;
-  onEdit: (comentario: Comentario) => void;
-  onDelete: (id: number) => void;
-  deleting: boolean;
+  onEdit?: (comentario: Comentario) => void;
+  onDelete?: (id: number) => void;
+  deleting?: boolean;
 }
 
-const estadoStyles: Record<
-  string,
-  {
-    background: string;
-    color: string;
-    border: string;
-  }
-> = {
+type EstiloEstado = {
+  background: string;
+  color: string;
+  border: string;
+};
+
+const estadoStyles: Record<string, EstiloEstado> = {
   pendiente: {
     background: "#fef3c7",
     color: "#b45309",
@@ -38,22 +37,13 @@ const estadoStyles: Record<
     border: "#fca5a5",
   },
 };
-
 const estadoLabel: Record<string, string> = {
   pendiente: "Pendiente",
   revision: "En revisión",
   resuelto: "Resuelto",
   rechazado: "Rechazado",
 };
-
-const categoriaStyles: Record<
-  string,
-  {
-    background: string;
-    color: string;
-    border: string;
-  }
-> = {
+const categoriaStyles: Record<string, EstiloEstado> = {
   sugerencia: {
     background: "#f3e8ff",
     color: "#7c3aed",
@@ -75,7 +65,6 @@ const categoriaStyles: Record<
     border: "#d1d5db",
   },
 };
-
 const prioridadColors = [
   "",
   "#22c55e",
@@ -237,54 +226,60 @@ export function ComentarioCard({
         </span>
       </div>
 
-      {/* ACTIONS */}
+      {/* ACTIONS — solo si se pasan onEdit u onDelete */}
 
-      <div
-        style={{
-          display: "flex",
-          gap: "10px",
-          paddingTop: "10px",
-          borderTop: "1px solid #f0ebe3",
-        }}
-      >
-        <button
-          onClick={() => onEdit(comentario)}
+      {(onEdit || onDelete) && (
+        <div
           style={{
-            flex: 1,
-            border: "none",
-            background: "#f0f7f0",
-            color: "#3b5630",
-            borderRadius: "10px",
-            padding: "10px",
-            fontSize: "12px",
-            fontWeight: 600,
-            cursor: "pointer",
-            transition: "0.2s ease",
+            display: "flex",
+            gap: "10px",
+            paddingTop: "10px",
+            borderTop: "1px solid #f0ebe3",
           }}
         >
-          Editar
-        </button>
+          {onEdit && (
+            <button
+              onClick={() => onEdit(comentario)}
+              style={{
+                flex: 1,
+                border: "none",
+                background: "#f0f7f0",
+                color: "#3b5630",
+                borderRadius: "10px",
+                padding: "10px",
+                fontSize: "12px",
+                fontWeight: 600,
+                cursor: "pointer",
+                transition: "0.2s ease",
+              }}
+            >
+              Editar
+            </button>
+          )}
 
-        <button
-          onClick={() => onDelete(comentario.id)}
-          disabled={deleting}
-          style={{
-            flex: 1,
-            border: "none",
-            background: "#fef2f2",
-            color: "#dc2626",
-            borderRadius: "10px",
-            padding: "10px",
-            fontSize: "12px",
-            fontWeight: 600,
-            cursor: deleting ? "not-allowed" : "pointer",
-            opacity: deleting ? 0.6 : 1,
-            transition: "0.2s ease",
-          }}
-        >
-          {deleting ? "Deshabilitando..." : "Deshabilitar"}
-        </button>
-      </div>
+          {onDelete && (
+            <button
+              onClick={() => onDelete(comentario.id)}
+              disabled={deleting}
+              style={{
+                flex: 1,
+                border: "none",
+                background: "#fef2f2",
+                color: "#dc2626",
+                borderRadius: "10px",
+                padding: "10px",
+                fontSize: "12px",
+                fontWeight: 600,
+                cursor: deleting ? "not-allowed" : "pointer",
+                opacity: deleting ? 0.6 : 1,
+                transition: "0.2s ease",
+              }}
+            >
+              {deleting ? "Deshabilitando..." : "Deshabilitar"}
+            </button>
+          )}
+        </div>
+      )}
     </div>
   );
 }

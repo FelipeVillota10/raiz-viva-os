@@ -13,7 +13,6 @@ import {
 } from "@/services/comentariosApi";
 
 import { Footer } from '@/components/shared/Footer';
-import { ComentarioForm } from "@/components/comentarios/ComentarioForm";
 import { ComentarioList } from "@/components/comentarios/ComentarioList";
 import { FiltrosComentarios } from "@/components/comentarios/FiltrosComentarios";
 import { ComentarioModal } from "@/components/comentarios/ComentarioModal";
@@ -107,24 +106,7 @@ export default function ComentariosPage() {
 
   // ───────────────── Handlers ─────────────────
 
-  const handleCreate = async (payload: ComentarioPayload) => {
-  setLoadingForm(true);
-
-  try {
-    await createComentario(payload);
-
-    addToast("Comentario creado correctamente", "success");
-
-    setShowForm(false);
-
-    await fetchComentarios();
-    await fetchTendencias();
-  } catch {
-    addToast("Error al crear el comentario", "error");
-  } finally {
-    setLoadingForm(false);
-  }
-};
+  
 
   const handlePatch = async (
   id: number,
@@ -300,26 +282,6 @@ export default function ComentariosPage() {
               Gestiona comentarios y sugerencias de la plataforma
             </p>
           </div>
-
-          <button
-            onClick={() => setShowForm((v) => !v)}
-            style={{
-              background: "#3b5630",
-              color: "#fff",
-              border: "none",
-              borderRadius: "12px",
-              padding: "12px 18px",
-              fontSize: "14px",
-              fontWeight: 600,
-              cursor: "pointer",
-              display: "flex",
-              alignItems: "center",
-              gap: "8px",
-              boxShadow: "0 2px 8px rgba(59,86,48,0.18)",
-            }}
-          >
-            {showForm ? "Cerrar formulario" : "Nuevo comentario"}
-          </button>
         </div>
 
         {/* STATS */}
@@ -603,10 +565,6 @@ export default function ComentariosPage() {
           />
         </div>
       </main>
-
-      {/* FOOTER */}
-
-      <Footer />
     </div>
   );
 }

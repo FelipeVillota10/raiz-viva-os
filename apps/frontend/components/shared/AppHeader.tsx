@@ -295,7 +295,11 @@ export function AppHeader({ role = 'public', backRoute, title, actions, rightSlo
           </button>
         </Link>
       )}
+      <NavLink href="/comentariosTurista" active={pathname.startsWith('/comentariosTurista')}>
+        Comentarios
+      </NavLink>
       <span className="text-sm text-white">Hola, {user?.nombre_completo}</span>
+      
       <button
         onClick={() => handleLogout('/')}
         className="bg-white/20 hover:bg-white/30 text-white px-4 py-2 rounded-full text-sm font-medium transition"

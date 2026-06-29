@@ -10,7 +10,7 @@ class DetalleEventoModel(models.Model):
     )
     distribucion_pago = models.TextField(blank=True, null=True)
     es_local = models.BooleanField(default=True)
-    colaboradores = models.TextField(blank=True, null=True)
+    colaboradores = models.IntegerField(blank=True, null=True, db_column='id_colaboradores')
 
     class Meta:
         db_table = 'detalles_eventos'

@@ -7,9 +7,9 @@ interface ComentarioListProps {
   comentarios: Comentario[];
   loading: boolean;
   error: string | null;
-  onEdit: (comentario: Comentario) => void;
-  onDelete: (id: number) => void;
-  deletingId: number | null;
+  onEdit?: (comentario: Comentario) => void;
+  onDelete?: (id: number) => void;
+  deletingId?: number | null;
 }
 
 export function ComentarioList({
