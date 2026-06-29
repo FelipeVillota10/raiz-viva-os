@@ -19,7 +19,7 @@ export default function AdminPage() {
   const cargar = async () => {
     setCargando(true);
     try {
-      const data = await getAllAdmin();
+      const data = await getAllAdmin(true); // cargar solo las ecoaventuras del actor autenticado
       setEcoaventuras(data);
     } catch (error) {
       console.error("Error al cargar las eco-aventuras:", error);

@@ -32,6 +32,7 @@ import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
+import BotonPaqueteHeader from "@/components/ecoaventuras/BotonPaqueteHeader";
 
 /** Roles posibles del header (solo se usan como hint de título, no como decisores de nav) */
 export type HeaderRole = 'admin' | 'lider' | 'public' | 'login';

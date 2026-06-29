@@ -50,6 +50,10 @@ class EcoAventuraService:
         return EcoAventuraRepository.obtener_todas()
 
     @staticmethod
+    def listar_por_cliente(id_cliente: int):
+        return EcoAventuraRepository.obtener_por_cliente(id_cliente)
+
+    @staticmethod
     def obtener(id: int):
         return EcoAventuraRepository.obtener_por_id(id)
 

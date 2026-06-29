@@ -1,3 +1,5 @@
+import { fetchWithAuth, API_URL, getTokenPayload } from "./authService";
+
 export interface EcoAventura {
   id: number;
   nombre: string;
@@ -49,9 +51,7 @@ export interface Filtros {
   page?: number;
 }
 
-
-const BASE = "http://localhost:8000/api/ecoaventuras";
-
+export const BASE = `${API_URL}/api/ecoaventuras`;
 
 function buildQuery(filtros: Filtros): string {
   const params = new URLSearchParams();
@@ -74,21 +74,26 @@ export async function getEcoAventura(id: number): Promise<EcoAventura> {
   return res.json();
 }
 
-export async function getAllAdmin(): Promise<EcoAventura[]> {
-  const res = await fetch(`${BASE}/admin/`, { cache: "no-store" });
+export async function getAllAdmin(mineOnly: boolean = false): Promise<EcoAventura[]> {
+  if (mineOnly) {
+    const res = await fetchWithAuth(`${BASE}/mine/`, { cache: "no-store" });
+    if (!res.ok) throw new Error("Error al cargar mis eco-aventuras");
+    return res.json();
+  }
+
+  const res = await fetchWithAuth(`${BASE}/admin/`, { cache: "no-store" });
   if (!res.ok) throw new Error("Error al cargar eco-aventuras");
   return res.json();
 }
 
 export async function crearEcoAventura(data: Partial<EcoAventura>): Promise<EcoAventura> {
-  const res = await fetch(`${BASE}/`, {
+  const res = await fetchWithAuth(`${BASE}/`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
     body: JSON.stringify(data),
   });
   if (!res.ok) {
-    const err = await res.json();
-    throw new Error(JSON.stringify(err));
+    const err = await res.json().catch(() => null);
+    throw new Error(JSON.stringify(err) || `Error ${res.status}`);
   }
   return res.json();
 }
@@ -98,22 +103,20 @@ export async function crearEcoAventura(data: Partial<EcoAventura>): Promise<EcoA
  * Ideal para actualizar cupos, disponibilidad o campos específicos.
  */
 export async function editarEcoAventura(id: number, data: Partial<EcoAventura>): Promise<EcoAventura> {
-  const res = await fetch(`${BASE}/${id}/`, {
+  const res = await fetchWithAuth(`${BASE}/${id}/`, {
     method: "PATCH",
-    headers: { "Content-Type": "application/json" },
     body: JSON.stringify(data),
   });
   if (!res.ok) {
-    const err = await res.json();
-    throw new Error(JSON.stringify(err));
+    const err = await res.json().catch(() => null);
+    throw new Error(JSON.stringify(err) || `Error ${res.status}`);
   }
   return res.json();
 }
 
 export async function toggleActivo(id: number): Promise<EcoAventura> {
-  const res = await fetch(`${BASE}/${id}/`, {
+  const res = await fetchWithAuth(`${BASE}/${id}/`, {
     method: "PATCH",
-    headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ toggle_activo: true }),
   });
   if (!res.ok) throw new Error("Error al cambiar estado");
@@ -128,29 +131,25 @@ export async function getItinerario(id: number): Promise<Itinerario | null> {
 }
 
 export async function guardarItinerario(id: number, data: Itinerario): Promise<Itinerario> {
-  const res = await fetch(`${BASE}/${id}/itinerario/`, {
+  const res = await fetchWithAuth(`${BASE}/${id}/itinerario/`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
     body: JSON.stringify(data),
   });
   if (!res.ok) {
-    const err = await res.json();
-    throw new Error(JSON.stringify(err));
+    const err = await res.json().catch(() => null);
+    throw new Error(JSON.stringify(err) || `Error ${res.status}`);
   }
   return res.json();
 }
 
 export async function guardarReglasOperativas(id: number, reglas: any) {
   try {
-    const response = await fetch(`http://localhost:8000/api/ecoaventuras/${id}/`, {
-      method: "PATCH", // PATCH nos permite actualizar solo estos campos específicos
-      headers: {
-        "Content-Type": "application/json",
-      },
+    const response = await fetchWithAuth(`${BASE}/${id}/`, {
+      method: "PATCH",
       body: JSON.stringify({
         min_personas: reglas.minPersonas,
-        capacidad_maxima: reglas.maxPersonas, 
-        max_actividades: reglas.maxActividades
+        capacidad_maxima: reglas.maxPersonas,
+        max_actividades: reglas.maxActividades,
       }),
     });
 
@@ -164,4 +163,19 @@ export async function guardarReglasOperativas(id: number, reglas: any) {
     console.error("Error en guardarReglasOperativas:", error);
     throw error;
   }
+}
+
+export async function uploadImage(file: File): Promise<string> {
+  const form = new FormData();
+  form.append('imagen', file);
+  const res = await fetchWithAuth(`${BASE}/upload-image/`, {
+    method: 'POST',
+    body: form,
+  });
+  if (!res.ok) {
+    const err = await res.json().catch(() => null);
+    throw new Error(err?.error || `Error al subir imagen (${res.status})`);
+  }
+  const data = await res.json();
+  return data.url;
 }
