@@ -4,8 +4,15 @@ class EventoService:
     def __init__(self):
         self.repository = EventoRepository()
 
-    def listar_eventos(self):
-        return self.repository.get_all()
+    def listar_eventos(self, estado=None, territorio=None, actor=None):
+        filters = {}
+        if estado:
+            filters['id_estado_id'] = self._get_id_estado(estado)
+        if territorio:
+            filters['id_territorio'] = territorio
+        if actor:
+            filters['id_actor_principal'] = actor
+        return self.repository.get_all(filters)
     
 
     def obtener_evento(self, evento_id):
@@ -108,3 +115,27 @@ class EventoService:
         if not evento:
             return None
         return self.repository.update(evento, {'id_estado_id': self._get_id_estado('en_revision')})
+
+    def activar_evento(self, evento_id):
+        evento = self.repository.get_by_id(evento_id)
+        if not evento:
+            return None
+        return self.repository.update(evento, {'id_estado_id': self._get_id_estado('publicado')})
+
+    def aprobar_evento(self, evento_id):
+        evento = self.repository.get_by_id(evento_id)
+        if not evento:
+            return None
+        return self.repository.update(evento, {'id_estado_id': self._get_id_estado('aprobado')})
+
+    def rechazar_evento(self, evento_id):
+        evento = self.repository.get_by_id(evento_id)
+        if not evento:
+            return None
+        return self.repository.update(evento, {'id_estado_id': self._get_id_estado('rechazado')})
+
+    def cancelar_envio_evento(self, evento_id):
+        evento = self.repository.get_by_id(evento_id)
+        if not evento:
+            return None
+        return self.repository.update(evento, {'id_estado_id': self._get_id_estado('Borrador')})

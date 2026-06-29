@@ -37,6 +37,7 @@ INSTALLED_APPS = [
     'Productos',
     'Eventos',
     'DetallesEventos',
+    'Tiquetes',
     'Categorias',
     'CategoriasEventos',
     'Evento',
@@ -53,7 +54,8 @@ INSTALLED_APPS = [
     'Aprobaciones',
     'usuarios',
     'Comentarios',
-    'Paquete' 
+    'Paquete',
+    'Pagos',
 ]
 
 MIDDLEWARE = [
@@ -192,6 +194,21 @@ EMAIL_USE_TLS = True
 EMAIL_HOST_USER = os.environ.get('EMAIL_HOST_USER', '')
 EMAIL_HOST_PASSWORD = os.environ.get('EMAIL_HOST_PASSWORD', '')
 DEFAULT_FROM_EMAIL = os.environ.get('EMAIL_FROM', 'Raiz Viva <noreply@raizviva.com>')
+
+
+MP_DEFAULT_BACKEND_URL = 'https://raiz-viva-backend.vercel.app'
+MP_DEFAULT_FRONTEND_URL = 'https://raiz-viva-frontend.vercel.app'
+
+MERCADOPAGO = {
+    'ACCESS_TOKEN': os.environ.get('MP_ACCESS_TOKEN', ''),
+    'PUBLIC_KEY': os.environ.get('MP_PUBLIC_KEY', ''),
+    'WEBHOOK_SECRET': os.environ.get('MP_WEBHOOK_SECRET', ''),
+    'NOTIFICATION_URL': os.environ.get('MP_NOTIFICATION_URL', f'{MP_DEFAULT_BACKEND_URL}/api/pagos/webhook/'),
+    'SUCCESS_URL': os.environ.get('MP_SUCCESS_URL', f'{MP_DEFAULT_FRONTEND_URL}/pagos/reserva/0/confirmacion?status=approved'),
+    'FAILURE_URL': os.environ.get('MP_FAILURE_URL', f'{MP_DEFAULT_FRONTEND_URL}/pagos/reserva/0/confirmacion?status=rejected'),
+    'PENDING_URL': os.environ.get('MP_PENDING_URL', f'{MP_DEFAULT_FRONTEND_URL}/pagos/reserva/0/confirmacion?status=pending'),
+    'FRONTEND_BASE_URL': os.environ.get('MP_FRONTEND_BASE_URL', MP_DEFAULT_FRONTEND_URL),
+}
 
 
 CORS_ALLOWED_ORIGINS = [

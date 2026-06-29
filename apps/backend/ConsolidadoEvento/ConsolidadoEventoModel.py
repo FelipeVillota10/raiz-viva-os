@@ -16,6 +16,8 @@ class ConsolidadoEventoModel(models.Model):
                           )
     monto_pagado        = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
     fecha_participacion = models.DateTimeField(null=True, blank=True)
+    cantidad_tickets    = models.IntegerField(null=True, blank=True)
+    pagado              = models.BooleanField(default=False, null=True, blank=True)
  
     class Meta:
         managed  = False

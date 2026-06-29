@@ -11,7 +11,10 @@ export function proxy(request: Request) {
       return NextResponse.next();
     }
 
-    return NextResponse.rewrite(new URL(url.pathname, backendUrl));
+    const rewriteUrl = new URL(url.pathname, backendUrl);
+    rewriteUrl.search = url.search;
+
+    return NextResponse.rewrite(rewriteUrl);
   }
 
   return NextResponse.next();

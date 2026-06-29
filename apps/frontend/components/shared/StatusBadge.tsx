@@ -19,10 +19,13 @@ export function StatusBadge({ status }: Props) {
   } else if (s.includes('revisión') || s.includes('revision') || s.includes('pending')) {
     label = 'En revisión';
     classes = 'bg-amber-50 border border-amber-300 text-amber-700';
-  } else if (s.includes('aprobado') || s.includes('activo') || s.includes('active')) {
+  } else if (s.includes('aprobado')) {
+    label = 'Aprobado';
+    classes = 'bg-green-50 border border-green-300 text-green-700';
+  } else if (s.includes('activo') || s.includes('active')) {
     if (!s.includes('inactivo')) {
-      label = 'Aprobado';
-      classes = 'bg-green-50 border border-green-300 text-green-700';
+      label = 'Publicado';
+      classes = 'bg-[#e8efe3] border border-[#8c9a80] text-[#4a633f]';
     }
   }
   

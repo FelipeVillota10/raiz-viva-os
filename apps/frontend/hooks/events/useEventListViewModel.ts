@@ -14,10 +14,11 @@ export interface EventListItem {
   currency:    string;
   capacity:    number;
   startDate:   string;
-  status:      'draft' | 'pending' | 'active' | 'inactive';
+  status:      string;
+  image:       string | null;
 }
 
-export function useEventListViewModel() {
+export function useEventListViewModel(actorId?: number) {
   const [events,    setEvents]    = useState<EventListItem[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [error,     setError]     = useState<string | null>(null);
@@ -26,7 +27,10 @@ export function useEventListViewModel() {
     setIsLoading(true);
     setError(null);
     try {
-      const res = await fetch(`${API_BASE}/api/eventos/`, {
+      const url = new URL(`${API_BASE}/api/eventos/`);
+      if (actorId) url.searchParams.append('actor', String(actorId));
+
+      const res = await fetch(url.toString(), {
         credentials: 'include',   // envía cookies de sesión Django
       });
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
@@ -38,7 +42,7 @@ export function useEventListViewModel() {
         id:          String(item.id_evento),
         name:        item.nombre       ?? item.name,
         description: item.descripcion  ?? item.description ?? '',
-        category:    item.categoria    ?? item.category    ?? '',
+        category:    item.id_categoria?.nombre ?? item.categoria ?? item.category ?? '',
         pricingType: item.precio > 0 ? 'paid' : 'free',
         price:       Number(item.precio ?? item.price ?? 0),
         currency:    item.moneda       ?? item.currency    ?? 'COP',
@@ -48,9 +52,12 @@ export function useEventListViewModel() {
                        item.id_estado === 11 ? 'Borrador'
                      : item.id_estado === 6 ? 'en_revisión'
                      : item.id_estado === 8 ? 'aprobado'
+                     : item.id_estado === 9 ? 'activo'
                      : item.id_estado === 10 ? 'inactivo'
+                     : item.id_estado === 12 ? 'publicado'
                      : 'Borrador'
                    ),
+        image:       item.imagen ?? null,
       }));
 
       setEvents(mapped);
@@ -59,9 +66,13 @@ export function useEventListViewModel() {
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [actorId]);
 
-  useEffect(() => { fetchEvents(); }, [fetchEvents]);
+  useEffect(() => { 
+    if (actorId !== undefined) {
+      fetchEvents(); 
+    }
+  }, [fetchEvents, actorId]);
 
   const deactivateEvent = useCallback(async (id: string) => {
     try {
@@ -82,5 +93,56 @@ export function useEventListViewModel() {
     }
   }, []);
 
-  return { events, isLoading, error, fetchEvents, deactivateEvent };
+  const cancelSubmit = useCallback(async (id: string) => {
+    try {
+      const res = await fetch(`${API_BASE}/api/eventos/${id}/`, {
+        method:      'PATCH',
+        credentials: 'include',
+        headers:     { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ accion: 'cancelar_envio' }),
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      setEvents((prev) =>
+        prev.map((e) => e.id === id ? { ...e, status: 'Borrador' } : e)
+      );
+    } catch (e: any) {
+      console.error('Error al cancelar envío:', e.message);
+    }
+  }, []);
+
+  const submitEvent = useCallback(async (id: string) => {
+    try {
+      const res = await fetch(`${API_BASE}/api/eventos/${id}/`, {
+        method:      'PATCH',
+        credentials: 'include',
+        headers:     { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ accion: 'publicar' }),
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      setEvents((prev) =>
+        prev.map((e) => e.id === id ? { ...e, status: 'en_revisión' } : e)
+      );
+    } catch (e: any) {
+      console.error('Error al solicitar revisión:', e.message);
+    }
+  }, []);
+
+  const activateEvent = useCallback(async (id: string) => {
+    try {
+      const res = await fetch(`${API_BASE}/api/eventos/${id}/`, {
+        method:      'PATCH',
+        credentials: 'include',
+        headers:     { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ accion: 'activar' }),
+      });
+      if (!res.ok) throw new Error(`HTTP ${res.status}`);
+      setEvents((prev) =>
+        prev.map((e) => e.id === id ? { ...e, status: 'publicado' } : e)
+      );
+    } catch (e: any) {
+      console.error('Error al activar evento:', e.message);
+    }
+  }, []);
+
+  return { events, isLoading, error, fetchEvents, deactivateEvent, cancelSubmit, submitEvent, activateEvent };
 }
