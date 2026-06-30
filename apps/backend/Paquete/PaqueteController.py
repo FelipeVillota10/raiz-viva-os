@@ -1,6 +1,7 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
+from rest_framework.permissions import IsAuthenticated
 from .PaqueteService import PaqueteService
 from .PaqueteSerializer import PaqueteSerializer
 from .PaqueteRepository import PaqueteRepository
@@ -65,3 +66,18 @@ class EliminarItemView(APIView):
 
         paquete = PaqueteRepository.obtener_o_crear_paquete(session_key)
         return Response(PaqueteSerializer(paquete).data)
+
+
+class AsociarUsuarioView(APIView):
+    """
+    HU16.2: asocia el paquete de la sesión actual al turista autenticado.
+    Requiere un JWT válido (login de Célula 1). Se llama al proceder al
+    checkout, una vez que el usuario inició sesión, para que la reserva
+    quede ligada al usuario en NEON antes del pago (Célula 4).
+    """
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        session_key = get_or_create_session_key(request)
+        paquete = PaqueteService.asociar_usuario(session_key, request.user)
+        return Response(PaqueteSerializer(paquete).data, status=status.HTTP_200_OK)
