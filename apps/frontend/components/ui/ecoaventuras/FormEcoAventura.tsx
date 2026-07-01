@@ -1,7 +1,9 @@
 "use client";
 
-import { useState } from "react";
-import { EcoAventura, crearEcoAventura, editarEcoAventura } from "@/services/ecoaventuras";
+import { useState, useEffect } from "react";
+import { EcoAventura, crearEcoAventura, editarEcoAventura, uploadImage } from "@/services/ecoaventuras";
+import { registroService } from '@/services/registroService';
+import { Territorio } from '@/models/types';
 
 interface Props {
   inicial?: EcoAventura | null;
@@ -41,6 +43,21 @@ export function FormEcoAventura({ inicial, onGuardado, onCancelar }: Props) {
   });
   const [errores, setErrores] = useState<Record<string, string>>({});
   const [guardando, setGuardando] = useState(false);
+  const [territorios, setTerritorios] = useState<Territorio[]>([]);
+  const [imagenFile, setImagenFile] = useState<File | null>(null);
+
+  useEffect(() => {
+    let mounted = true;
+    (async () => {
+      try {
+        const data = await registroService.getTerritorios();
+        if (mounted) setTerritorios(data);
+      } catch (err) {
+        console.error('Error cargando territorios:', err);
+      }
+    })();
+    return () => { mounted = false; };
+  }, []);
 
   const set = (campo: string, valor: unknown) =>
     setForm((f) => ({ ...f, [campo]: valor }));
@@ -49,7 +66,7 @@ export function FormEcoAventura({ inicial, onGuardado, onCancelar }: Props) {
     const e: Record<string, string> = {};
     if (!form.nombre.trim()) e.nombre = "El nombre es obligatorio.";
     if (!form.descripcion.trim()) e.descripcion = "La descripción es obligatoria.";
-    if (!form.ubicacion.trim()) e.ubicacion = "La ubicación es obligatoria.";
+    if (!form.territorio) e.ubicacion = "La ubicación es obligatoria.";
     if (!form.precio || Number(form.precio) <= 0) e.precio = "El precio debe ser mayor a 0.";
     if (!form.duracion || form.duracion <= 0) e.duracion = "La duración debe ser al menos 1 hora.";
     if (!form.capacidad_maxima || form.capacidad_maxima <= 0) e.capacidad_maxima = "La capacidad debe ser al menos 1.";
@@ -66,7 +83,12 @@ export function FormEcoAventura({ inicial, onGuardado, onCancelar }: Props) {
     if (Object.keys(e2).length > 0) { setErrores(e2); return; }
     setGuardando(true);
     try {
-      const payload = { ...form, precio: form.precio, duracion: Number(form.duracion), capacidad_maxima: Number(form.capacidad_maxima) };
+      const payload: any = { ...form, precio: form.precio, duracion: Number(form.duracion), capacidad_maxima: Number(form.capacidad_maxima) };
+      // Si se seleccionó un archivo de imagen, subirlo primero
+      if (imagenFile) {
+        const url = await uploadImage(imagenFile);
+        payload.imagen_url = url;
+      }
       const resultado = inicial
         ? await editarEcoAventura(inicial.id, payload)
         : await crearEcoAventura(payload);
@@ -106,14 +128,52 @@ export function FormEcoAventura({ inicial, onGuardado, onCancelar }: Props) {
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         {campo("Nombre *", "nombre")}
-        {campo("Ubicación *", "ubicacion")}
+        <div className="flex flex-col gap-1">
+          <label className="text-sm font-medium text-gray-600">Ubicación (Territorio) *</label>
+          <select
+            value={String(form.territorio)}
+            onChange={(e) => {
+              const id = Number(e.target.value);
+              set('territorio', id);
+              const sel = territorios.find(t => t.id_territorio === id);
+              if (sel) set('ubicacion', sel.nombre_territorio);
+            }}
+            className="border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-300"
+          >
+            <option value="">-- Seleccione un territorio --</option>
+            {territorios.map(t => (
+              <option key={t.id_territorio} value={t.id_territorio}>{t.nombre_territorio}</option>
+            ))}
+          </select>
+          {errores.ubicacion && <span className="text-red-500 text-xs">{errores.ubicacion}</span>}
+        </div>
         {campo("Precio (USD) *", "precio", "number")}
         {campo("Duración (horas) *", "duracion", "number")}
         {campo("Capacidad máxima *", "capacidad_maxima", "number")}
-        {campo("ID Territorio *", "territorio", "number")}
+        {/* ID Territorio se completa automáticamente desde el select */}
+        <div className="flex flex-col gap-1">
+          <label className="text-sm font-medium text-gray-600">ID Territorio *</label>
+          <input
+            type="number"
+            value={String(form.territorio ?? '')}
+            readOnly
+            className="border border-gray-200 rounded-lg px-3 py-2 text-sm bg-gray-50"
+          />
+        </div>
         {campo("Fecha de inicio *", "fecha_inicio", "date")}
         {campo("Fecha de fin *", "fecha_fin", "date")}
-        {campo("URL de imagen", "imagen_url", "url")}
+        <div className="flex flex-col gap-1">
+          <label className="text-sm font-medium text-gray-600">Imagen (subir desde tu computador)</label>
+          <input
+            type="file"
+            accept="image/*"
+            onChange={(e) => setImagenFile(e.target.files && e.target.files[0] ? e.target.files[0] : null)}
+            className="text-sm"
+          />
+          {form.imagen_url && !imagenFile && (
+            <p className="text-xs text-gray-500">Imagen actual: <a href={form.imagen_url} target="_blank" rel="noreferrer" className="underline">ver</a></p>
+          )}
+        </div>
 
         <div className="flex flex-col gap-1">
           <label className="text-sm font-medium text-gray-600">Dificultad *</label>

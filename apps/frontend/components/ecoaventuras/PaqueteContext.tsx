@@ -1,7 +1,7 @@
 "use client";
 
 import React, { createContext, useContext, useEffect, useState, useCallback } from "react";
-import { paqueteService, Paquete, AgregarExperienciaPayload, PaqueteError } from "@/services/paqueteService";
+import { paqueteService, Paquete, AgregarExperienciaPayload, PaqueteError, ConfirmacionPago } from "@/services/paqueteService";
 
 interface PaqueteContextType {
   paquete: Paquete | null;
@@ -12,6 +12,8 @@ interface PaqueteContextType {
   eliminarItem: (itemId: number) => Promise<void>;
   vaciar: () => Promise<void>;
   recargar: () => Promise<void>;
+  asociarUsuario: () => Promise<Paquete>;
+  confirmarPago: () => Promise<ConfirmacionPago>;
   abrirCarrito: () => void;
   cerrarCarrito: () => void;
   carritoAbierto: boolean;
@@ -78,6 +80,19 @@ export function PaqueteProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
+  // HU16.2: liga el paquete de la sesión al turista autenticado antes del pago.
+  const asociarUsuario = useCallback(async () => {
+    const data = await paqueteService.asociarUsuario();
+    setPaquete(data);
+    return data;
+  }, []);
+
+  // Proceder al pago: confirma el pago del paquete actual y lo consolida en NEON.
+  const confirmarPago = useCallback(async () => {
+    if (!paquete) throw new Error("No hay un paquete cargado para pagar.");
+    return paqueteService.confirmarPago(paquete.id);
+  }, [paquete]);
+
   return (
     <PaqueteContext.Provider
       value={{
@@ -89,6 +104,8 @@ export function PaqueteProvider({ children }: { children: React.ReactNode }) {
         eliminarItem,
         vaciar,
         recargar,
+        asociarUsuario,
+        confirmarPago,
         abrirCarrito: () => setCarritoAbierto(true),
         cerrarCarrito: () => setCarritoAbierto(false),
         carritoAbierto,

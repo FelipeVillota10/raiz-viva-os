@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from "react";
 import { EcoAventura, getAllAdmin } from "@/services/ecoaventuras";
-import { Header } from "@/components/ecoaventuras/Header";
 import { ListaAdmin } from "@/components/ui/ecoaventuras/ListaAdmin";
 import { FormEcoAventura } from "@/components/ui/ecoaventuras/FormEcoAventura";
 import { FormItinerario } from "@/components/ui/ecoaventuras/FormItinerario";
@@ -20,7 +19,7 @@ export default function AdminPage() {
   const cargar = async () => {
     setCargando(true);
     try {
-      const data = await getAllAdmin();
+      const data = await getAllAdmin(true); // cargar solo las ecoaventuras del actor autenticado
       setEcoaventuras(data);
     } catch (error) {
       console.error("Error al cargar las eco-aventuras:", error);
@@ -48,7 +47,7 @@ export default function AdminPage() {
 
   return (
     <div className="min-h-screen bg-[#f9f3e7]">
-      <Header />
+      {/* 🟢 Se eliminó el <Header /> duplicado aquí para usar el del layout global */}
 
       <main className="max-w-6xl mx-auto px-4 py-8">
         <div className="flex items-center justify-between mb-6">

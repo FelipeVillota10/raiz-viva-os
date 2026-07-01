@@ -32,12 +32,15 @@ class UsuarioService:
             user_obj = self.repository.get_user_by_username(username)
         
         if not user_obj:
+            print(f"[AUTH] Fallo de login: usuario no encontrado para '{username}'")
             return None, 'No se encontró una cuenta con esas credenciales'
         #revisa la contraseña en hash aplicado desde create_user
         if not user_obj.check_password(password):
+            print(f"[AUTH] Fallo de login: contraseña incorrecta para usuario '{user_obj.username}'")
             return None, 'No se encontró una cuenta con esas credenciales'
         #validacion de activo
         if not user_obj.is_active:
+            print(f"[AUTH] Fallo de login: cuenta inactiva user='{user_obj.username}'")
             return None, 'Tu cuenta ha sido desactivada. Contacta al administrador.'
         #instanciacion del cliente mediante el usuario
         cliente = self.repository.get_cliente_by_user(user_obj)
@@ -45,15 +48,20 @@ class UsuarioService:
         #ilegible
         #verificacion del rol y el porque se encontraria inhabilitado.
         if cliente:
+            # Log basic cliente flags for diagnosis
+            print(f"[AUTH] Cliente encontrado: id_cliente={getattr(cliente, 'id_cliente', None)} es_actor={cliente.es_actor} es_lider={cliente.es_lider} es_admin={cliente.es_admin} estado={getattr(cliente.estado, 'nombre_estado', None) if cliente.estado else None}")
             if cliente.es_turista or cliente.es_lider or cliente.es_admin:
                 if not cliente.estado or cliente.estado.nombre_estado == 'inactivo':
+                    print(f"[AUTH] Fallo de login: cliente deshabilitado id_cliente={cliente.id_cliente}")
                     return None, 'Tu cuenta ha sido deshabilitada. Contacta al administrador.'
             #mismo nivel para solo ser aplicado al actor territorial == True        
             elif cliente.es_actor:
                 # Permitir autenticación a actores en revisión
                 if not cliente.estado or cliente.estado.nombre_estado == 'inactivo':
+                    print(f"[AUTH] Fallo de login: actor deshabilitado id_cliente={cliente.id_cliente}")
                     return None, 'Tu cuenta ha sido deshabilitada. Contacta al lider territorial.'
             else:
+                print(f"[AUTH] Fallo de login: cliente en revisión id_cliente={getattr(cliente, 'id_cliente', None)}")
                 return None, 'Tu solicitud esta en revision. El lider territorial la revisara pronto.'
 
         return cliente, None

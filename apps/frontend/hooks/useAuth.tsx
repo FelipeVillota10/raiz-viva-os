@@ -14,6 +14,7 @@ interface AuthContextType {
   user: UserPerfil | null;
   isAuthenticated: boolean;
   isLider: boolean;
+  isAdmin: boolean;
   isActor: boolean;
   isTurista: boolean;
   loading: boolean;
@@ -44,6 +45,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const isAuthenticated = !!user;
   const isLider = user?.es_lider ?? false;
+  const isAdmin = user?.es_admin ?? false;
   const isActor = user?.es_actor ?? false;
   const isTurista = user?.es_turista ?? false;
 
@@ -109,6 +111,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         user,
         isAuthenticated,
         isLider,
+          isAdmin,
         isActor,
         isTurista,
         loading,
