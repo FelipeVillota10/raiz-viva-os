@@ -20,6 +20,7 @@ import { Footer } from "@/components/Footer";
 import { usePaquete } from "@/components/ecoaventuras/PaqueteContext";
 import { useAuth } from "@/hooks/useAuth";
 import { POST_LOGIN_REDIRECT_KEY } from "@/components/ecoaventuras/checkoutRedirect";
+import type { PaqueteItem } from "@/services/paqueteService";
 
 export default function CheckoutPage() {
   const router = useRouter();
@@ -31,6 +32,10 @@ export default function CheckoutPage() {
   const [confirmado, setConfirmado] = useState(false);
   const [pagando, setPagando] = useState(false);
   const [errorPago, setErrorPago] = useState<string | null>(null);
+  // Foto del paquete pagado: el contexto recarga un paquete nuevo y vacío
+  // apenas se confirma el pago (para que el carrito del resto del sitio
+  // quede en 0), pero esta pantalla debe seguir mostrando lo que se pagó.
+  const [resumenPago, setResumenPago] = useState<{ items: PaqueteItem[]; total: number } | null>(null);
   const yaAsociado = useRef(false);
 
   // Botón "Proceder al pago": confirma el pago del paquete en el backend,
@@ -39,10 +44,12 @@ export default function CheckoutPage() {
     setErrorPago(null);
     setPagando(true);
     try {
+      setResumenPago({ items, total });
       await confirmarPago();
       setConfirmado(true);
     } catch {
       setErrorPago("No se pudo procesar el pago. Intenta nuevamente.");
+      setResumenPago(null);
     } finally {
       setPagando(false);
     }
@@ -74,8 +81,8 @@ export default function CheckoutPage() {
     })();
   }, [authLoading, isAuthenticated, asociarUsuario]);
 
-  const items = paquete?.items ?? [];
-  const total = paquete?.total ?? 0;
+  const items = resumenPago ? resumenPago.items : paquete?.items ?? [];
+  const total = resumenPago ? resumenPago.total : paquete?.total ?? 0;
 
   // Estados de carga / redirección
   if (authLoading || !isAuthenticated) {
