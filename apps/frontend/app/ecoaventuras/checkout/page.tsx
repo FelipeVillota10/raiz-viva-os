@@ -24,12 +24,29 @@ import { POST_LOGIN_REDIRECT_KEY } from "@/components/ecoaventuras/checkoutRedir
 export default function CheckoutPage() {
   const router = useRouter();
   const { isAuthenticated, loading: authLoading, user } = useAuth();
-  const { paquete, cargando, recargar, asociarUsuario } = usePaquete();
+  const { paquete, cargando, recargar, asociarUsuario, confirmarPago } = usePaquete();
 
   const [asociando, setAsociando] = useState(false);
   const [errorAsociar, setErrorAsociar] = useState<string | null>(null);
   const [confirmado, setConfirmado] = useState(false);
+  const [pagando, setPagando] = useState(false);
+  const [errorPago, setErrorPago] = useState<string | null>(null);
   const yaAsociado = useRef(false);
+
+  // Botón "Proceder al pago": confirma el pago del paquete en el backend,
+  // que calcula el monto desde NEON y guarda el registro en consolidado_experiencias.
+  const handleProcederPago = async () => {
+    setErrorPago(null);
+    setPagando(true);
+    try {
+      await confirmarPago();
+      setConfirmado(true);
+    } catch {
+      setErrorPago("No se pudo procesar el pago. Intenta nuevamente.");
+    } finally {
+      setPagando(false);
+    }
+  };
 
   // Guard de autenticación: si no hay sesión, guardar el retorno y mandar al login de C1.
   useEffect(() => {
@@ -181,12 +198,20 @@ export default function CheckoutPage() {
                     </p>
                   </div>
                 ) : (
-                  <button
-                    onClick={() => setConfirmado(true)}
-                    className="mt-5 w-full bg-emerald-600 hover:bg-emerald-700 active:scale-[0.98] text-white font-bold py-3.5 rounded-xl transition-all shadow-md hover:shadow-lg text-sm"
-                  >
-                    Proceder al pago →
-                  </button>
+                  <>
+                    {errorPago && (
+                      <div className="mt-4 p-3 bg-red-50 border border-red-200 rounded-xl text-sm text-red-600">
+                        {errorPago}
+                      </div>
+                    )}
+                    <button
+                      onClick={handleProcederPago}
+                      disabled={pagando}
+                      className="mt-5 w-full bg-emerald-600 hover:bg-emerald-700 active:scale-[0.98] text-white font-bold py-3.5 rounded-xl transition-all shadow-md hover:shadow-lg text-sm disabled:opacity-60 disabled:cursor-not-allowed disabled:active:scale-100"
+                    >
+                      {pagando ? "Procesando pago…" : "Proceder al pago →"}
+                    </button>
+                  </>
                 )}
               </div>
             </div>

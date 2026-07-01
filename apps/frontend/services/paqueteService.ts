@@ -46,6 +46,15 @@ export interface PaqueteError {
   code: string;
 }
 
+/** Registro creado en consolidado_experiencias al confirmar el pago del paquete. */
+export interface ConfirmacionPago {
+  id_consolidado_exp: number;
+  cliente: number;
+  paquete: number;
+  monto_pagado: string;
+  fecha_participacion: string;
+}
+
 async function handleResponse<T>(res: Response): Promise<T> {
   const data = await res.json();
   if (!res.ok) throw data as PaqueteError;
@@ -100,5 +109,24 @@ export const paqueteService = {
       headers: token ? { Authorization: `Bearer ${token}` } : {},
     });
     return handleResponse<Paquete>(res);
+  },
+
+  /**
+   * Proceder al pago: confirma el pago del paquete ya asociado al turista
+   * autenticado. El backend calcula el monto desde los items del paquete
+   * en NEON y guarda un único registro en consolidado_experiencias.
+   */
+  async confirmarPago(paqueteId: number): Promise<ConfirmacionPago> {
+    const token = getToken();
+    const res = await fetch(`${BASE_URL}/paquete/pagar/`, {
+      method: "POST",
+      credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+        ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      },
+      body: JSON.stringify({ paquete_id: paqueteId }),
+    });
+    return handleResponse<ConfirmacionPago>(res);
   },
 };
