@@ -36,6 +36,7 @@ urlpatterns = [
 
      path('api/ecoaventuras/', include('EcoAventuras.urls')),
      path('api/', include('Paquete.urls')),
+     path('api/', include('ConsolidadoExperiencia.urls')),
      path('api/', include('Territorio.urls')),
 
     # Ruta raíz (esto soluciona el 404)
