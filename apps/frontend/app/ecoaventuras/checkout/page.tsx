@@ -32,10 +32,6 @@ export default function CheckoutPage() {
   const [confirmado, setConfirmado] = useState(false);
   const [pagando, setPagando] = useState(false);
   const [errorPago, setErrorPago] = useState<string | null>(null);
-  // Foto del paquete pagado: el contexto recarga un paquete nuevo y vacío
-  // apenas se confirma el pago (para que el carrito del resto del sitio
-  // quede en 0), pero esta pantalla debe seguir mostrando lo que se pagó.
-  const [resumenPago, setResumenPago] = useState<{ items: PaqueteItem[]; total: number } | null>(null);
   const yaAsociado = useRef(false);
 
   // Botón "Proceder al pago": confirma el pago del paquete en el backend,
@@ -44,12 +40,10 @@ export default function CheckoutPage() {
     setErrorPago(null);
     setPagando(true);
     try {
-      setResumenPago({ items, total });
       await confirmarPago();
       setConfirmado(true);
     } catch {
       setErrorPago("No se pudo procesar el pago. Intenta nuevamente.");
-      setResumenPago(null);
     } finally {
       setPagando(false);
     }

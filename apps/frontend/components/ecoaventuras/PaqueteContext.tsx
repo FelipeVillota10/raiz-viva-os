@@ -90,12 +90,8 @@ export function PaqueteProvider({ children }: { children: React.ReactNode }) {
   // Proceder al pago: confirma el pago del paquete actual y lo consolida en NEON.
   const confirmarPago = useCallback(async () => {
     if (!paquete) throw new Error("No hay un paquete cargado para pagar.");
-    const data = await paqueteService.confirmarPago(paquete.id);
-    // El backend rota la sesión al pagar: recargar trae el paquete nuevo y
-    // vacío, para que el carrito (badge/drawer) no siga mostrando el ya pagado.
-    await recargar();
-    return data;
-  }, [paquete, recargar]);
+    return paqueteService.confirmarPago(paquete.id);
+  }, [paquete]);
 
   return (
     <PaqueteContext.Provider

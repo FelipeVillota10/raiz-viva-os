@@ -6,7 +6,6 @@ from rest_framework import status
 from rest_framework.permissions import IsAuthenticated
 
 from Paquete.PaqueteModel import Paquete
-from Paquete.PaqueteController import PAQUETE_SESSION_KEY
 from .ConsolidadoExperienciaModel import ConsolidadoExperienciaModel
 from .ConsolidadoExperienciaSerializer import (
     ConfirmarPagoPaqueteSerializer,
@@ -53,14 +52,6 @@ class ConfirmarPagoPaqueteView(APIView):
             monto_pagado=paquete.calcular_total(),
             fecha_participacion=timezone.now(),
         )
-
-        # Cierra el carrito ya pagado: sin esto, la session_key del navegador
-        # seguía apuntando a este mismo Paquete, así que la próxima compra
-        # del mismo usuario reutilizaba este paquete_id (ya consolidado) en
-        # vez de crear uno nuevo. Al rotar la clave, la próxima llamada a
-        # obtener_o_crear_paquete() crea un Paquete distinto.
-        request.session.pop(PAQUETE_SESSION_KEY, None)
-        request.session.modified = True
 
         return Response(
             ConsolidadoExperienciaSerializer(consolidado).data,
