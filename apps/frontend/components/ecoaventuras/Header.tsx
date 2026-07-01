@@ -34,13 +34,8 @@ export function Header() {
         </Link>
 
         <BotonPaqueteHeader />
-
-        <Link
-          href="/admin/ecoaventuras"
-          className="bg-[#8c9a80] hover:bg-[#748171] text-white px-4 py-2 rounded-full text-sm font-medium transition"
-        >
-          Panel Admin
-        </Link>
+        
+        
 
       </nav>
 

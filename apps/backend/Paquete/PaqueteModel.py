@@ -1,9 +1,20 @@
 from django.db import models
+from django.contrib.auth.models import User
 from EcoAventuras.EcoAventuraModel import EcoAventuraModel
 
 
 class Paquete(models.Model):
     session_key = models.CharField(max_length=100)
+    # HU16.2: turista autenticado dueño del paquete. Nullable para no romper
+    # los paquetes anónimos existentes (se asocia al proceder al checkout/pago).
+    usuario = models.ForeignKey(
+        User,
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        db_column="id_usuario",
+        related_name="paquetes",
+    )
     creado_en = models.DateTimeField(auto_now_add=True)
     actualizado_en = models.DateTimeField(auto_now=True)
 

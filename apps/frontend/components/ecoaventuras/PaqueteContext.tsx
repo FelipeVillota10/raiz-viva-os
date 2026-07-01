@@ -12,6 +12,7 @@ interface PaqueteContextType {
   eliminarItem: (itemId: number) => Promise<void>;
   vaciar: () => Promise<void>;
   recargar: () => Promise<void>;
+  asociarUsuario: () => Promise<Paquete>;
   abrirCarrito: () => void;
   cerrarCarrito: () => void;
   carritoAbierto: boolean;
@@ -78,6 +79,13 @@ export function PaqueteProvider({ children }: { children: React.ReactNode }) {
     }
   }, []);
 
+  // HU16.2: liga el paquete de la sesión al turista autenticado antes del pago.
+  const asociarUsuario = useCallback(async () => {
+    const data = await paqueteService.asociarUsuario();
+    setPaquete(data);
+    return data;
+  }, []);
+
   return (
     <PaqueteContext.Provider
       value={{
@@ -89,6 +97,7 @@ export function PaqueteProvider({ children }: { children: React.ReactNode }) {
         eliminarItem,
         vaciar,
         recargar,
+        asociarUsuario,
         abrirCarrito: () => setCarritoAbierto(true),
         cerrarCarrito: () => setCarritoAbierto(false),
         carritoAbierto,

@@ -1,13 +1,36 @@
 "use client";
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { PaqueteItem } from "@/services/paqueteService";
 import { usePaquete } from "@/components/ecoaventuras/PaqueteContext";
+import { useAuth } from "@/hooks/useAuth";
+import { POST_LOGIN_REDIRECT_KEY } from "@/components/ecoaventuras/checkoutRedirect";
 import Image from "next/image";
 
 export default function PaqueteCarrito() {
   const { paquete, carritoAbierto, cerrarCarrito, eliminarItem, vaciar, cargando } = usePaquete();
+  const { isAuthenticated, loading } = useAuth();
+  const router = useRouter();
 
   const items = paquete?.items ?? [];
   const total = paquete?.total ?? 0;
+
+  // HU16.2: retorno automático al flujo de pago de C3 tras iniciar sesión en C1.
+  // Cuando el usuario se autentica y hay un destino de checkout pendiente
+  // (guardado antes de redirigir al login de Célula 1), lo devolvemos allí.
+  useEffect(() => {
+    if (loading || !isAuthenticated) return;
+    const destino = sessionStorage.getItem(POST_LOGIN_REDIRECT_KEY);
+    if (destino) {
+      sessionStorage.removeItem(POST_LOGIN_REDIRECT_KEY);
+      router.push(destino);
+    }
+  }, [isAuthenticated, loading, router]);
+
+  const irAlCheckout = () => {
+    cerrarCarrito();
+    router.push("/ecoaventuras/checkout");
+  };
 
   return (
     <>
@@ -138,7 +161,10 @@ export default function PaqueteCarrito() {
                 ${total.toLocaleString("es-CO")}
               </span>
             </div>
-            <button className="w-full bg-emerald-600 hover:bg-emerald-700 active:scale-[0.98] text-white font-bold py-3.5 rounded-xl transition-all shadow-md hover:shadow-lg text-sm">
+            <button
+              onClick={irAlCheckout}
+              className="w-full bg-emerald-600 hover:bg-emerald-700 active:scale-[0.98] text-white font-bold py-3.5 rounded-xl transition-all shadow-md hover:shadow-lg text-sm"
+            >
               Solicitar paquete →
             </button>
             <button

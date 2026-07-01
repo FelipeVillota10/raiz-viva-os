@@ -36,10 +36,12 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
         cliente, error = service.authenticate(username, password)
 
         if error or not cliente:
+            print(f"[TOKEN] Autenticación fallida para '{username}': {error}")
             raise ValidationError({'detail': error or 'No se encontró un perfil asociado a esta cuenta'})
 
         from rest_framework_simplejwt.tokens import RefreshToken
         refresh = RefreshToken.for_user(cliente.usuario)
+        print(f"[TOKEN] Autenticación exitosa user={cliente.usuario.username} id_cliente={getattr(cliente, 'id_cliente', None)}")
 
         refresh['es_actor'] = cliente.es_actor
         refresh['es_lider'] = cliente.es_lider

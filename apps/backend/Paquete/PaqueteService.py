@@ -99,3 +99,11 @@ class PaqueteService:
     def vaciar_paquete(session_key: str) -> dict:
         PaqueteRepository.vaciar_paquete(session_key)
         return {"success": True}
+
+    @staticmethod
+    def asociar_usuario(session_key: str, user) -> Paquete:
+        """
+        HU16.2: deja el paquete (y sus PaqueteItem) asociado al turista
+        autenticado antes de proceder al pago.
+        """
+        return PaqueteRepository.asociar_usuario(session_key, user)

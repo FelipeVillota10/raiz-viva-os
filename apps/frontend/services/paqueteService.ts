@@ -1,3 +1,5 @@
+import { getToken } from "@/services/authService";
+
 const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api";
 
 export interface EcoAventuraResumen {
@@ -26,6 +28,9 @@ export interface Paquete {
   items: PaqueteItem[];
   total: number;
   num_items: number;
+  /** HU16.2: turista autenticado dueño del paquete (null si aún anónimo). */
+  usuario_id: number | null;
+  usuario_nombre: string | null;
   creado_en: string;
   actualizado_en: string;
 }
@@ -79,5 +84,21 @@ export const paqueteService = {
       credentials: "include",
     });
     return handleResponse<void>(res);
+  },
+
+  /**
+   * HU16.2: asocia el paquete de la sesión actual al turista autenticado.
+   * Requiere haber iniciado sesión (login de Célula 1): envía el JWT en el
+   * header Authorization y la cookie de sesión (credentials: "include") para
+   * que el backend ligue el paquete al usuario antes de proceder al pago.
+   */
+  async asociarUsuario(): Promise<Paquete> {
+    const token = getToken();
+    const res = await fetch(`${BASE_URL}/paquete/asociar/`, {
+      method: "POST",
+      credentials: "include",
+      headers: token ? { Authorization: `Bearer ${token}` } : {},
+    });
+    return handleResponse<Paquete>(res);
   },
 };

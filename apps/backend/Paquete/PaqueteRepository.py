@@ -9,6 +9,17 @@ class PaqueteRepository:
         return paquete
 
     @staticmethod
+    def asociar_usuario(session_key: str, user) -> Paquete:
+        """
+        HU16.2: asocia el paquete de la sesión actual al turista autenticado.
+        Se invoca al proceder al checkout/pago, una vez que el usuario inició sesión.
+        """
+        paquete = PaqueteRepository.obtener_o_crear_paquete(session_key)
+        paquete.usuario = user
+        paquete.save(update_fields=["usuario", "actualizado_en"])
+        return paquete
+
+    @staticmethod
     def obtener_paquete(session_key: str):
         try:
             return Paquete.objects.prefetch_related("items__ecoaventura").get(session_key=session_key)

@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { getEcoAventura, EcoAventura } from "@/services/ecoaventuras";
+import { getEcoAventura, EcoAventura, toggleActivo } from "@/services/ecoaventuras";
+import { useAuth } from "@/hooks/useAuth";
 
 import { Header } from "@/components/ecoaventuras/Header";
 import { Footer } from "@/components/Footer";
@@ -15,6 +16,9 @@ export default function DetalleEcoAventuraPage() {
   const [aventura, setAventura] = useState<EcoAventura | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const { isActor, isLider } = useAuth();
+  const [activo, setActivo] = useState<boolean>(false);
+  const [processing, setProcessing] = useState(false);
 
   useEffect(() => {
     if (!id) return;
@@ -22,6 +26,7 @@ export default function DetalleEcoAventuraPage() {
     getEcoAventura(Number(id))
       .then((data) => {
         setAventura(data);
+        setActivo(!!data.activo);
         setLoading(false);
       })
       .catch((err) => {
@@ -161,6 +166,28 @@ export default function DetalleEcoAventuraPage() {
                 precio={parseFloat(aventura.precio)}
                 capacidadMaxima={aventura.capacidad_maxima ?? 1}
               />
+              {(isActor || isLider) && (
+                <div className="mt-3">
+                  <button
+                    onClick={async () => {
+                      if (processing) return;
+                      setProcessing(true);
+                      try {
+                        const updated = await toggleActivo(aventura.id);
+                        setActivo(!!updated.activo);
+                      } catch (e) {
+                        console.error(e);
+                        alert('No se pudo cambiar el estado. Iniciá sesión o intentá de nuevo.');
+                      } finally {
+                        setProcessing(false);
+                      }
+                    }}
+                    className={`w-full md:w-auto mt-2 px-4 py-2 rounded-xl font-semibold transition ${activo ? 'bg-red-50 border border-red-200 text-red-700' : 'bg-green-50 border border-green-200 text-green-700'}`}
+                  >
+                    {processing ? '...' : activo ? 'Desactivar experiencia' : 'Activar experiencia'}
+                  </button>
+                </div>
+              )}
             </div>
           </div>
 
