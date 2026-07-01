@@ -7,12 +7,17 @@ from .PaqueteSerializer import PaqueteSerializer
 from .PaqueteRepository import PaqueteRepository
 import uuid
 
+# Clave de sesión que identifica el carrito (Paquete) activo del navegador.
+# Compartida con ConsolidadoExperiencia.ConsolidadoExperienciaController, que
+# la rota al confirmar un pago para no reutilizar un Paquete ya consolidado.
+PAQUETE_SESSION_KEY = "paquete_session_key"
+
 
 def get_or_create_session_key(request) -> str:
-    session_key = request.session.get("paquete_session_key")
+    session_key = request.session.get(PAQUETE_SESSION_KEY)
     if not session_key:
         session_key = str(uuid.uuid4())
-        request.session["paquete_session_key"] = session_key
+        request.session[PAQUETE_SESSION_KEY] = session_key
         request.session.modified = True
     return session_key
 
