@@ -20,6 +20,7 @@ import { Footer } from "@/components/Footer";
 import { usePaquete } from "@/components/ecoaventuras/PaqueteContext";
 import { useAuth } from "@/hooks/useAuth";
 import { POST_LOGIN_REDIRECT_KEY } from "@/components/ecoaventuras/checkoutRedirect";
+import type { PaqueteItem } from "@/services/paqueteService";
 
 export default function CheckoutPage() {
   const router = useRouter();
@@ -74,8 +75,8 @@ export default function CheckoutPage() {
     })();
   }, [authLoading, isAuthenticated, asociarUsuario]);
 
-  const items = paquete?.items ?? [];
-  const total = paquete?.total ?? 0;
+  const items = resumenPago ? resumenPago.items : paquete?.items ?? [];
+  const total = resumenPago ? resumenPago.total : paquete?.total ?? 0;
 
   // Estados de carga / redirección
   if (authLoading || !isAuthenticated) {
