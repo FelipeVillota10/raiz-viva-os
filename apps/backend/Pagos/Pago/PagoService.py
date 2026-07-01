@@ -38,11 +38,14 @@ class PagoService:
             'pending': mp_settings.get('PENDING_URL', ''),
         }
 
+        id_consolidado = data.get('id_consolidado')
         id_evento = data.get('id_evento')
+        target_id = id_consolidado or id_evento
+        
         frontend_base = data.get('frontend_base_url', '') or mp_settings.get('FRONTEND_BASE_URL', '')
-        if frontend_base and id_evento:
+        if frontend_base and target_id:
             frontend_base = frontend_base.rstrip('/')
-            base_path = f'{frontend_base}/pagos/reserva/{id_evento}/confirmacion'
+            base_path = f'{frontend_base}/pagos/reserva/{target_id}/confirmacion'
             back_urls = {
                 'success': f'{base_path}?status=approved',
                 'failure': f'{base_path}?status=rejected',
@@ -58,7 +61,12 @@ class PagoService:
             raise ValueError('El monto no puede ser negativo')
 
         moneda = (data.get('moneda') or 'COP').upper()
-        referencia = f"REF-{uuid.uuid4().hex[:10].upper()}"
+        
+        id_consolidado = data.get('id_consolidado')
+        if id_consolidado:
+            referencia = f"CONF-{id_consolidado}-{uuid.uuid4().hex[:8].upper()}"
+        else:
+            referencia = f"REF-{uuid.uuid4().hex[:10].upper()}"
 
         preference_data: Dict[str, Any] = {
             'items': [
@@ -93,6 +101,7 @@ class PagoService:
                 'monto': str(monto),
                 'moneda': moneda,
                 'id_evento': data.get('id_evento'),
+                'id_consolidado': id_consolidado,
                 'notification_url_configured': bool(notification_url),
             },
         )
@@ -126,6 +135,30 @@ class PagoService:
         }
 
     @staticmethod
+    def procesar_confirmacion_pago(referencia: str, status: str, monto: Optional[Decimal] = None) -> None:
+        if status == 'approved' and referencia and referencia.startswith('CONF-'):
+            try:
+                parts = referencia.split('-')
+                if len(parts) >= 2:
+                    id_consolidado = int(parts[1])
+                    from ConsolidadoEvento.repositories import ConsolidadoEventoRepository
+                    consolidado = ConsolidadoEventoRepository.get_by_id(id_consolidado)
+                    if consolidado and not consolidado.pagado:
+                        update_data: Dict[str, Any] = {'pagado': True}
+                        if monto is not None:
+                            update_data['monto_pagado'] = monto
+                        ConsolidadoEventoRepository.update(id_consolidado, update_data)
+                        logger.info(
+                            'consolidado.payment.confirmed',
+                            extra={'id_consolidado': id_consolidado, 'referencia': referencia}
+                        )
+            except Exception as exc:
+                logger.exception(
+                    'consolidado.payment.error_confirming',
+                    extra={'referencia': referencia, 'status': status, 'error': str(exc)}
+                )
+
+    @staticmethod
     def log_webhook(topic: Optional[str], resource_id: Optional[str], payload: Dict[str, Any], query_params: Dict[str, Any]) -> None:
         logger.info(
             'mercadopago.webhook.received',
@@ -136,3 +169,4 @@ class PagoService:
                 'query_params': query_params,
             },
         )
+

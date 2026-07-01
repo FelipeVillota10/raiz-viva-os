@@ -6,7 +6,8 @@ export interface IniciarPagoRequest {
   descripcion: string
   codigo_cupon?: string
   id_cliente?: number | null
-  id_evento?: string | null
+  id_evento?: number | string | null
+  id_consolidado?: number | null
   frontend_base_url?: string
 }
 
