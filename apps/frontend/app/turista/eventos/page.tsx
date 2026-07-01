@@ -2,6 +2,9 @@
 
 import React, { useState, useEffect, useMemo } from 'react';
 import Image from 'next/image';
+import { useSearchParams } from 'next/navigation';
+import { useAuth } from '@/hooks/useAuth';
+import QRCode from 'react-qr-code';
 import { AppHeader } from '@/components/shared/AppHeader';
 import { Footer } from '@/components/shared/Footer';
 import { TuristaEventModal } from '@/components/events/TuristaEventModal';
@@ -27,6 +30,17 @@ interface Territorio {
 }
 
 export default function TuristaEventosPage() {
+  const { isAuthenticated, user } = useAuth();
+  const clientId = user?.id || user?.id_cliente;
+
+  const searchParams = useSearchParams();
+  const defaultTab = searchParams.get('tab') === 'tickets' ? 'mis-tickets' : 'explorar';
+
+  const [activeTab, setActiveTab] = useState<'explorar' | 'mis-tickets'>(defaultTab);
+  const [tiquetes, setTiquetes] = useState<any[]>([]);
+  const [loadingTiquetes, setLoadingTiquetes] = useState(false);
+  const [selectedQR, setSelectedQR] = useState<string | null>(null);
+
   const [events, setEvents] = useState<Evento[]>([]);
   const [territorios, setTerritorios] = useState<Territorio[]>([]);
   const [loading, setLoading] = useState(true);
@@ -69,6 +83,26 @@ export default function TuristaEventosPage() {
     fetchData();
   }, []);
 
+  useEffect(() => {
+    if (activeTab === 'mis-tickets' && clientId) {
+      setLoadingTiquetes(true);
+      fetch(`${API_BASE}/api/tiquetes/?cliente=${clientId}`)
+        .then(res => {
+          if (!res.ok) throw new Error('Error al cargar tus tiquetes');
+          return res.json();
+        })
+        .then(data => {
+          setTiquetes(data.results || data);
+        })
+        .catch(err => {
+          console.error(err);
+        })
+        .finally(() => {
+          setLoadingTiquetes(false);
+        });
+    }
+  }, [activeTab, clientId]);
+
   const filteredEvents = useMemo(() => {
     return events.filter(e => {
       // Búsqueda por nombre
@@ -104,173 +138,268 @@ export default function TuristaEventosPage() {
       
       <main className="flex-1 flex flex-col md:flex-row max-w-7xl mx-auto w-full p-4 sm:p-6 gap-6 pt-24">
         {/* Panel de Filtros */}
-        <aside className="w-full md:w-72 shrink-0">
-          <div className="bg-white rounded-2xl shadow-sm border border-[#e8efe3] p-5 sticky top-24">
-            <h2 className="text-lg font-bold text-[#2c3a26] mb-4 flex items-center gap-2">
-              <svg className="w-5 h-5 text-[#557149]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path></svg>
-              Filtros
-            </h2>
+        {activeTab === 'explorar' && (
+          <aside className="w-full md:w-72 shrink-0 animate-in fade-in slide-in-from-left-2 duration-300">
+            <div className="bg-white rounded-2xl shadow-sm border border-[#e8efe3] p-5 sticky top-24">
+              <h2 className="text-lg font-bold text-[#2c3a26] mb-4 flex items-center gap-2">
+                <svg className="w-5 h-5 text-[#557149]" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z"></path></svg>
+                Filtros
+              </h2>
 
-            <div className="space-y-5">
-              <div>
-                <label className="block text-sm font-medium text-[#4a633f] mb-1">Buscar</label>
-                <input 
-                  type="text" 
-                  value={search}
-                  onChange={(e) => setSearch(e.target.value)}
-                  placeholder="Nombre del evento..."
-                  className="w-full px-3 py-2 border border-[#d3ddca] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#557149]/50 text-sm"
-                />
-              </div>
+              <div className="space-y-5">
+                <div>
+                  <label className="block text-sm font-medium text-[#4a633f] mb-1">Buscar</label>
+                  <input 
+                    type="text" 
+                    value={search}
+                    onChange={(e) => setSearch(e.target.value)}
+                    placeholder="Nombre del evento..."
+                    className="w-full px-3 py-2 border border-[#d3ddca] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#557149]/50 text-sm"
+                  />
+                </div>
 
-              <div>
-                <label className="block text-sm font-medium text-[#4a633f] mb-1">Territorio</label>
-                <select 
-                  value={territorioId}
-                  onChange={(e) => setTerritorioId(e.target.value)}
-                  className="w-full px-3 py-2 border border-[#d3ddca] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#557149]/50 text-sm bg-white"
+                <div>
+                  <label className="block text-sm font-medium text-[#4a633f] mb-1">Territorio</label>
+                  <select 
+                    value={territorioId}
+                    onChange={(e) => setTerritorioId(e.target.value)}
+                    className="w-full px-3 py-2 border border-[#d3ddca] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#557149]/50 text-sm bg-white"
+                  >
+                    <option value="">Todos los territorios</option>
+                    {territorios.map(t => (
+                      <option key={t.id_territorio} value={t.id_territorio}>{t.nombre_territorio}</option>
+                    ))}
+                  </select>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-[#4a633f] mb-1">Fecha exacta</label>
+                  <input 
+                    type="date" 
+                    value={dateStr}
+                    onChange={(e) => setDateStr(e.target.value)}
+                    className="w-full px-3 py-2 border border-[#d3ddca] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#557149]/50 text-sm"
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-[#4a633f] mb-1">Precio máximo (COP)</label>
+                  <input 
+                    type="number" 
+                    value={priceMax}
+                    onChange={(e) => setPriceMax(e.target.value ? Number(e.target.value) : '')}
+                    placeholder="Cualquier precio"
+                    className="w-full px-3 py-2 border border-[#d3ddca] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#557149]/50 text-sm"
+                    disabled={isFree}
+                  />
+                </div>
+
+                <div className="flex items-center gap-2 pt-2">
+                  <input 
+                    type="checkbox" 
+                    id="isFree"
+                    checked={isFree}
+                    onChange={(e) => setIsFree(e.target.checked)}
+                    className="w-4 h-4 text-[#557149] focus:ring-[#557149] border-[#d3ddca] rounded"
+                  />
+                  <label htmlFor="isFree" className="text-sm font-medium text-[#4a633f] cursor-pointer">
+                    Solo eventos gratuitos
+                  </label>
+                </div>
+
+                <button 
+                  onClick={() => {
+                    setSearch('');
+                    setPriceMax('');
+                    setTerritorioId('');
+                    setDateStr('');
+                    setIsFree(false);
+                  }}
+                  className="w-full py-2 mt-4 text-sm text-[#8c9a80] hover:text-[#557149] hover:bg-[#f4ede0] rounded-lg transition-colors font-medium"
                 >
-                  <option value="">Todos los territorios</option>
-                  {territorios.map(t => (
-                    <option key={t.id_territorio} value={t.id_territorio}>{t.nombre_territorio}</option>
-                  ))}
-                </select>
+                  Limpiar Filtros
+                </button>
               </div>
-
-              <div>
-                <label className="block text-sm font-medium text-[#4a633f] mb-1">Fecha exacta</label>
-                <input 
-                  type="date" 
-                  value={dateStr}
-                  onChange={(e) => setDateStr(e.target.value)}
-                  className="w-full px-3 py-2 border border-[#d3ddca] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#557149]/50 text-sm"
-                />
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-[#4a633f] mb-1">Precio máximo (COP)</label>
-                <input 
-                  type="number" 
-                  value={priceMax}
-                  onChange={(e) => setPriceMax(e.target.value ? Number(e.target.value) : '')}
-                  placeholder="Cualquier precio"
-                  className="w-full px-3 py-2 border border-[#d3ddca] rounded-lg focus:outline-none focus:ring-2 focus:ring-[#557149]/50 text-sm"
-                  disabled={isFree}
-                />
-              </div>
-
-              <div className="flex items-center gap-2 pt-2">
-                <input 
-                  type="checkbox" 
-                  id="isFree"
-                  checked={isFree}
-                  onChange={(e) => setIsFree(e.target.checked)}
-                  className="w-4 h-4 text-[#557149] focus:ring-[#557149] border-[#d3ddca] rounded"
-                />
-                <label htmlFor="isFree" className="text-sm font-medium text-[#4a633f] cursor-pointer">
-                  Solo eventos gratuitos
-                </label>
-              </div>
-
-              <button 
-                onClick={() => {
-                  setSearch('');
-                  setPriceMax('');
-                  setTerritorioId('');
-                  setDateStr('');
-                  setIsFree(false);
-                }}
-                className="w-full py-2 mt-4 text-sm text-[#8c9a80] hover:text-[#557149] hover:bg-[#f4ede0] rounded-lg transition-colors font-medium"
-              >
-                Limpiar Filtros
-              </button>
             </div>
-          </div>
-        </aside>
+          </aside>
+        )}
 
-        {/* Lista de Eventos */}
+        {/* Lista de Eventos / Tickets */}
         <section className="flex-1">
           <div className="mb-6">
-            <h1 className="text-3xl font-extrabold text-[#2c3a26]">Explora la Aventura</h1>
-            <p className="text-[#6b7a63] mt-1">Encuentra los mejores eventos publicados y prepárate para vivir algo único.</p>
+            <h1 className="text-3xl font-extrabold text-[#2c3a26]">
+              {activeTab === 'explorar' ? 'Explora la Aventura' : 'Mis Tickets y QRs'}
+            </h1>
+            <p className="text-[#6b7a63] mt-1">
+              {activeTab === 'explorar' 
+                ? 'Encuentra los mejores eventos publicados y prepárate para vivir algo único.'
+                : 'Aquí se muestran los códigos QR de tus tiquetes para acceder a los eventos.'}
+            </p>
           </div>
 
-          {loading ? (
-            <div className="flex justify-center items-center py-20">
-              <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#557149]"></div>
+          {/* Tabs Navigation */}
+          {isAuthenticated && (
+            <div className="flex gap-6 border-b border-[#d3ddca] mb-6 pb-px">
+              <button
+                onClick={() => setActiveTab('explorar')}
+                className={`pb-3 text-base font-bold transition-all relative cursor-pointer ${
+                  activeTab === 'explorar'
+                    ? 'text-[#557149]'
+                    : 'text-[#8c9a80] hover:text-[#557149]'
+                }`}
+              >
+                Explorar Aventuras
+                {activeTab === 'explorar' && (
+                  <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#557149] rounded-full animate-in fade-in duration-300" />
+                )}
+              </button>
+              <button
+                onClick={() => setActiveTab('mis-tickets')}
+                className={`pb-3 text-base font-bold transition-all relative flex items-center gap-2 cursor-pointer ${
+                  activeTab === 'mis-tickets'
+                    ? 'text-[#557149]'
+                    : 'text-[#8c9a80] hover:text-[#557149]'
+                }`}
+              >
+                <span>🎟️</span> Mis Tickets y QRs
+                {activeTab === 'mis-tickets' && (
+                  <span className="absolute bottom-0 left-0 right-0 h-0.5 bg-[#557149] rounded-full animate-in fade-in duration-300" />
+                )}
+              </button>
             </div>
-          ) : error ? (
-            <div className="bg-red-50 text-red-600 p-4 rounded-xl border border-red-100 text-sm">
-              {error}
-            </div>
-          ) : filteredEvents.length === 0 ? (
-            <div className="bg-white rounded-2xl border border-dashed border-[#8c9a80] p-12 text-center">
-              <span className="text-4xl mb-3 block">🍃</span>
-              <h3 className="text-lg font-bold text-[#4a633f] mb-1">No hay eventos disponibles</h3>
-              <p className="text-[#8c9a80] text-sm">Intenta ajustar los filtros para encontrar lo que buscas.</p>
-            </div>
-          ) : (
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6">
-              {filteredEvents.map(event => {
-                const territorio = territorios.find(t => t.id_territorio === event.id_territorio);
-                return (
-                  <div key={event.id_evento} className="bg-white rounded-2xl overflow-hidden border border-[#e8efe3] shadow-sm hover:shadow-lg transition-shadow group flex flex-col">
-                    <div className="h-48 bg-gray-200 relative overflow-hidden shrink-0">
-                      {event.imagen ? (
-                        <Image src={event.imagen} alt={event.nombre} fill className="object-cover group-hover:scale-105 transition-transform duration-500" />
-                      ) : (
-                        <div className="w-full h-full bg-gradient-to-tr from-[#557149] to-[#8c9a80] flex items-center justify-center opacity-80 group-hover:opacity-100 transition-opacity">
-                          <span className="text-white font-bold opacity-50 text-xl tracking-widest uppercase">Raíz Viva</span>
+          )}
+
+          {activeTab === 'explorar' ? (
+            loading ? (
+              <div className="flex justify-center items-center py-20">
+                <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#557149]"></div>
+              </div>
+            ) : error ? (
+              <div className="bg-red-50 text-red-600 p-4 rounded-xl border border-red-100 text-sm">
+                {error}
+              </div>
+            ) : filteredEvents.length === 0 ? (
+              <div className="bg-white rounded-2xl border border-dashed border-[#8c9a80] p-12 text-center">
+                <span className="text-4xl mb-3 block">🍃</span>
+                <h3 className="text-lg font-bold text-[#4a633f] mb-1">No hay eventos disponibles</h3>
+                <p className="text-[#8c9a80] text-sm">Intenta ajustar los filtros para encontrar lo que buscas.</p>
+              </div>
+            ) : (
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 animate-in fade-in duration-300">
+                {filteredEvents.map(event => {
+                  const territorio = territorios.find(t => t.id_territorio === event.id_territorio);
+                  return (
+                    <div key={event.id_evento} className="bg-white rounded-2xl overflow-hidden border border-[#e8efe3] shadow-sm hover:shadow-lg transition-shadow group flex flex-col">
+                      <div className="h-48 bg-gray-200 relative overflow-hidden shrink-0">
+                        {event.imagen ? (
+                          <Image src={event.imagen} alt={event.nombre} fill className="object-cover group-hover:scale-105 transition-transform duration-500" />
+                        ) : (
+                          <div className="w-full h-full bg-gradient-to-tr from-[#557149] to-[#8c9a80] flex items-center justify-center opacity-80 group-hover:opacity-100 transition-opacity">
+                            <span className="text-white font-bold opacity-50 text-xl tracking-widest uppercase">Raíz Viva</span>
+                          </div>
+                        )}
+                        <div className="absolute top-3 right-3 bg-white/90 backdrop-blur text-[#2c3a26] text-xs font-bold px-3 py-1.5 rounded-full shadow-sm">
+                          {event.id_categoria?.nombre || 'General'}
                         </div>
-                      )}
-                      <div className="absolute top-3 right-3 bg-white/90 backdrop-blur text-[#2c3a26] text-xs font-bold px-3 py-1.5 rounded-full shadow-sm">
-                        {event.id_categoria?.nombre || 'General'}
-                      </div>
-                    </div>
-                    
-                    <div className="p-5 flex flex-col flex-1">
-                      <div className="flex items-start justify-between mb-2">
-                        <h3 className="font-extrabold text-xl text-[#2c3a26] line-clamp-1">{event.nombre}</h3>
                       </div>
                       
-                      <p className="text-sm text-[#6b7a63] line-clamp-2 mb-4 flex-1">
-                        {event.descripcion || 'Sin descripción disponible.'}
-                      </p>
+                      <div className="p-5 flex flex-col flex-1">
+                        <div className="flex items-start justify-between mb-2">
+                          <h3 className="font-extrabold text-xl text-[#2c3a26] line-clamp-1">{event.nombre}</h3>
+                        </div>
+                        
+                        <p className="text-sm text-[#6b7a63] line-clamp-2 mb-4 flex-1">
+                          {event.descripcion || 'Sin descripción disponible.'}
+                        </p>
 
-                      <div className="space-y-2 mb-4">
-                        <div className="flex items-center text-xs text-[#4a633f] gap-2">
-                          <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
-                          <span className="truncate">{territorio?.nombre_territorio || 'Territorio desconocido'}</span>
+                        <div className="space-y-2 mb-4">
+                          <div className="flex items-center text-xs text-[#4a633f] gap-2">
+                            <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                            <span className="truncate">{territorio?.nombre_territorio || 'Territorio desconocido'}</span>
+                          </div>
+                          <div className="flex items-center text-xs text-[#4a633f] gap-2">
+                            <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
+                            <span>{formatDate(event.fecha_inicio)}</span>
+                          </div>
+                          <div className="flex items-center text-xs text-[#4a633f] gap-2">
+                            <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+                            <span>Cupos: {event.capacidad} personas</span>
+                          </div>
                         </div>
-                        <div className="flex items-center text-xs text-[#4a633f] gap-2">
-                          <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>
-                          <span>{formatDate(event.fecha_inicio)}</span>
-                        </div>
-                        <div className="flex items-center text-xs text-[#4a633f] gap-2">
-                          <svg className="w-4 h-4 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
-                          <span>Cupos: {event.capacidad} personas</span>
-                        </div>
-                      </div>
 
-                      <div className="pt-4 border-t border-[#e8efe3] flex items-center justify-between mt-auto">
-                        <span className="font-black text-lg text-[#557149]">
-                          {event.es_gratuito || Number(event.costo_evento) === 0 
-                            ? 'Gratis' 
-                            : `$${Number(event.costo_evento).toLocaleString('es-CO')} COP`}
-                        </span>
-                        <button 
-                          onClick={() => {
-                            setSelectedEvent(event);
-                          }}
-                          className="px-4 py-1.5 bg-[#f4ede0] hover:bg-[#557149] text-[#557149] hover:text-white text-sm font-bold rounded-lg transition-colors"
-                        >
-                          Ver más
-                        </button>
+                        <div className="pt-4 border-t border-[#e8efe3] flex items-center justify-between mt-auto">
+                          <span className="font-black text-lg text-[#557149]">
+                            {event.es_gratuito || Number(event.costo_evento) === 0 
+                              ? 'Gratis' 
+                              : `$${Number(event.costo_evento).toLocaleString('es-CO')} COP`}
+                          </span>
+                          <button 
+                            onClick={() => {
+                              setSelectedEvent(event);
+                            }}
+                            className="px-4 py-1.5 bg-[#f4ede0] hover:bg-[#557149] text-[#557149] hover:text-white text-sm font-bold rounded-lg transition-colors cursor-pointer"
+                          >
+                            Ver más
+                          </button>
+                        </div>
                       </div>
                     </div>
-                  </div>
-                );
-              })}
+                  );
+                })}
+              </div>
+            )
+          ) : (
+            /* Tab: Mis Tickets y QRs */
+            <div className="animate-in fade-in duration-300">
+              {loadingTiquetes ? (
+                <div className="flex justify-center items-center py-20">
+                  <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-[#557149]"></div>
+                </div>
+              ) : tiquetes.length === 0 ? (
+                <div className="bg-white rounded-2xl border border-dashed border-[#8c9a80] p-12 text-center">
+                  <span className="text-4xl mb-3 block">🎫</span>
+                  <h3 className="text-lg font-bold text-[#4a633f] mb-1">No tienes tiquetes generados</h3>
+                  <p className="text-[#8c9a80] text-sm">Reserva o compra entradas para visualizar tus códigos de ingreso.</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-in fade-in duration-300">
+                  {tiquetes.map(t => {
+                    const event = events.find(ev => ev.id_evento === t.id_evento);
+                    if (!event) return null;
+                    const territorio = territorios.find(tr => tr.id_territorio === event.id_territorio);
+                    return (
+                      <div key={t.id_tiquete} className="bg-white rounded-2xl border border-[#e8efe3] overflow-hidden shadow-sm flex flex-col items-center p-6 hover:shadow-md transition-shadow relative">
+                        <div className="w-full flex items-center gap-4 mb-4 pb-4 border-b border-[#f4ede0]">
+                          <div className="w-12 h-12 relative bg-[#557149] rounded-xl overflow-hidden shrink-0 shadow-inner">
+                            {event.imagen ? (
+                              <Image src={event.imagen} alt={event.nombre} fill className="object-cover" />
+                            ) : (
+                              <div className="w-full h-full flex items-center justify-center text-white text-[10px] font-bold">RV</div>
+                            )}
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            <h3 className="font-extrabold text-sm text-[#2c3a26] truncate">{event.nombre}</h3>
+                            <p className="text-[10px] text-[#6b7a63] font-semibold">{territorio?.nombre_territorio || 'Territorio'}</p>
+                            <p className="text-[10px] text-[#8c9a80]">{formatDate(event.fecha_inicio)}</p>
+                          </div>
+                        </div>
+
+                        {/* QR Code Container */}
+                        <div 
+                          onClick={() => setSelectedQR(t.codigo)}
+                          className="bg-[#fdfbf7] p-4 rounded-2xl border border-[#e8e0d0] shadow-inner mb-4 flex items-center justify-center cursor-pointer hover:scale-105 active:scale-95 transition-all duration-300 hover:shadow-md"
+                          title="Hacer clic para ampliar QR"
+                        >
+                          <QRCode value={t.codigo} size={130} />
+                        </div>
+
+                        <p className="text-base font-mono font-black text-[#557149] tracking-widest uppercase mb-1">{t.codigo}</p>
+                        <p className="text-[10px] text-[#8c9a80] uppercase tracking-wider font-bold">Muestra este QR en la entrada</p>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
             </div>
           )}
         </section>
@@ -284,6 +413,32 @@ export default function TuristaEventosPage() {
         nombreTerritorio={selectedEvent ? (territorios.find(t => t.id_territorio === selectedEvent.id_territorio)?.nombre_territorio || 'Territorio') : 'Territorio'}
         onClose={() => setSelectedEvent(null)}
       />
+
+      {/* Modal QR Ampliado */}
+      {selectedQR && (
+        <div 
+          className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-black/60 transition-opacity animate-in fade-in duration-200" 
+          onClick={() => setSelectedQR(null)}
+        >
+          <div 
+            className="bg-white rounded-[2rem] p-8 max-w-sm w-full flex flex-col items-center shadow-2xl relative animate-in zoom-in-95 duration-300" 
+            onClick={e => e.stopPropagation()}
+          >
+            <button 
+              onClick={() => setSelectedQR(null)} 
+              className="absolute top-4 right-4 text-[#8c9a80] hover:text-[#557149] bg-[#f4ede0] hover:bg-[#e8efe3] p-1.5 rounded-full transition-colors cursor-pointer"
+            >
+              <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+            <h3 className="text-lg font-bold text-[#2c3a26] mb-6">Código de Acceso</h3>
+            <div className="bg-[#fdfbf7] p-6 rounded-2xl border border-[#e8e0d0] shadow-inner mb-6">
+              <QRCode value={selectedQR} size={200} />
+            </div>
+            <p className="text-2xl font-mono font-black text-[#557149] tracking-widest uppercase mb-2">{selectedQR}</p>
+            <p className="text-xs text-gray-500 text-center leading-relaxed">Presenta este código QR al guía o encargado del evento para validar tu ingreso.</p>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

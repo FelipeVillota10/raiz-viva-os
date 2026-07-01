@@ -268,10 +268,10 @@ export default function DetalleReservaPage({ params }: { params: Promise<{ id: s
 
             {consolidado?.pagado ? (
               <button
-                disabled
-                className="w-full bg-green-600 text-white rounded-xl py-4 font-semibold text-base sm:text-lg cursor-not-allowed opacity-75"
+                onClick={() => router.push('/turista/eventos?tab=tickets')}
+                className="w-full bg-green-600 hover:bg-green-700 text-white rounded-xl py-4 font-semibold text-base sm:text-lg transition cursor-pointer"
               >
-                ✓ Pago Completado
+                ✓ Pago Completado — Volver a Eventos
               </button>
             ) : (
               <button

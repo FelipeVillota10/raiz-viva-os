@@ -32,6 +32,7 @@ export default function PagarReservaPage({
   const [nombre, setNombre] = useState("");
   const [loadingPago, setLoadingPago] = useState(false);
   const [errorPago, setErrorPago] = useState<string | null>(null);
+  const [simulatingPago, setSimulatingPago] = useState(false);
 
   useEffect(() => {
     const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
@@ -142,6 +143,35 @@ export default function PagarReservaPage({
       setLoadingPago(false);
     }
   }, [evento, consolidado, email, nombre, montoFinal, cupon, id]);
+
+  const handleSimularPago = useCallback(async () => {
+    if (!evento || !consolidado) return;
+    setErrorPago(null);
+    setSimulatingPago(true);
+
+    try {
+      const API_BASE = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
+      const res = await fetch(`${API_BASE}/api/consolidado_eventos/${id}/`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          pagado: true,
+        }),
+      });
+
+      if (!res.ok) {
+        throw new Error("No se pudo actualizar el estado de pago en el servidor.");
+      }
+
+      router.push(`/pagos/reserva/${id}/detalle`);
+    } catch (e: any) {
+      setErrorPago(e.message || "Error al simular el pago.");
+    } finally {
+      setSimulatingPago(false);
+    }
+  }, [evento, consolidado, id, router]);
 
 
   if (loadingEvento) {
@@ -389,7 +419,7 @@ export default function PagarReservaPage({
 
           <button
             onClick={handlePagar}
-            disabled={loadingPago}
+            disabled={loadingPago || simulatingPago}
             className="w-full mt-auto"
           >
             <span
@@ -422,6 +452,48 @@ export default function PagarReservaPage({
                 </>
               ) : (
                 `Pagar $${montoFinal.toLocaleString("es-CO")} COP`
+              )}
+            </span>
+          </button>
+
+          <button
+            type="button"
+            onClick={handleSimularPago}
+            disabled={loadingPago || simulatingPago}
+            className="w-full mt-3 group"
+          >
+            <span
+              className={`flex items-center justify-center gap-2 rounded-full py-4 text-lg sm:text-xl font-semibold transition text-white cursor-pointer border border-amber-600/30 bg-gradient-to-r from-amber-600 to-amber-700 hover:from-amber-700 hover:to-amber-800 shadow-md shadow-amber-700/20 active:scale-[0.98] ${
+                loadingPago || simulatingPago ? "opacity-60 cursor-not-allowed" : ""
+              }`}
+            >
+              {simulatingPago ? (
+                <>
+                  <svg
+                    className="animate-spin h-5 w-5 text-white"
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    aria-hidden="true"
+                  >
+                    <circle
+                      className="opacity-25"
+                      cx="12"
+                      cy="12"
+                      r="10"
+                      stroke="currentColor"
+                      strokeWidth="4"
+                    />
+                    <path
+                      className="opacity-75"
+                      fill="currentColor"
+                      d="M4 12a8 8 0 018-8v8H4z"
+                    />
+                  </svg>
+                  Simulando Pago...
+                </>
+              ) : (
+                "🧪 Simular Pago Completo"
               )}
             </span>
           </button>
