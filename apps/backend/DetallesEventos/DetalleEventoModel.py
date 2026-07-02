@@ -8,9 +8,25 @@ class DetalleEventoModel(models.Model):
         on_delete=models.CASCADE,
         db_column='id_evento'
     )
-    distribucion_pago = models.TextField(blank=True, null=True)
-    es_local = models.BooleanField(default=True)
-    colaboradores = models.IntegerField(blank=True, null=True, db_column='id_colaboradores')
+    distribucion_pago = models.DecimalField(max_digits=10, decimal_places=2, blank=True, null=True)
+    
+    id_estado = models.ForeignKey(
+        'Estados.EstadoModel',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        db_column='id_estado'
+    )
+    
+    id_colaboradores = models.ForeignKey(
+        'Clientes.ClienteModel',
+        on_delete=models.CASCADE,
+        db_column='id_colaboradores',
+        limit_choices_to={'es_actor': True},
+        related_name='detalles_eventos_colaborador',
+        null=True,
+        blank=True
+    )
 
     class Meta:
         db_table = 'detalles_eventos'
