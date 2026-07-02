@@ -218,8 +218,10 @@ CORS_ALLOWED_ORIGINS = [
     "https://raiz-viva-frontend-git-*.vercel.app",
 ]
 CORS_ALLOW_ALL_ORIGINS = True
-CORS_ALLOW_METHODS = ["*"]
-CORS_ALLOW_HEADERS = ["*"]
+# No usar ["*"] en methods/headers: con CORS_ALLOW_CREDENTIALS=True el navegador
+# no interpreta "*" como comodín en peticiones con credentials:"include", así que
+# el header Authorization del preflight quedaría sin permitir. Se dejan los
+# defaults de django-cors-headers (incluyen authorization, content-type, etc.).
 
 SESSION_COOKIE_SAMESITE = 'Lax'
 SESSION_COOKIE_HTTPONLY = True
