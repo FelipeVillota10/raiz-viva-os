@@ -127,7 +127,7 @@ export default async function DashboardPage() {
           </>
         ) : null}
         {/* Ventas por territorio */}
-                {metrics.ventas_por_territorio && metrics.ventas_por_territorio.length > 0 && (
+                {metrics?.ventas_por_territorio && metrics.ventas_por_territorio.length > 0 && (
                 <div style={{
                     background: "#ffffff",
                     borderRadius: "14px",
