@@ -28,11 +28,13 @@
 
 'use client';
 
+import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
 import BotonPaqueteHeader from "@/components/ecoaventuras/BotonPaqueteHeader";
+import TiquetesModal from "@/components/shared/TiquetesModal";
 
 /** Roles posibles del header (solo se usan como hint de título, no como decisores de nav) */
 export type HeaderRole = 'admin' | 'lider' | 'public' | 'login';
@@ -87,6 +89,16 @@ function LogoutButton({ onClick }: { onClick: () => void }) {
 export function AppHeader({ role = 'public', backRoute, title, actions, rightSlot }: AppHeaderProps) {
   const pathname = usePathname();
   const router = useRouter();
+  const [tiquetesOpen, setTiquetesOpen] = useState(false);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('tab') === 'tickets') {
+        setTiquetesOpen(true);
+      }
+    }
+  }, [pathname]);
 
   /**
    * useAuth se llama SIEMPRE, sin condicionales (regla de Hooks).
@@ -330,6 +342,14 @@ export function AppHeader({ role = 'public', backRoute, title, actions, rightSlo
         </button>
       </Link>
 
+      {/* 🎟️ Botón de Mis Tickets */}
+      <button
+        onClick={() => setTiquetesOpen(true)}
+        className="bg-white/20 hover:bg-white/30 text-white px-4 py-2 rounded-full text-sm font-medium transition flex items-center gap-1.5 cursor-pointer"
+      >
+        <span>🎟️</span> Mis Tickets
+      </button>
+
       <button
         onClick={() => handleLogout('/')}
         className="bg-white/20 hover:bg-white/30 text-white px-4 py-2 rounded-full text-sm font-medium transition"
@@ -381,6 +401,9 @@ export function AppHeader({ role = 'public', backRoute, title, actions, rightSlo
         {renderNav()}
         {rightSlot}
       </div>
+      {tiquetesOpen && (
+        <TiquetesModal onClose={() => setTiquetesOpen(false)} />
+      )}
     </header>
   );
 }

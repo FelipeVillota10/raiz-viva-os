@@ -53,7 +53,47 @@ class ConfirmarPagoPaqueteView(APIView):
             fecha_participacion=timezone.now(),
         )
 
+        # Generar los tiquetes correspondientes a las ecoaventuras del paquete
+        from Experiencia.ExperienciaModel import ExperienciaModel
+        from Tiquetes.TiqueteModel import Tiquete
+        from Estados.EstadoModel import EstadoModel
+        import uuid
+        from datetime import timedelta
+        
+        try:
+            estado_activo = EstadoModel.objects.get(id=9)
+        except EstadoModel.DoesNotExist:
+            estado_activo = EstadoModel.objects.first()
+            
+        for item in paquete.items.all():
+            # Crear un registro de ExperienciaModel para representar esta eco-aventura comprada
+            experiencia = ExperienciaModel.objects.create(
+                territorio=item.ecoaventura.territorio,
+                costo_total=item.subtotal(),
+                nombre=item.ecoaventura.nombre,
+                descripcion=item.ecoaventura.descripcion
+            )
+            
+            # Crear tiquetes individuales para cada persona/participante
+            for _ in range(item.num_personas):
+                Tiquete.objects.create(
+                    id_cliente=cliente,
+                    id_estado=estado_activo,
+                    id_experiencia=experiencia,
+                    codigo=str(uuid.uuid4()).upper()[:12],
+                    fecha_vencimiento=timezone.now() + timedelta(days=30)
+                )
+
         return Response(
             ConsolidadoExperienciaSerializer(consolidado).data,
             status=status.HTTP_201_CREATED,
         )
+
+
+from rest_framework import viewsets
+from rest_framework.permissions import AllowAny
+
+class ConsolidadoExperienciaViewSet(viewsets.ModelViewSet):
+    permission_classes = [AllowAny]
+    queryset = ConsolidadoExperienciaModel.objects.all()
+    serializer_class = ConsolidadoExperienciaSerializer

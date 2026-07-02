@@ -32,18 +32,18 @@ export default function CheckoutPage() {
   const [confirmado, setConfirmado] = useState(false);
   const [pagando, setPagando] = useState(false);
   const [errorPago, setErrorPago] = useState<string | null>(null);
+  const [resumenPago, setResumenPago] = useState<{ items: PaqueteItem[]; total: number } | null>(null);
   const yaAsociado = useRef(false);
 
-  // Botón "Proceder al pago": confirma el pago del paquete en el backend,
-  // que calcula el monto desde NEON y guarda el registro en consolidado_experiencias.
+  // Botón "Proceder al pago": crea la consolidación en la BD y redirige a la pantalla previa de pago.
   const handleProcederPago = async () => {
     setErrorPago(null);
     setPagando(true);
     try {
-      await confirmarPago();
-      setConfirmado(true);
-    } catch {
-      setErrorPago("No se pudo procesar el pago. Intenta nuevamente.");
+      const result = await confirmarPago();
+      router.push(`/pagos/paquete/${result.id_consolidado_exp}`);
+    } catch (e: any) {
+      setErrorPago(e.message || "No se pudo procesar el pago. Intenta nuevamente.");
     } finally {
       setPagando(false);
     }
@@ -139,7 +139,7 @@ export default function CheckoutPage() {
           {!cargando && !asociando && items.length > 0 && (
             <div className="bg-white rounded-2xl border border-gray-100 shadow-sm overflow-hidden">
               <ul className="divide-y divide-gray-100">
-                {items.map((item) => (
+                {items.map((item: PaqueteItem) => (
                   <li key={item.id} className="flex gap-4 p-4">
                     <div className="w-16 h-16 rounded-lg overflow-hidden bg-emerald-50 flex-shrink-0">
                       {item.ecoaventura.portada ? (

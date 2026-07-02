@@ -9,6 +9,8 @@ class ExperienciaModel(models.Model):
                        db_column='id_territorio'
                      )
     costo_total    = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
+    nombre         = models.CharField(max_length=100, null=True, blank=True)
+    descripcion    = models.TextField(null=True, blank=True)
  
     class Meta:
         managed  = False
