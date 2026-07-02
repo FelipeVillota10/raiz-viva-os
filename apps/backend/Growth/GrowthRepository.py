@@ -35,7 +35,7 @@ class GrowthRepository:
         from DetallesEventos.DetalleEventoModel import DetalleEventoModel
 
         eventos_con_colaborador = DetalleEventoModel.objects.filter(
-            colaboradores__isnull=False 
+            id_colaboradores__isnull=False 
         ).values_list('id_evento_id', flat=True)
 
         ventas = ConsolidadoEventoModel.objects.filter(
