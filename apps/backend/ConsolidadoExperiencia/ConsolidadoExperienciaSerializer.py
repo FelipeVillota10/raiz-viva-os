@@ -1,5 +1,6 @@
 from rest_framework import serializers
 from .ConsolidadoExperienciaModel import ConsolidadoExperienciaModel
+from Paquete.PaqueteSerializer import PaqueteSerializer
 
 
 class ConfirmarPagoPaqueteSerializer(serializers.Serializer):
@@ -9,6 +10,7 @@ class ConfirmarPagoPaqueteSerializer(serializers.Serializer):
 
 class ConsolidadoExperienciaSerializer(serializers.ModelSerializer):
     """Representa el registro ya guardado en consolidado_experiencias."""
+    paquete = PaqueteSerializer(read_only=True)
 
     class Meta:
         model = ConsolidadoExperienciaModel

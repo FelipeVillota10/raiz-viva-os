@@ -1,6 +1,6 @@
 import { getToken } from "@/services/authService";
 
-const BASE_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000/api";
+const BASE_URL = `${process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000"}/api`;
 
 export interface EcoAventuraResumen {
   id: number;
