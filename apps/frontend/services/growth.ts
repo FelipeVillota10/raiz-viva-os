@@ -13,7 +13,7 @@ export interface GrowthMetrics {
 }
 
 export async function fetchGrowthMetrics(): Promise<GrowthMetrics> {
-  const res = await fetch("http://127.0.0.1:8000/api/growth/", {
+  const res = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/api/growth/`, {
     cache: "no-store",
   });
 
