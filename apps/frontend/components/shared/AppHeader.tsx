@@ -332,6 +332,9 @@ export function AppHeader({ role = 'public', backRoute, title, actions, rightSlo
           </button>
         </Link>
       )}
+      <NavLink href="/comentariosTurista" active={pathname.startsWith('/comentariosTurista')}>
+        Comentarios
+      </NavLink>
       <span className="text-sm text-white">Hola, {user?.nombre_completo}</span>
 
       {/* 🎒 Botón de Mi paquete exclusivo para armar el viaje */}

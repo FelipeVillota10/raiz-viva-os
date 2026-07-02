@@ -31,12 +31,44 @@ class GrowthRepository:
         return ventas_eventos + ventas_experiencias
 
     def get_ventas_actores_locales(self):
-        from django.db import connection
-        with connection.cursor() as cursor:
-            cursor.execute("""
-                SELECT COALESCE(SUM(ce.monto_pagado), 0)
-                FROM consolidado_eventos ce
-                INNER JOIN detalles_eventos de ON de.id_evento = ce.id_evento
-                WHERE de.es_local = TRUE
-            """)
-            return cursor.fetchone()[0]
+        from ConsolidadoEvento.ConsolidadoEventoModel import ConsolidadoEventoModel
+        from DetallesEventos.DetalleEventoModel import DetalleEventoModel
+
+        eventos_con_colaborador = DetalleEventoModel.objects.filter(
+            colaboradores__isnull=False 
+        ).values_list('id_evento_id', flat=True)
+
+        ventas = ConsolidadoEventoModel.objects.filter(
+            evento__in=eventos_con_colaborador  
+        ).aggregate(total=Sum('monto_pagado'))['total'] or 0
+
+        return ventas
+
+    def get_ventas_por_territorio(self):
+        from ConsolidadoEvento.ConsolidadoEventoModel import ConsolidadoEventoModel
+        from Territorio.TerritorioModel import TerritorioModel
+        from Evento.EventoModel import EventoModel
+
+        territorios = TerritorioModel.objects.all()
+        resultado = []
+
+        for territorio in territorios:
+            # Primero obtenemos los IDs de eventos de ese territorio
+            eventos_ids = EventoModel.objects.filter(
+                territorio=territorio.id_territorio
+            ).values_list('id_evento', flat=True)
+
+            # Luego sumamos los consolidados de esos eventos
+            total = ConsolidadoEventoModel.objects.filter(
+                evento_id__in=eventos_ids
+            ).aggregate(total=Sum('monto_pagado'))['total'] or 0
+
+            resultado.append({
+                'id': territorio.id_territorio,
+                'nombre': territorio.nombre_territorio,
+                'region': territorio.region or '—',
+                'total': float(total),
+            })
+
+        resultado.sort(key=lambda x: x['total'], reverse=True)
+        return resultado

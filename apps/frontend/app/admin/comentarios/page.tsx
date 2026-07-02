@@ -13,7 +13,9 @@ import {
 } from "@/services/comentariosApi";
 
 import { Footer } from '@/components/shared/Footer';
+
 import { ComentarioForm } from "@/components/comentarios/ComentarioForm";
+
 import { ComentarioList } from "@/components/comentarios/ComentarioList";
 import { FiltrosComentarios } from "@/components/comentarios/FiltrosComentarios";
 import { ComentarioModal } from "@/components/comentarios/ComentarioModal";
@@ -107,6 +109,7 @@ export default function ComentariosPage() {
 
   // ───────────────── Handlers ─────────────────
 
+
   const handleCreate = async (payload: ComentarioPayload) => {
   setLoadingForm(true);
 
@@ -125,6 +128,7 @@ export default function ComentariosPage() {
     setLoadingForm(false);
   }
 };
+
 
   const handlePatch = async (
   id: number,
@@ -301,6 +305,7 @@ export default function ComentariosPage() {
             </p>
           </div>
 
+
           <button
             onClick={() => setShowForm((v) => !v)}
             style={{
@@ -320,6 +325,7 @@ export default function ComentariosPage() {
           >
             {showForm ? "Cerrar formulario" : "Nuevo comentario"}
           </button>
+
         </div>
 
         {/* STATS */}
@@ -604,9 +610,9 @@ export default function ComentariosPage() {
         </div>
       </main>
 
-      {/* FOOTER */}
 
       <Footer />
+
     </div>
   );
 }
