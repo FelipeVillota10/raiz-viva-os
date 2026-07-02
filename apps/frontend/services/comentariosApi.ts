@@ -33,7 +33,7 @@ export interface FiltrosParams {
   prioridad?: number | "";
 }
 
-const BASE = "http://127.0.0.1:8000/api/comentarios";
+const BASE = `${process.env.NEXT_PUBLIC_API_URL}/api/comentarios`;
 
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
   const res = await fetch(`${BASE}${path}`, {
