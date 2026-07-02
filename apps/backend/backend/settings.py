@@ -218,6 +218,8 @@ CORS_ALLOWED_ORIGINS = [
     "https://raiz-viva-frontend-git-*.vercel.app",
 ]
 CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOW_METHODS = ["*"]
+CORS_ALLOW_HEADERS = ["*"]
 
 SESSION_COOKIE_SAMESITE = 'Lax'
 SESSION_COOKIE_HTTPONLY = True
