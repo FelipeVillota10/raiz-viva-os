@@ -28,13 +28,25 @@ class PaqueteSerializer(serializers.ModelSerializer):
     items = PaqueteItemSerializer(many=True, read_only=True)
     total = serializers.SerializerMethodField()
     num_items = serializers.SerializerMethodField()
+    # HU16.2: datos del turista autenticado dueño del paquete. Quedan disponibles
+    # como datos estructurados para que Célula 4 (pagos) los consuma junto al total.
+    usuario_id = serializers.IntegerField(read_only=True)
+    usuario_nombre = serializers.SerializerMethodField()
 
     class Meta:
         model = Paquete
-        fields = ["id", "session_key", "items", "total", "num_items", "creado_en", "actualizado_en"]
+        fields = [
+            "id", "session_key", "items", "total", "num_items",
+            "usuario_id", "usuario_nombre", "creado_en", "actualizado_en",
+        ]
 
     def get_total(self, obj):
         return obj.calcular_total()
 
     def get_num_items(self, obj):
         return obj.items.count()
+
+    def get_usuario_nombre(self, obj):
+        if not obj.usuario:
+            return None
+        return obj.usuario.get_full_name() or obj.usuario.username

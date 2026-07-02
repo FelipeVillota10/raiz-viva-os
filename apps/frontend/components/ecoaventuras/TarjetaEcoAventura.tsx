@@ -1,8 +1,10 @@
-"use client";                                                       
+"use client";
 
 import Link from "next/link";
-import { EcoAventura } from "@/services/ecoaventuras";
-import BotonAgregarPaquete from "@/components/ecoaventuras/BotonAgregarPaquete"; // 
+import { useState } from "react";
+import { EcoAventura, toggleActivo } from "@/services/ecoaventuras";
+import { useAuth } from "@/hooks/useAuth";
+import BotonAgregarPaquete from "@/components/ecoaventuras/BotonAgregarPaquete";
 
 const DIFICULTAD_COLOR: Record<string, string> = {
   BAJA: "bg-green-100 text-green-800",
@@ -18,6 +20,25 @@ interface Props {
 }
 
 export function TarjetaEcoAventura({ eco }: Props) {
+  const { isActor, isLider } = useAuth();
+  const [activo, setActivo] = useState<boolean>(!!eco.activo);
+  const [processing, setProcessing] = useState(false);
+
+  async function handleToggleActivo(e: React.MouseEvent) {
+    e.preventDefault();
+    if (processing) return;
+    setProcessing(true);
+    try {
+      const updated = await toggleActivo(eco.id);
+      setActivo(!!updated.activo);
+    } catch (err) {
+      console.error("toggleActivo error:", err);
+      alert("No se pudo cambiar el estado. Iniciá sesión o intentá de nuevo.");
+    } finally {
+      setProcessing(false);
+    }
+  }
+
   return (
     <div className="bg-white rounded-2xl shadow-md overflow-hidden hover:shadow-lg hover:-translate-y-1 transition-all duration-200">  
       
@@ -66,14 +87,27 @@ export function TarjetaEcoAventura({ eco }: Props) {
         </div>
       </Link>
 
-      
-      <div className="px-4 pb-4 pt-2">                              
-        <BotonAgregarPaquete
-          ecoaventuraId={eco.id}
-          precio={Number(eco.precio)}
-          capacidadMaxima={eco.capacidad_maxima ?? 1}  
-        />                                                           
-      </div>                                                         
+      <div className="px-4 pb-4 pt-2">
+        <div className="flex gap-2 items-center">
+          <div className="flex-1">
+            <BotonAgregarPaquete
+              ecoaventuraId={eco.id}
+              precio={Number(eco.precio)}
+              capacidadMaxima={eco.capacidad_maxima ?? 1}
+            />
+          </div>
+
+          {(isActor || isLider) && (
+            <button
+              onClick={handleToggleActivo}
+              disabled={processing}
+              className={`ml-2 px-3 py-2 rounded-xl text-sm font-semibold border transition ${activo ? 'bg-red-50 border-red-200 text-red-700' : 'bg-green-50 border-green-200 text-green-700'}`}
+            >
+              {processing ? '...' : activo ? 'Desactivar' : 'Activar'}
+            </button>
+          )}
+        </div>
+      </div>
 
     </div>
   );

@@ -75,7 +75,7 @@ function ProfileActions({
 
 export default function MiPerfilPage() {
   const router = useRouter();
-  const { isAuthenticated, isActor, loading: authLoading } = useAuth();
+  const { isAuthenticated, isActor, isLider, loading: authLoading } = useAuth();
   const {
     perfil,
     servicios,
@@ -146,6 +146,15 @@ export default function MiPerfilPage() {
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-3xl font-bold text-[#557149]">Mi Perfil</h1>
         <div className="flex gap-2">
+          {/* Botón para acceder al panel de administración de EcoAventuras (solo líderes/administradores) */}
+          {(isLider || perfil?.es_lider || perfil?.es_actor) && ( 
+            <button
+              onClick={() => router.push('/admin/ecoaventuras')}
+              className="hidden md:inline-flex items-center gap-2 bg-emerald-600 hover:bg-emerald-700 text-white px-3 py-2 rounded-xl font-semibold transition"
+            >
+              Panel Eco-Aventuras
+            </button>
+          )}
           <ProfileActions
             isEditing={isEditing}
             saving={saving}

@@ -57,3 +57,7 @@ class EcoAventuraRepository:
             defaults=data,
         )
         return itinerario
+
+    @staticmethod
+    def obtener_por_cliente(id_cliente: int):
+        return EcoAventuraModel.objects.filter(creado_por__id_cliente=id_cliente).order_by('id')

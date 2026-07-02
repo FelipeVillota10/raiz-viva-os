@@ -28,10 +28,13 @@
 
 'use client';
 
+import { useState, useEffect } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { useAuth } from '@/hooks/useAuth';
+import BotonPaqueteHeader from "@/components/ecoaventuras/BotonPaqueteHeader";
+import TiquetesModal from "@/components/shared/TiquetesModal";
 
 /** Roles posibles del header (solo se usan como hint de título, no como decisores de nav) */
 export type HeaderRole = 'admin' | 'lider' | 'public' | 'login';
@@ -86,6 +89,16 @@ function LogoutButton({ onClick }: { onClick: () => void }) {
 export function AppHeader({ role = 'public', backRoute, title, actions, rightSlot }: AppHeaderProps) {
   const pathname = usePathname();
   const router = useRouter();
+  const [tiquetesOpen, setTiquetesOpen] = useState(false);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      if (params.get('tab') === 'tickets') {
+        setTiquetesOpen(true);
+      }
+    }
+  }, [pathname]);
 
   /**
    * useAuth se llama SIEMPRE, sin condicionales (regla de Hooks).
@@ -249,12 +262,23 @@ export function AppHeader({ role = 'public', backRoute, title, actions, rightSlo
         </Link>
       )}
       <span className="text-sm text-white">Hola, {user?.nombre_completo}</span>
+
+      {/* 🎒 Botón de Mi paquete */}
+      <Link href="/ecoaventuras">
+        <button className="bg-[#e8f5e9] text-[#2e7d32] px-4 py-2 rounded-full flex items-center gap-2 text-sm font-medium transition">
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path></svg>
+          Mi paquete
+        </button>
+      </Link>
+
+      {/* 🛡️ Botón exclusivo del Panel Líder */}
       <button
         onClick={() => router.push('/lider/aprobaciones')}
-        className="bg-white/20 hover:bg-white/30 text-white px-4 py-2 rounded-full text-sm font-medium transition"
+        className="bg-[#81c784] hover:bg-[#66bb6a] text-white px-4 py-2 rounded-full text-sm font-medium transition"
       >
         Panel Líder
       </button>
+
       <button
         onClick={() => handleLogout('/')}
         className="bg-white/20 hover:bg-white/30 text-white px-4 py-2 rounded-full text-sm font-medium transition"
@@ -312,7 +336,23 @@ export function AppHeader({ role = 'public', backRoute, title, actions, rightSlo
         Comentarios
       </NavLink>
       <span className="text-sm text-white">Hola, {user?.nombre_completo}</span>
-      
+
+      {/* 🎒 Botón de Mi paquete exclusivo para armar el viaje */}
+      <Link href="/ecoaventuras">
+        <button className="bg-[#e8f5e9] text-[#2e7d32] px-4 py-2 rounded-full flex items-center gap-2 text-sm font-medium transition">
+          <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"></path></svg>
+          Mi paquete
+        </button>
+      </Link>
+
+      {/* 🎟️ Botón de Mis Tickets */}
+      <button
+        onClick={() => setTiquetesOpen(true)}
+        className="bg-white/20 hover:bg-white/30 text-white px-4 py-2 rounded-full text-sm font-medium transition flex items-center gap-1.5 cursor-pointer"
+      >
+        <span>🎟️</span> Mis Tickets
+      </button>
+
       <button
         onClick={() => handleLogout('/')}
         className="bg-white/20 hover:bg-white/30 text-white px-4 py-2 rounded-full text-sm font-medium transition"
@@ -364,6 +404,9 @@ export function AppHeader({ role = 'public', backRoute, title, actions, rightSlo
         {renderNav()}
         {rightSlot}
       </div>
+      {tiquetesOpen && (
+        <TiquetesModal onClose={() => setTiquetesOpen(false)} />
+      )}
     </header>
   );
 }

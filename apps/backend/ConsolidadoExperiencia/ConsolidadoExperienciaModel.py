@@ -1,6 +1,6 @@
 from django.db import models
 from Clientes.ClienteModel import ClienteModel
-from Experiencia.ExperienciaModel import ExperienciaModel
+from Paquete.PaqueteModel import Paquete
 
 class ConsolidadoExperienciaModel(models.Model):
     id_consolidado_exp  = models.AutoField(primary_key=True)
@@ -9,10 +9,13 @@ class ConsolidadoExperienciaModel(models.Model):
                             on_delete=models.DO_NOTHING,
                             db_column='id_cliente'
                           )
-    experiencia         = models.ForeignKey(
-                            ExperienciaModel,
+    # id_experiencia fue eliminada de Neon y reemplazada por paquete_id: el
+    # consolidado ahora registra UN pago por paquete completo (que puede
+    # agrupar varias ecoaventuras), no un pago por experiencia individual.
+    paquete              = models.ForeignKey(
+                            Paquete,
                             on_delete=models.DO_NOTHING,
-                            db_column='id_experiencia'
+                            db_column='paquete_id'
                           )
     monto_pagado        = models.DecimalField(max_digits=12, decimal_places=2, null=True, blank=True)
     fecha_participacion = models.DateTimeField(null=True, blank=True)

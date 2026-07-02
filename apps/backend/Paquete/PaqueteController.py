@@ -1,17 +1,23 @@
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
+from rest_framework.permissions import IsAuthenticated
 from .PaqueteService import PaqueteService
 from .PaqueteSerializer import PaqueteSerializer
 from .PaqueteRepository import PaqueteRepository
 import uuid
 
+# Clave de sesión que identifica el carrito (Paquete) activo del navegador.
+# Compartida con ConsolidadoExperiencia.ConsolidadoExperienciaController, que
+# la rota al confirmar un pago para no reutilizar un Paquete ya consolidado.
+PAQUETE_SESSION_KEY = "paquete_session_key"
+
 
 def get_or_create_session_key(request) -> str:
-    session_key = request.session.get("paquete_session_key")
+    session_key = request.session.get(PAQUETE_SESSION_KEY)
     if not session_key:
         session_key = str(uuid.uuid4())
-        request.session["paquete_session_key"] = session_key
+        request.session[PAQUETE_SESSION_KEY] = session_key
         request.session.modified = True
     return session_key
 
@@ -65,3 +71,18 @@ class EliminarItemView(APIView):
 
         paquete = PaqueteRepository.obtener_o_crear_paquete(session_key)
         return Response(PaqueteSerializer(paquete).data)
+
+
+class AsociarUsuarioView(APIView):
+    """
+    HU16.2: asocia el paquete de la sesión actual al turista autenticado.
+    Requiere un JWT válido (login de Célula 1). Se llama al proceder al
+    checkout, una vez que el usuario inició sesión, para que la reserva
+    quede ligada al usuario en NEON antes del pago (Célula 4).
+    """
+    permission_classes = [IsAuthenticated]
+
+    def post(self, request):
+        session_key = get_or_create_session_key(request)
+        paquete = PaqueteService.asociar_usuario(session_key, request.user)
+        return Response(PaqueteSerializer(paquete).data, status=status.HTTP_200_OK)
